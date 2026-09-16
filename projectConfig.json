@@ -1,0 +1,11 @@
+{
+  "projectName": "github-repo-name",
+  "serveInNewTab": false,
+  "langs": [
+    "en-us",
+    "it-it"
+  ],
+  "variants": [
+    "BRAND_variantName"
+  ]
+}

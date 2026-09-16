@@ -1,0 +1,12 @@
+@import "./utils/local";
+@import "./utils/variables";
+
+$banner-id: $bannerName;
+
+#{$banner-id} {
+  width: 100%;
+  position: relative;
+  content-visibility: auto;
+  // overflow: hidden;
+  @import "./layout/layout";
+}

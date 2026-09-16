@@ -1,0 +1,42 @@
+# System Files
+.DS_Store
+Thumbs.db
+
+# vscode
+.editorconfig
+.package-lock
+.vscode
+
+# Logs
+*.log
+
+# Dotenv
+.env
+.env.*
+!.env.example
+
+# Composer
+vendor
+
+# npm
+node_modules
+package-lock.json
+
+# bower
+bower_components
+
+# temporary build files
+.tmp
+src/scss/.tmp
+
+#build folder
+dist
+
+#images
+src/images
+
+#tanslation files
+.smartling*
+translated/
+
+*-MACNBLX036904*
