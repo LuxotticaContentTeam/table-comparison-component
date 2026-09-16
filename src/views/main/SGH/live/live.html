@@ -1,0 +1,17 @@
+<!-- Prepended to the built HTML by tasks/views.task.js when creating a release,
+     producing release/SGH/<version>/index__<version>.html — the standalone
+     preview page, not the CoreMedia fragment (that one is fragment.html).
+
+     One tag is enough: the bundle injects the stylesheet and fetches the
+     content json itself (src/js/modules/bootstrap.js). Do not add a <link>
+     here — it would bypass the injector's data-ct-css guard and the page would
+     end up with the stylesheet twice.
+
+     The src below is written with the same build tokens the bundle uses, and
+     exportViews (tasks/views.task.js) substitutes them from
+     package.json > projectConfigurations.paths.productionAsset and
+     package.json > version. Nothing here is edited by hand: a version bump is
+     picked up on its own. Do not spell the token names out anywhere else in
+     this file — the substitution is a plain string replace and would rewrite
+     the prose too. -->
+<script defer src="@assetPath@main__@buildVersion@.min.js"></script>

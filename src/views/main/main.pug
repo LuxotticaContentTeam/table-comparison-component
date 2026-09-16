@@ -1,23 +1,44 @@
-//- if !isProd
-//- 	div(class="env-example space" style="width:100%; height:1500px;" )
-if !isProd
-	div(class="env-example")
-		h2( style ="color:grey") [ -- CONTENT JUST IN DEV MODE NOT PART OF THE MODULE -- ]
-		h4( style ="color:grey") [ -- Usefull for replicate element of the website (menu/nav), or to add space to test lazy loading -- ]
+//- Module container + the placeholder skeleton, shared by every brand.
+//-
+//- This is NOT the real table. The real one is N products wide by M rows tall
+//- and neither number is known until the content json has landed, so
+//- src/js/contents.js empties this container and rebuilds it.
+//-
+//- What ships here is deliberately generic — two columns, five rows — and is
+//- deliberately NOT generated from the json: if it were, adding a product would
+//- change this html and oblige a re-paste into the CoreMedia row. Generic costs
+//- one small layout shift and keeps the content json the only file that ever
+//- has to be re-uploaded.
+//-
+//- Figma: SGH desktop 1020:42173, SGH mobile 1020:47170, SGH title 1020:36519,
+//- LC 3-product desktop 5720:35673.
 
-div( id="ct_cm--" + bannerName   data-ct-module=bannerName  )
-	div(class="env-example")
-		h4(style ="color:burlywood") [ -- COMMON HTML -- ]
-		p(style ="color:burlywood") [ -- this HTML is part of the module and if common for all the brands  -- ]
-		p(style ="color:burlywood") [ -- if the HTML of the module doesn't require edits between brands, put here all the HTML  -- ]
+- var SKELETON_COLUMNS = [0, 1]
+- var SKELETON_ROWS = [0, 1, 2, 3, 4]
 
-	//- Component examples --- 
+div( id="ct_cm--" + bannerName  data-ct-module=bannerName )
+	section.ct_comparison.ct_comparison--skeleton(aria-busy="true")
+		.ct_comparison__intro
+			.ct_comparison__title.ct_comparison__placeholder
+			.ct_comparison__subtitle.ct_comparison__placeholder
 
-	//- BUTTON EXAMPLE WITH ANALTYCS (in dev mode on click a console log will be triggered with the data that will be sent to analytics, in build it will send the data to utag_data)
-	button(class="env-example" aria-label="button example" data-tracking-id="button1" data-tracking-description="CLICK") BUTTON EXAMPLE
+		.ct_comparison__table(role="table")
+			.ct_comparison__head(role="row")
+				.ct_comparison__corner(role="columnheader")
+				each index in SKELETON_COLUMNS
+					.ct_comparison__product(role="columnheader" data-skeleton-index=index)
+						.ct_comparison__product-image
+						.ct_comparison__product-meta.ct_comparison__placeholder
+						.ct_comparison__product-name.ct_comparison__placeholder
+						.ct_comparison__product-price.ct_comparison__placeholder
+						.ct_comparison__cta.ct_comparison__placeholder
 
-	//- img example, the cross origin attribute on dev is null so it's automatically removed and doesn't create CORS issues, while in build is set to anonymous.
-	img(class="env-example" src="./static/images/example.png" alt="placeholder" crossorigin=crossOrigin loading="lazy")
-	
-	//- this part import the main.pug of the current variant in developement/build 
+			.ct_comparison__body(role="rowgroup")
+				each row in SKELETON_ROWS
+					.ct_comparison__row(role="row")
+						.ct_comparison__label(role="rowheader")
+						each index in SKELETON_COLUMNS
+							.ct_comparison__cell(role="cell")
+
+	//- Brand-specific HTML, when a variant needs any: src/views/main/<VARIANT>/main.pug
 	!= brandHtml

@@ -1,0 +1,505 @@
+// ---------------------------------------------------------------------------
+// The comparison table — layout and styling shared by every brand.
+//
+// Figma: SGH desktop 1020:42173, SGH mobile 1020:47170, SGH title 1020:36519,
+// LC 3-product desktop 5720:35673 (a different brand, same structure).
+//
+// Every colour, size and gap comes from scss/variants/<BRAND>/_variables.scss.
+// Nothing brand-specific belongs in this file: the LC frame renders from the
+// same markup with a different token file.
+//
+// ⚠️ A variant's main.scss must keep its
+// `@import "../../components/comparison-table"` or the table renders unstyled
+// and nothing warns you — Sass compiles happily.
+// ---------------------------------------------------------------------------
+
+.ct_comparison {
+  box-sizing: border-box;
+  padding: $section-padding-block 0;
+  background: $color-surface;
+  color: $color-text;
+  font-family: $font-primary;
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+// --- intro -----------------------------------------------------------------
+
+.ct_comparison__intro {
+  padding: 0 $section-padding-right-desk 16px;
+  text-align: center;
+
+  @media (max-width: $tab-max) {
+    padding: 0 $section-padding-inline-mob 16px;
+  }
+}
+
+.ct_comparison__title {
+  margin: 0;
+  font-family: $font-display;
+  font-weight: $font-weight-regular;
+  font-size: $font-size-title-desk;
+  line-height: $line-height-title;
+  color: $color-text-strong;
+  text-transform: $title-transform;
+
+  @media (max-width: $tab-max) {
+    font-size: $font-size-title-mob;
+  }
+}
+
+.ct_comparison__subtitle {
+  margin: 16px 0 0;
+  font-size: $font-size-body;
+  line-height: $line-height-body;
+  color: $color-text-strong;
+}
+
+// --- the only-differences switch -------------------------------------------
+//
+// Rendered only in a two-product table — see modules/comparisonState.js for
+// why three products cannot answer "hide the rows that are the same".
+//
+// It is a grid item inside the table, spanning every track, so it can sit
+// between the product columns and the rows exactly as the design has it. The
+// left indent lines it up with the first product column: the label track plus
+// the column gap.
+.ct_comparison__toolbar {
+  grid-column: 1 / -1;
+  padding: 0 0 $toolbar-padding-bottom ($label-column-width + $gap-column-desk);
+
+  @media (max-width: $tab-max) {
+    padding: 0 0 $gap-row-mob;
+  }
+}
+
+.ct_comparison__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  font-size: $font-size-body;
+  line-height: $line-height-body;
+  color: $color-text-strong;
+}
+
+// The native checkbox stays in the DOM and keeps the label, the keyboard and
+// screen readers working; the track below is what is actually seen.
+.ct_comparison__toggle-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ct_comparison__toggle-track {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  width: $switch-width;
+  height: $switch-height;
+  border-radius: $switch-height * 0.5;
+  background: $color-switch-off;
+  transition: background 0.2s ease;
+}
+
+.ct_comparison__toggle-knob {
+  position: absolute;
+  top: ($switch-height - $switch-knob) * 0.5;
+  left: ($switch-height - $switch-knob) * 0.5;
+  width: $switch-knob;
+  height: $switch-knob;
+  border-radius: 50%;
+  background: $color-switch-knob;
+  transition: transform 0.2s ease;
+}
+
+.ct_comparison__toggle-input:checked ~ .ct_comparison__toggle-track {
+  background: $color-switch-on;
+}
+
+.ct_comparison__toggle-input:checked ~ .ct_comparison__toggle-track .ct_comparison__toggle-knob {
+  transform: translateX($switch-width - $switch-knob - ($switch-height - $switch-knob));
+}
+
+.ct_comparison__toggle-input:focus-visible ~ .ct_comparison__toggle-track {
+  outline: 2px solid $color-text-strong;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct_comparison__toggle-track,
+  .ct_comparison__toggle-knob {
+    transition: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The grid
+//
+// One grid governs the whole table. `--ct-columns` is written by contents.js
+// from the number of products the json holds — N on desktop, always 2 in the
+// compact layout — so nothing here has to know how many products there are.
+//
+// The head, the body and each row are `display: contents`: they exist in the
+// DOM for semantics (role="row" / "rowgroup") but contribute no box, so their
+// cells participate in the table's own tracks. Without this each row would be
+// its own formatting context and a long label in one row could not line up
+// with the columns of the next.
+// ---------------------------------------------------------------------------
+
+.ct_comparison__table {
+  --ct-columns: 2;
+  display: grid;
+  grid-template-columns: $label-column-width repeat(var(--ct-columns), minmax(0, 1fr));
+  column-gap: $gap-column-desk;
+  row-gap: $gap-row-desk;
+  align-items: stretch;
+  padding-right: $section-padding-right-desk;
+
+  // Compact: the label moves above its cells and spans the full width, so the
+  // label column disappears and the two products split the row.
+  @media (max-width: $tab-max) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: $gap-column-mob;
+    row-gap: $gap-row-mob;
+    padding: 0 $section-padding-inline-mob;
+  }
+}
+
+.ct_comparison__head,
+.ct_comparison__body,
+.ct_comparison__row {
+  display: contents;
+}
+
+// The empty cell above the row labels. It holds the first grid track open on
+// desktop and is removed from the flow entirely in the compact layout.
+.ct_comparison__corner {
+  @media (max-width: $tab-max) {
+    display: none;
+  }
+}
+
+// --- product columns -------------------------------------------------------
+
+.ct_comparison__product {
+  display: flex;
+  flex-direction: column;
+  align-items: $product-align;
+  gap: $product-gap;
+  padding-bottom: $product-padding-bottom;
+  text-align: $product-text-align;
+
+  @media (max-width: $tab-max) {
+    align-items: flex-start;
+    padding-bottom: 0;
+    margin-bottom: $gap-block-mob - $gap-row-mob;
+  }
+}
+
+.ct_comparison__product-image {
+  display: block;
+  width: $product-image-width;
+  max-width: 100%;
+  height: $product-image-height;
+  border-radius: $product-image-radius;
+  object-fit: contain;
+
+  // The mobile frame drops the packshot: at 375px two columns leave no room
+  // for a 240px image, and the name carries the identification instead.
+  @media (max-width: $tab-max) {
+    display: none;
+  }
+}
+
+.ct_comparison__product-meta {
+  font-size: $font-size-meta-desk;
+  line-height: $line-height-body;
+  letter-spacing: $letter-spacing-label;
+  color: $color-muted;
+
+  @media (max-width: $tab-max) {
+    font-size: $font-size-meta-mob;
+    letter-spacing: 0;
+  }
+}
+
+.ct_comparison__product-name {
+  font-family: $font-display;
+  font-weight: $font-weight-regular;
+  font-size: $font-size-product-desk;
+  line-height: $line-height-title;
+  color: $color-text;
+
+  @media (max-width: $tab-max) {
+    font-size: $font-size-product-mob;
+    color: $color-text-strong;
+  }
+}
+
+.ct_comparison__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: $font-size-small;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-body;
+  letter-spacing: $letter-spacing-label;
+  text-transform: uppercase;
+  color: $color-text-strong;
+}
+
+.ct_comparison__badge-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+// --- price -----------------------------------------------------------------
+//
+// "Starting from $349.99" with the amount in bold, then the list price struck
+// through. The struck figure only appears when the storefront reports a live
+// promotion (see modules/productApi.js).
+
+.ct_comparison__product-price {
+  display: flex;
+  align-items: baseline;
+  gap: $product-gap;
+  font-size: $font-size-body;
+  line-height: $line-height-body;
+  color: $color-text;
+
+  // Stacked on mobile, side by side on desktop.
+  @media (max-width: $tab-max) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+.ct_comparison__price-amount {
+  font-weight: $font-weight-bold;
+}
+
+.ct_comparison__price-was {
+  font-size: $font-size-small;
+  color: $color-muted;
+  text-decoration: line-through;
+}
+
+.ct_comparison__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $cta-padding-block $cta-padding-inline;
+  border-radius: $cta-radius;
+  background: $color-cta-bg;
+  color: $color-cta-text;
+  font-size: $font-size-body;
+  line-height: $line-height-cta;
+  text-decoration: none;
+
+  @media (max-width: $tab-max) {
+    width: 100%;
+    height: $cta-height-mob;
+    padding-inline: $cta-padding-inline-mob;
+  }
+}
+
+// --- the compact product switcher ------------------------------------------
+//
+// Only rendered below the desktop breakpoint, and only when the json holds
+// more than two products. Structure from Figma LC_RBM Aperol - Luna
+// `5720:35891`; colours, fonts and radius are SGH's.
+//
+// The trigger carries the product currently in the column, so the list below
+// holds exactly the products that are not in a column — which is the rule,
+// stated literally. See modules/comparisonState.js and modules/productSelector.js.
+
+.ct_comparison__selector {
+  position: relative;
+  width: 100%;
+  margin-bottom: $gap-column-mob;
+}
+
+.ct_comparison__selector-trigger,
+.ct_comparison__selector-option {
+  display: flex;
+  align-items: center;
+  gap: $selector-gap;
+  width: 100%;
+  padding: $selector-padding-block $selector-padding-inline;
+  background: $color-surface;
+  font-family: $font-primary;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ct_comparison__selector-trigger {
+  justify-content: space-between;
+  border: 1px solid $color-border;
+  border-radius: $selector-radius;
+  color: $color-text-strong;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-text-strong;
+    outline-offset: 2px;
+  }
+}
+
+.ct_comparison__selector-text {
+  display: flex;
+  flex-direction: column;
+  gap: $selector-text-gap;
+  min-width: 0;
+}
+
+.ct_comparison__selector-eyebrow {
+  font-size: $font-size-small;
+  line-height: $line-height-selector-eyebrow;
+  letter-spacing: $letter-spacing-label;
+  text-transform: uppercase;
+  color: $color-muted;
+}
+
+.ct_comparison__selector-value {
+  font-size: $font-size-selector-value;
+  line-height: $line-height-selector-value;
+  color: $color-text-strong;
+  word-break: break-word;
+}
+
+.ct_comparison__selector-chevron {
+  display: block;
+  flex: 0 0 $selector-chevron;
+  width: $selector-chevron;
+  height: $selector-chevron;
+  transition: transform 0.2s ease;
+}
+
+.ct_comparison__selector[data-open="true"] .ct_comparison__selector-chevron {
+  transform: rotate(180deg);
+}
+
+// The open state has no frame of its own in Figma — only the closed control is
+// drawn. The list therefore borrows the trigger's own box language rather than
+// inventing a second one.
+.ct_comparison__selector-list {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid $color-border;
+  border-radius: $selector-radius;
+  background: $color-surface;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.ct_comparison__selector-option {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $selector-text-gap;
+
+  & + & {
+    border-top: 1px solid $color-border;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: $color-cell-bg;
+    outline: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct_comparison__selector-chevron {
+    transition: none;
+  }
+}
+
+// --- rows ------------------------------------------------------------------
+
+.ct_comparison__label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: $row-min-height;
+  padding: 0 0 0 $label-padding-left;
+  font-size: $font-size-small;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-body;
+  letter-spacing: $letter-spacing-label;
+  text-transform: uppercase;
+  text-align: right;
+  color: $color-text-strong;
+
+  // Compact: the label leaves the first column, spans the row and sits above
+  // its cells, left aligned.
+  @media (max-width: $tab-max) {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 0;
+    text-align: left;
+  }
+}
+
+// The vertical rhythm on mobile is 16px between a label and its cells and
+// 32px between one block and the next. row-gap gives the 16; this adds the
+// rest above every label but the first.
+@media (max-width: $tab-max) {
+  .ct_comparison__row:not(:first-child) .ct_comparison__label {
+    margin-top: $gap-block-mob - $gap-row-mob;
+  }
+}
+
+.ct_comparison__cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: $cell-padding-desk;
+  border-radius: $cell-radius;
+  background: $color-cell-bg;
+  font-size: $font-size-body;
+  line-height: $line-height-body;
+  color: $color-text;
+
+  @media (max-width: $tab-max) {
+    justify-content: flex-start;
+    padding: $cell-padding-mob;
+    border-radius: 0;
+  }
+}
+
+// Cell content arrives as one line per specification, so a long value breaks
+// where the copy says it should rather than wherever the column happens to end.
+.ct_comparison__cell-line {
+  margin: 0;
+  word-break: break-word;
+}
+
+// A row the json declares but a product does not answer. It keeps its box so
+// the grid stays aligned — dropping it would shift every cell to its right
+// into the wrong column.
+.ct_comparison__cell[data-empty] {
+  color: $color-muted;
+}

@@ -16,6 +16,7 @@ const BRANDS = {
   CDM: "costadelmar.com",
   PO: "persol.com",
   OP: "oliverpeoples.com",
+  OPSM: "opsm.com.au",
   SV: "salmoiraghievigano.it",
   TO: "targetoptical.com",
   LC: "lenscrafters.com",
@@ -37,7 +38,9 @@ module.exports = {
   conf: conf,
   isProd: process.env.NODE_ENV === "production",
   imagePath: process.env.NODE_ENV === "production" ? conf.paths.productionImage : conf.paths.developmentImage,
-  confPath: process.env.NODE_ENV === "production" ? conf.paths.productionConf : conf.paths.developmentConf,
+  // Base URL the built css/json/script are served from once uploaded. Every
+  // runtime asset URL is derived from this single value — see src/js/modules/bootstrap.js.
+  assetPath: process.env.NODE_ENV === "production" ? conf.paths.productionAsset : conf.paths.developmentAsset,
   proxyPath: process.env.NODE_ENV === "production" ? "" : conf.paths.proxy,
   now: Date.now(),
   BRANDS,

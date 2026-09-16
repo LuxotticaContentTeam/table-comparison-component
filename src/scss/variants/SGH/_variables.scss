@@ -1,0 +1,126 @@
+// ---------------------------------------------------------------------------
+// SGH design tokens — read from Figma "SGH - RB META APEROL":
+//   desktop 1020:42173, mobile 1020:47170, title 1020:36519
+//
+// Everything that differs between brands lives here. The markup and
+// components/_comparison-table.scss are shared: a second brand is a copy of
+// this file with its own values, not a second stylesheet.
+//
+// The LC variant of the same module (Figma "LC_RBM Aperol - Luna", 5720:35673)
+// is what proved that split — it is the same table with Inter instead of Acta,
+// #f2f2f2 cells at 16px radius instead of #f7f7f7 at 2px, centred product
+// columns instead of left-aligned, and 24px row gaps instead of 8px. Every one
+// of those is a token below.
+// ---------------------------------------------------------------------------
+
+// Breakpoints (shared with src/scss/utils/_variables.scss)
+$mob-small: 375px;
+$mob-max: 767px;
+$tab-min: 768px;
+$tab-max: 1024px;
+$desk-min: 1025px;
+
+// --- colour ---------------------------------------------------------------
+$color-surface: #fff; // Base/White
+$color-text: #1f1f24; // Dark
+$color-text-strong: #000; // Base/Text Dark
+$color-muted: #707070; // Base/Gray Dark — colour count, struck price
+$color-cell-bg: #f7f7f7; // Base/Gray Ultra light
+$color-cta-bg: #000; // Base/Primary
+$color-cta-text: #fff; // Base/Text Light
+$color-border: #d8d8d8; // the switcher's outline
+$color-switch-on: #000;
+// The only invented value in this file: Figma exports the switch in its ON
+// state only (44x24, black track, knob right). The off state needs a colour
+// the design never specified.
+$color-switch-off: $color-border;
+$color-switch-knob: #f7f7f7;
+
+// --- type -----------------------------------------------------------------
+$font-primary: "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-display: "Acta Headline", Georgia, serif;
+
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+// Heading 1 — Acta Headline Book
+$font-size-title-desk: 40px;
+$font-size-title-mob: 32px;
+$line-height-title: 1.25;
+
+// Text-md/Regular — subtitle, cells, price, CTA
+$font-size-body: 14px;
+$line-height-body: 1.5;
+
+// Heading 3/Mobile — the product name
+$font-size-product-desk: 24px;
+$font-size-product-mob: 20px;
+
+// The colour count above the name. Mobile really is the larger of the two.
+$font-size-meta-desk: 12px;
+$font-size-meta-mob: 14px;
+
+// Text-sm — row labels and the struck price
+$font-size-small: 12px;
+$letter-spacing-label: 0.12px;
+
+// CTAs/Medium
+$line-height-cta: 20px;
+
+// --- geometry -------------------------------------------------------------
+$section-padding-block: 40px;
+$section-padding-right-desk: 64px; // the header and every row stop 64px short
+$section-padding-inline-mob: 16px;
+
+$label-column-width: 200px;
+$label-padding-left: 40px;
+
+$gap-column-desk: 24px;
+$gap-column-mob: 16px;
+$gap-row-desk: 8px;
+$gap-row-mob: 16px; // label -> its cells
+$gap-block-mob: 32px; // one row block -> the next
+
+$product-image-width: 240px;
+$product-image-height: 140px;
+$product-image-radius: 8px;
+$product-gap: 8px;
+$product-padding-bottom: 40px;
+
+$cell-padding-desk: 16px;
+$cell-padding-mob: 8px;
+$cell-radius: 2px;
+$row-min-height: 72px;
+
+$cta-padding-block: 6px;
+$cta-padding-inline: 16px;
+$cta-radius: 200px;
+$cta-height-mob: 40px;
+$cta-padding-inline-mob: 24px;
+
+$switch-width: 44px;
+$switch-height: 24px;
+$switch-knob: 20px;
+$toolbar-padding-bottom: 24px;
+
+// The compact product switcher. Its metrics come from the control in Figma
+// LC_RBM Aperol - Luna 5720:35891; its colours, fonts and radius are SGH's —
+// that file is another brand's design system and only the structure is shared.
+// Its radius in particular is SGH's cell radius, not LC's 6px input radius.
+$selector-padding-block: 12px;
+$selector-padding-inline: 16px;
+$selector-gap: 8px;
+$selector-text-gap: 4px;
+$selector-radius: $cell-radius;
+$font-size-selector-value: 16px;
+$line-height-selector-value: 20px;
+$line-height-selector-eyebrow: 16px;
+$selector-chevron: 16px;
+
+// --- brand layout choices -------------------------------------------------
+// SGH aligns the product column to the left; LC centres it. Kept as a token so
+// the shared component does not have to know which brand it is rendering.
+$product-align: flex-start;
+$product-text-align: left;
+$title-transform: none;

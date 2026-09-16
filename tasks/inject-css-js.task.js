@@ -14,7 +14,8 @@ module.exports = function inject() {
   const sources = src(
     [
       path.join(dist_css, "**/*.css"),
-      path.join(dist_json, "**/*.js"),
+      // The content json is no longer a script to inject — the bundle fetches
+      // it at runtime (src/js/modules/bootstrap.js), in dev from dist/json/ too.
       path.join(dist_js, "critical/*.js"),
       path.join(dist_js, global.selectedBrand, "*.js"),
       path.join(dist_js, "**/*.js"),

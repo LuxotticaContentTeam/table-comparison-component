@@ -1,11 +1,5 @@
 {
-  "projectName": "github-repo-name",
+  "projectName": "table-comparison-component",
   "serveInNewTab": false,
-  "langs": [
-    "en-us",
-    "it-it"
-  ],
-  "variants": [
-    "BRAND_variantName"
-  ]
+  "variants": ["SGH"]
 }

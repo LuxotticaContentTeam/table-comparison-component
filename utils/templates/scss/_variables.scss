@@ -1,11 +1,61 @@
-// WIDTH
+// ---------------------------------------------------------------------------
+// Design tokens for this brand.
+//
+// Every token below is REQUIRED by the shared component
+// src/scss/components/_main-features.scss — Sass fails to compile if one is
+// missing. The values here are neutral placeholders: replace them with the
+// brand's own, reading them off the Figma frame.
+//
+// The shared and the per-variant stylesheets are compiled as separate Sass
+// units (tasks/style.task.js) and only their CSS output is concatenated, so
+// tokens defined here are NOT visible to src/scss/main.scss, and vice versa.
+// ---------------------------------------------------------------------------
+
+// Breakpoints (shared with src/scss/utils/_variables.scss)
 $mob-small: 375px;
 $mob-max: 767px;
 $tab-min: 768px;
 $tab-max: 1024px;
 $desk-min: 1025px;
 
-$font-primary: "Lato", sans-serif;
-$font-secondary: "Oswald", sans-serif;
-$black: #000;
-$black-light: #302f2f;
+// Colours
+$white: #fff;
+$dark: #1f1f24;
+$card-border: rgba(255, 255, 255, 0.4);
+$card-scrim: linear-gradient(to bottom, rgba(0, 0, 0, 0) 39.333%, rgba(0, 0, 0, 0.5) 87.75%);
+
+// Spacing
+$spacing-xs: 8px;
+$spacing-sm: 16px;
+$spacing-md: 24px;
+$spacing-lg: 32px;
+$spacing-xl: 40px;
+$section-padding-inline-mob: 16px;
+
+$border-radius: 2px;
+
+// Typography
+$font-primary: "Helvetica Neue", sans-serif;
+$font-display: serif;
+
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+
+$font-size-title-desk: 40px;
+$font-size-title-mob: 32px;
+$line-height-title: 1.25;
+
+$font-size-card-title: 20px;
+$font-size-card-body: 14px;
+$font-size-card-disclaimer: 12px;
+$letter-spacing-card-disclaimer: 0.12px;
+$line-height-body: 1.5;
+
+// Layout width past which the section stops growing and centres.
+$design-width-desk: 1440px;
+
+// Card geometry.
+$card-height: 600px;
+$card-width-carousel: 320px;
+$card-text-top-desk: 450px;
+$card-text-top-mob: 430px;

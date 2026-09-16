@@ -13,12 +13,15 @@ import { getDeviceType } from "./utils";
  * @param {number} options.device.tab_max - Maximum width for tablet devices
  * @param {number} options.device.tab_min - Minimum width for tablet devices
  * @param {number} options.device.mob_max - Maximum width for mobile devices
- * @param {object} options.infoStore - Info store object
+ * @param {object} options.infoStore - Info store object. Only `lang` and
+ *   `country` are read by the module (getTrad picks the copy from them); the
+ *   store ids below are informational and not every brand supplies them — SGH
+ *   reads the html lang attribute and carries nothing else.
  * @param {object} options.infoStore.lang - Language (en/fr/it)
- * @param {object} options.infoStore.storeId - Store ID (12001)
- * @param {object} options.infoStore.catalog - Catalog ID (241241)
+ * @param {object} [options.infoStore.storeId] - Store ID (12001)
+ * @param {object} [options.infoStore.catalog] - Catalog ID (241241)
  * @param {object} options.infoStore.country - Country (en-US)
- * @param {object} options.infoStore.langID - Language ID (-1)
+ * @param {object} [options.infoStore.langID] - Language ID (-1)
  * @param {string} options.env - Environment
  *
  */
@@ -33,6 +36,10 @@ class StateManager {
     this.brand = brand;
     this.env = "@env@";
     this.infoStore = null;
+    // Kept, not just consumed: the comparison table re-resolves the device on
+    // resize (the column count depends on it), so it needs the thresholds and
+    // not only the answer they produced at startup.
+    this.breakpoints = device;
     this.device = getDeviceType(device);
   }
 }

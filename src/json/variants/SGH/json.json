@@ -1,0 +1,470 @@
+{
+  "_meta": {
+    "locales": "Every translatable value is an object keyed by locale. A locale is NEVER mandatory: getTrad (src/js/modules/utils.js) tries the country key (fr-ca), then the language (fr), then any key starting with it, then en-us, then en — so a market with no copy of its own renders English rather than nothing. Adding a language means adding its key next to en-us; nothing else changes. The one rule is never to leave a key as an empty string: the country key is matched before the fallback runs, so an empty fr-ca renders blank instead of falling through to fr. A locale with no copy yet simply has no key. The keys present here also ARE the locale list the dev prompt offers (tasks/prompt.task.js > localesForVariant).",
+    "source": "Copy transcribed from Figma 'SGH - RB META APEROL': desktop 1020:42173, mobile 1020:47170, title 1020:36519. The hideWhenOnlyDifferences flags are the designer's 'Don't show in differences' annotations on that desktop frame.",
+    "productCodes": "PLACEHOLDER. productId / upc / pdpUrl below point at two real Ray-Ban Meta products on stage so the module can be seen working end to end; they are NOT the Gen 2 / Gen 3 the copy describes. Swap them when the real codes land — see README, 'The endpoint takes a product id, not a UPC'.",
+    "icons": "Icon values are resolved against package.json > projectConfigurations.paths.productionImage (https://media.sunglasshut.com/table-comparison-component/img/ in production, ./static/images/ in dev), so the brand subfolder is part of the value. An absolute http(s) url is used as-is instead — see isSelfContainedUrl in src/js/contents.js."
+  },
+  "comparison": {
+    "title": {
+      "en-us": "Tech highlights",
+      "en": "Tech highlights"
+    },
+    "subtitle": {
+      "en-us": "See what’s been added and enhanced in the new Ray-Ban Meta collection.",
+      "en": "See what’s been added and enhanced in the new Ray-Ban Meta collection."
+    },
+    "onlyDifferencesLabel": {
+      "en-us": "Only show differences",
+      "en": "Only show differences"
+    },
+    "shopNowLabel": {
+      "en-us": "Shop now",
+      "en": "Shop now"
+    },
+    "priceLabel": {
+      "en-us": "Starting from",
+      "en": "Starting from"
+    },
+    "selectLabel": {
+      "en-us": "Select a model",
+      "en": "Select a model"
+    },
+    "selectorIcon": "SGH/chevron-down.svg",
+    "api": {
+      "_store": "Store ids per market, used to call /wcs/resources/store/{storeId}/products/{productId}. Authored values win over window.ct_data, so a market whose globals are wrong can be pinned without a code change. Drop a market here and it falls back to ct_data.",
+      "_devOrigin": "Development only, ignored in a production build: the storefront the CORS proxy (npm run proxy) is pointed at, so prices are real on localhost. In production every call is relative and same-origin.",
+      "devOrigin": "https://stage.sunglasshut.com",
+      "store": {
+        "en-us": {
+          "storeId": "10152",
+          "langId": "-1"
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": "camera",
+        "label": {
+          "en-us": "Camera",
+          "en": "Camera"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "audio",
+        "label": {
+          "en-us": "Audio",
+          "en": "Audio"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "meta-ai",
+        "label": {
+          "en-us": "Meta AI",
+          "en": "Meta AI"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "lenses",
+        "label": {
+          "en-us": "Lenses",
+          "en": "Lenses"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "case",
+        "label": {
+          "en-us": "Case",
+          "en": "Case"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "memory",
+        "label": {
+          "en-us": "Memory",
+          "en": "Memory"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "connectivity",
+        "label": {
+          "en-us": "Connectivity",
+          "en": "Connectivity"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "water-resistance",
+        "label": {
+          "en-us": "Water resistance",
+          "en": "Water resistance"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "compatible-apps",
+        "label": {
+          "en-us": "Compatible apps",
+          "en": "Compatible apps"
+        },
+        "hideWhenOnlyDifferences": true
+      }
+    ],
+    "products": [
+      {
+        "id": "rbm-gen-3",
+        "upc": "8056597988377",
+        "pdpUrl": "/us/ray-ban-meta/rw4006-8056597988377",
+        "productId": "3074457345618661050",
+        "name": {
+          "en-us": "Ray-Ban | Meta Gen 3",
+          "en": "Ray-Ban | Meta Gen 3"
+        },
+        "family": {
+          "en-us": "Ray-Ban Meta",
+          "en": "Ray-Ban Meta"
+        },
+        "shortName": {
+          "en-us": "Gen 3",
+          "en": "Gen 3"
+        },
+        "meta": {
+          "en-us": "3 Colors",
+          "en": "3 Colors"
+        },
+        "badge": {
+          "label": {
+            "en-us": "Camera + Audio",
+            "en": "Camera + Audio"
+          },
+          "icon": "SGH/badge-photo.svg"
+        },
+        "cells": {
+          "camera": {
+            "value": {
+              "en-us": [
+                "36% smaller camera and LED opening (vs. Gen 2)",
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ],
+              "en": [
+                "36% smaller camera and LED opening (vs. Gen 2)",
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ]
+            }
+          },
+          "audio": {
+            "value": {
+              "en-us": [
+                "6-mic array with immersive audio recording and advanced wind noise reduction"
+              ],
+              "en": [
+                "6-mic array with immersive audio recording and advanced wind noise reduction"
+              ]
+            }
+          },
+          "meta-ai": {
+            "value": {
+              "en-us": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ],
+              "en": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ]
+            }
+          },
+          "lenses": {
+            "value": {
+              "en-us": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ],
+              "en": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ]
+            }
+          },
+          "case": {
+            "value": {
+              "en-us": [
+                "133 gr",
+                "Up to 9 hours of use on a single charge",
+                "Up to 50 additional hours with fully charged case"
+              ],
+              "en": [
+                "133 gr",
+                "Up to 9 hours of use on a single charge",
+                "Up to 50 additional hours with fully charged case"
+              ]
+            }
+          },
+          "memory": {
+            "value": {
+              "en-us": [
+                "32GB",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ],
+              "en": [
+                "32GB",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ]
+            }
+          },
+          "connectivity": {
+            "value": {
+              "en-us": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "en": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ]
+            }
+          },
+          "water-resistance": {
+            "value": {
+              "en-us": [
+                "Water resistance IPX4"
+              ],
+              "en": [
+                "Water resistance IPX4"
+              ]
+            }
+          },
+          "compatible-apps": {
+            "value": {
+              "en-us": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "en": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "rbm-gen-2",
+        "upc": "8056597988391",
+        "pdpUrl": "/us/ray-ban-meta/rw4009-8056597988391",
+        "productId": "3074457345618661055",
+        "name": {
+          "en-us": "Ray-Ban | Meta Gen 2",
+          "en": "Ray-Ban | Meta Gen 2"
+        },
+        "family": {
+          "en-us": "Ray-Ban Meta",
+          "en": "Ray-Ban Meta"
+        },
+        "shortName": {
+          "en-us": "Gen 2",
+          "en": "Gen 2"
+        },
+        "meta": {
+          "en-us": "4 Colors",
+          "en": "4 Colors"
+        },
+        "badge": {
+          "label": {
+            "en-us": "Camera + Audio",
+            "en": "Camera + Audio"
+          },
+          "icon": "SGH/badge-photo.svg"
+        },
+        "cells": {
+          "camera": {
+            "value": {
+              "en-us": [
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ],
+              "en": [
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ]
+            }
+          },
+          "audio": {
+            "value": {
+              "en-us": [
+                "5-mic array with immersive audio recording",
+                "Up to 5 hours continuous audio",
+                "5.5 hours continuous phone calls"
+              ],
+              "en": [
+                "5-mic array with immersive audio recording",
+                "Up to 5 hours continuous audio",
+                "5.5 hours continuous phone calls"
+              ]
+            }
+          },
+          "meta-ai": {
+            "value": {
+              "en-us": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ],
+              "en": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ]
+            }
+          },
+          "lenses": {
+            "value": {
+              "en-us": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ],
+              "en": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ]
+            }
+          },
+          "case": {
+            "value": {
+              "en-us": [
+                "133 gr",
+                "Up to 8 hours of use on a single charge",
+                "Up to 48 additional hours with fully charged case"
+              ],
+              "en": [
+                "133 gr",
+                "Up to 8 hours of use on a single charge",
+                "Up to 48 additional hours with fully charged case"
+              ]
+            }
+          },
+          "memory": {
+            "value": {
+              "en-us": [
+                "32GB flash storage",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ],
+              "en": [
+                "32GB flash storage",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ]
+            }
+          },
+          "connectivity": {
+            "value": {
+              "en-us": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "en": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ]
+            }
+          },
+          "water-resistance": {
+            "value": {
+              "en-us": [
+                "Water resistance IPX4"
+              ],
+              "en": [
+                "Water resistance IPX4"
+              ]
+            }
+          },
+          "compatible-apps": {
+            "value": {
+              "en-us": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "en": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

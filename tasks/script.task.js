@@ -31,7 +31,7 @@ let { src, dest, series, glob } = require("gulp"),
   buffer = require("vinyl-buffer"),
   replace = require("gulp-string-replace"),
   es = require("event-stream");
-(path = require("path")), ({ src_asset_js_main, isProd, imagePath, confPath, now } = require("./_config.js"));
+(path = require("path")), ({ src_asset_js_main, isProd, imagePath, assetPath, now } = require("./_config.js"));
 
 const lint = () => {
   return src(src_asset_js)
@@ -117,7 +117,7 @@ const js = (done) => {
           .pipe(replace("@env@", isProd ? "production" : "development"))
           .pipe(replace("@buildVersion@", buildVersion))
           .pipe(replace("@imagePath@", imagePath))
-          .pipe(replace("@confPath@", confPath))
+          .pipe(replace("@assetPath@", assetPath))
           .pipe(replace("@language@", global.projLanguage ? global.projLanguage : ""))
           .pipe(replace("@proxyPath@", proxyPath))
           .pipe(replace("@projectName@", projectNameNormal))

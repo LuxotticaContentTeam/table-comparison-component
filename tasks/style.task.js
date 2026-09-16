@@ -13,6 +13,12 @@ let { src, dest, series } = require("gulp"),
   path = require("path"),
   { isProd, dist_css, src_asset_scss_main, src_asset_scss_variants, release, dist_release, conf, projectNameNormal } = require("./_config.js");
 
+// Resolves once a vinyl stream has flushed everything to disk.
+const streamDone = (stream) =>
+  new Promise((resolve, reject) => {
+    stream.on("finish", resolve).on("end", resolve).on("error", reject);
+  });
+
 const scss = (done) => {
   log(`-> Style: compiling scss`);
 
@@ -50,11 +56,25 @@ const scss = (done) => {
     const criticalScss = src(criticalScssPath)
       .pipe($.if(!isProd, $.sourcemaps.init()))
       .pipe($.plumber())
+      // critical.scss is compiled on its own, so it needs the same injected
+      // variables main.scss gets — $bannerName above all, since the component
+      // rules are nested under the module container id.
+      .pipe(
+        $.sassVariables({
+          $env: isProd ? "production" : "development",
+          $brand: global.selectedBrand,
+          $bannerName: "#ct_cm--" + projectNameNormal,
+        })
+      )
       .pipe(sass().on("error", sass.logError))
       .pipe($.if(!isProd, $.sourcemaps.write()))
       .pipe(dest(".tmp/css")); // Output critical.css separately
 
-    return Promise.all([mainScss, criticalScss]); // Run both tasks in parallel
+    // Gulp streams are not thenables, so `Promise.all([stream, stream])`
+    // resolves immediately and the task reports done before `.tmp/css` has
+    // been written — postcss then finds nothing and `dist/css` is never
+    // produced on a build from a clean checkout. Wait for the streams.
+    return Promise.all([mainScss, criticalScss].map(streamDone)); // Run both tasks in parallel
   } else {
     log(c.yellow(`⚠️  critical.scss not found, skipping...`));
     return mainScss; // Only compile main.scss

@@ -1,0 +1,230 @@
+// ---------------------------------------------------------------------------
+// Critical css — the only style that travels inside the CoreMedia fragment.
+//
+// It holds geometry, nothing else: enough for the placeholder skeleton to
+// occupy roughly the space the real table will, so the page does not jump when
+// the stylesheet arrives from the asset host (injected by
+// src/js/modules/bootstrap.js).
+//
+// Two constraints shape this file:
+//
+//  1. It is compiled on its own (tasks/style.task.js), NOT concatenated with
+//     the variant, so the brand tokens in scss/variants/<BRAND>/_variables.scss
+//     are out of reach. The values below are literals that mirror them — the
+//     shared measurements, the same for every brand. Change one there, change
+//     it here.
+//  2. It must leave the component usable on its own, so a slow or failed
+//     stylesheet degrades to "unstyled but readable" instead of "blank".
+//
+// ⚠️ This block is INLINED into fragment.html. A fragment pasted into CoreMedia
+// before a change here keeps overriding the stylesheet uploaded afterwards, so
+// the fragment has to be re-pasted whenever this file changes — re-uploading
+// the three asset files is not enough.
+// ---------------------------------------------------------------------------
+@import "./utils/variables";
+
+#{$bannerName} {
+  width: 100%;
+  position: relative;
+
+  .ct_comparison {
+    box-sizing: border-box;
+    padding: 40px 0; // $section-padding-block
+    background: #fff;
+  }
+
+  .ct_comparison__intro {
+    padding: 0 64px 16px; // $section-padding-right-desk
+    text-align: center;
+
+    @media (max-width: $tab-max) {
+      padding: 0 16px 16px; // $section-padding-inline-mob
+    }
+  }
+
+  .ct_comparison__title {
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .ct_comparison__subtitle {
+    margin: 16px 0 0;
+    line-height: 1.5;
+  }
+
+  // The grid the real table also uses: label column plus one track per
+  // product, dropping to two equal tracks in the compact layout. --ct-columns
+  // is written by contents.js; the skeleton ships with 2, which is also the
+  // compact value, so the grid never waits for javascript to have a shape.
+  .ct_comparison__table {
+    --ct-columns: 2;
+    display: grid;
+    grid-template-columns: 200px repeat(var(--ct-columns), minmax(0, 1fr));
+    column-gap: 24px;
+    row-gap: 8px;
+    align-items: stretch;
+    padding-right: 64px;
+
+    @media (max-width: $tab-max) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 16px;
+      row-gap: 16px;
+      padding: 0 16px;
+    }
+  }
+
+  .ct_comparison__head,
+  .ct_comparison__body,
+  .ct_comparison__row {
+    display: contents;
+  }
+
+  // A grid item spanning every track, between the product columns and the
+  // rows. Indented to line up with the first product column.
+  .ct_comparison__toolbar {
+    grid-column: 1 / -1;
+    padding: 0 0 24px 224px; // label column + column gap
+
+    @media (max-width: $tab-max) {
+      padding: 0 0 16px;
+    }
+  }
+
+  .ct_comparison__corner {
+    @media (max-width: $tab-max) {
+      display: none;
+    }
+  }
+
+  .ct_comparison__product {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding-bottom: 40px;
+
+    @media (max-width: $tab-max) {
+      padding-bottom: 0;
+      margin-bottom: 16px; // 32 block gap - 16 row gap
+    }
+  }
+
+  .ct_comparison__product-image {
+    display: block;
+    width: 240px;
+    max-width: 100%;
+    height: 140px;
+    border-radius: 8px;
+    object-fit: contain;
+
+    @media (max-width: $tab-max) {
+      display: none;
+    }
+  }
+
+  .ct_comparison__label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 72px;
+    padding-left: 40px;
+    text-align: right;
+
+    @media (max-width: $tab-max) {
+      grid-column: 1 / -1;
+      justify-content: flex-start;
+      min-height: 0;
+      padding: 0;
+      text-align: left;
+    }
+  }
+
+  .ct_comparison__cell {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 16px;
+    border-radius: 2px;
+    background: #f7f7f7;
+
+    @media (max-width: $tab-max) {
+      justify-content: flex-start;
+      padding: 8px;
+      border-radius: 0;
+    }
+  }
+
+  // Skeleton only: greys the boxes so the reserved space reads as "loading"
+  // rather than as an empty broken table. contents.js replaces the whole
+  // skeleton, so nothing below survives the first render.
+  .ct_comparison--skeleton {
+    .ct_comparison__placeholder {
+      background: rgba(0, 0, 0, 0.06);
+      border-radius: 2px;
+      min-height: 16px;
+    }
+
+    .ct_comparison__title {
+      max-width: 340px;
+      height: 40px;
+      margin-inline: auto;
+    }
+
+    .ct_comparison__subtitle {
+      max-width: 520px;
+      height: 21px;
+      margin-inline: auto;
+    }
+
+    .ct_comparison__product-image {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .ct_comparison__product-name {
+      width: 70%;
+      height: 30px;
+    }
+
+    .ct_comparison__product-meta,
+    .ct_comparison__product-price {
+      width: 45%;
+      height: 21px;
+    }
+
+    .ct_comparison__cta {
+      width: 110px;
+      height: 32px;
+      border-radius: 200px;
+    }
+
+    .ct_comparison__label {
+      // The label is a flex box in the real table; as a placeholder it is a
+      // bar, so it needs a width of its own rather than stretching the track.
+      &::after {
+        content: "";
+        width: 90px;
+        height: 16px;
+        background: rgba(0, 0, 0, 0.06);
+        border-radius: 2px;
+      }
+    }
+
+    .ct_comparison__cell {
+      min-height: 72px;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .ct_comparison--skeleton .ct_comparison__placeholder,
+    .ct_comparison--skeleton .ct_comparison__label::after,
+    .ct_comparison--skeleton .ct_comparison__product-image {
+      animation: ct_comparison_pulse 1.4s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes ct_comparison_pulse {
+  50% {
+    opacity: 0.55;
+  }
+}

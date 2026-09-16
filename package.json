@@ -1,6 +1,6 @@
 {
-  "name": "dev-boilerplate-module",
-  "version": "0.0.0",
+  "name": "table-comparison-component",
+  "version": "0.0.1",
   "private": true,
   "engines": {
     "node": ">=20"
@@ -20,10 +20,10 @@
     "paths": {
       "srcFolder": "src/",
       "distFolder": "dist/",
-      "developmentImage": "/development/images/path/",
-      "productionImage": "/production/images/path/",
-      "developmentConf": "/development/configuration/file/path/",
-      "productionConf": "/production/configuration/file/path/",
+      "developmentImage": "./static/images/",
+      "productionImage": "https://media.sunglasshut.com/table-comparison-component/img/",
+      "developmentAsset": "./",
+      "productionAsset": "https://media.sunglasshut.com/table-comparison-component/",
       "proxy": "http://localhost:8080/"
     }
   },

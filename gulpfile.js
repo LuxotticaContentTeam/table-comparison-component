@@ -4,7 +4,7 @@ const { series } = require("gulp");
 
 // Require custom tasks
 const prompt = require("./tasks/prompt.task.js");
-const clean = require("./tasks/clean.task.js");
+const { clean, cleanRelease } = require("./tasks/clean.task.js");
 const { views, exportViews, exportEspot } = require("./tasks/views.task.js");
 const genericAssets = require("./tasks/generic-assets.task.js");
 const images = require("./tasks/images.task.js");
@@ -18,6 +18,7 @@ const { createJs, createScss, createJson, createViews, updateProjectConfig } = r
 const promptNewProj = require("./tasks/promptNewProj.js");
 const staticAsset = require("./tasks/staticAsset.task.js");
 const buildEspot = require("./tasks/buildEspot.task.js");
+const { buildFragment, exportFragment } = require("./tasks/buildFragment.task.js");
 const { json, jsonBuild } = require("./tasks/json.task.js");
 const recap = require("./tasks/recap.task.js");
 const promptRemove = require("./tasks/promptRemove.task.js");
@@ -49,6 +50,7 @@ exports.build = series(
   checkBoilerJson,
   prompt,
   clean,
+  cleanRelease,
   views,
   exportViews,
   json,
@@ -64,6 +66,8 @@ exports.build = series(
   criticalJs,
   buildEspot,
   exportEspot,
+  buildFragment,
+  exportFragment,
   recap
 );
 
