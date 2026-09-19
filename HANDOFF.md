@@ -329,8 +329,12 @@ importato, e i tre `.woff2` non sono morti — `_local.scss` li carica dentro
    colonna va modificata anche nell'altra**: sta scritto in
    `_meta.columnConsistency`.
 
-   Le sei lingue non inglesi **non sono passate dal copy team**, e le correzioni
-   in `_meta.figmaDeviations` sono scelte editoriali fatte qui.
+   Le traduzioni sono lavoro del copy team, ma **qualche valore si è perso per
+   strada**: `es` dava 5 ore al case del Gen 3 dove l'originale dice 9, `fr-ca`
+   scriveva "cinq" dove l'originale ha "5-mic". Per questo ogni riga è
+   verificata **numericamente** contro il frame originale `1020:42173` — 497
+   righe sulle sette lingue tradotte, zero discrepanze. Il metodo è in
+   `_meta.valuesMatchSource`: **va rifatto dopo ogni modifica alla copy**.
 5. **Stato "off" dello switch.** Figma lo esporta solo acceso. Il colore da
    spento (`$color-switch-off`) l'ho scelto io: è l'unico valore inventato.
 6. **Stato "aperto" del selettore.** Disegnato solo chiuso. La lista riusa
@@ -599,3 +603,16 @@ Aggiunto nella quarta tornata, sulla copy:
 - **Le due SVG sono già caricate** e rispondono 200 su
   `media.sunglasshut.com/table-comparison-component/img/SGH/`. Non era un punto
   aperto, lo era solo nella mia lista.
+
+Aggiunto sulla verifica dei valori:
+
+- **`en-us` confrontato riga per riga col frame originale `1020:42173`**:
+  identico, label di riga e annotazioni `Don't show in differences` comprese.
+- **497 righe confrontate sulle sette lingue tradotte**, estraendo i valori
+  numerici di ogni riga e confrontandoli con la riga `en-us` allo stesso indice.
+  Normalizzati virgola decimale e separatore delle migliaia, così `5,5` vale
+  `5.5` e `1 000` vale `1000`. Trovata **una** discrepanza (`fr-ca` scriveva
+  "cinq" invece di `5`), corretta. Ora zero.
+- Verificato anche il caso opposto: una riga che l'originale tiene **distinta**
+  fra Gen 3 e Gen 2 è distinta in ogni lingua, e una che tiene **uguale** è
+  uguale ovunque.

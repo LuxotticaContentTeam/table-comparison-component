@@ -356,8 +356,15 @@ showed. Real differences — 6-mic against 5-mic, 9 hours against 8, `flash
 storage` — are untouched. Edit a shared line in one column and you must edit it
 in the other; `_meta.columnConsistency` says so in the json.
 
-⚠️ The six non-English locales have **not been through the copy team**, and the
-corrections in `_meta.figmaDeviations` are editorial calls made here.
+**The figures are checked against the source, not just the translation.** The
+localised frames are the copy team's work, and a few of them lost a value on
+the way: `es` had the Gen 3 case at 5 hours where the source says 9, `fr-ca`
+spelled "cinq" where the source has "5-mic". So every line is now verified
+numerically against the original desktop frame `1020:42173` — 497 lines across
+the seven translated locales, each line's numbers extracted and matched against
+its `en-us` counterpart, normalising the decimal comma and the thousands
+separator. Zero discrepancies. `_meta.valuesMatchSource` records the method;
+re-run it after any copy edit.
 
 There is no project-wide locale list: the keys present in a brand's json **are**
 that brand's locale list, and that is what the dev prompt offers
@@ -756,13 +763,6 @@ the project name were set:
   to end. Swapping them is a one-field change now: set `upc` on each of the two
   objects in `comparison.products` and nothing else. `productId` and `pdpUrl`
   are kept alongside as cross-references and are read by nothing.
-- **Six of the eight locales have not been through the copy team.** Every
-  string in them is transcribed from a Figma frame, but nobody has signed them
-  off, and the deviations listed in `_meta.figmaDeviations` are editorial calls
-  made here. One key has no frame at all: `comparison.selectLabel`, the label
-  above the mobile product picker — the frames cover the intro and the table,
-  neither of which contains that control. See `_meta.notFromFigma` and
-  `_meta.columnConsistency` in the json.
 - **The two SVG icons have to be uploaded once** to
   `<base>/img/SGH/`. They are not in the release folder and are not versioned —
   see [Publishing it, step by step](#publishing-it-step-by-step), step 4.
@@ -821,10 +821,11 @@ them.
   every other brand needs its own tokens, copy, locale detection and store ids,
   and each must be verified on its own storefront. See [Other brands: check
   before porting this](#other-brands-check-before-porting-this).
-- **Six of the eight locales are unreviewed.** The json carries `en-us`, `en`,
-  `fr`, `fr-ca`, `es`, `es-mx`, `de`, `nl`, all transcribed from their own Figma
-  frames, but only the English ones have been signed off. Any market with no key
-  falls back to English on its own. See [Language](#language).
+- **`comparison.selectLabel` has no Figma frame.** It is the label above the
+  mobile product picker, and no frame shows that control open, so its
+  non-English values were written here. Accepted as-is. Same for
+  `products[].family` and `products[].shortName`, which only feed that
+  dropdown.
 - **The analytics placement name is ours, not the analytics team's.**
   `X_ProductComparisonPlacement` was chosen to read well in a report because no
   name was assigned. If one is assigned later it is a one-line change in
