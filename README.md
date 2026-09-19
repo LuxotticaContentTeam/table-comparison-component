@@ -763,15 +763,20 @@ the project name were set:
   to end. Swapping them is a one-field change now: set `upc` on each of the two
   objects in `comparison.products` and nothing else. `productId` and `pdpUrl`
   are kept alongside as cross-references and are read by nothing.
-- **The two SVG icons have to be uploaded once** to
-  `<base>/img/SGH/`. They are not in the release folder and are not versioned —
-  see [Publishing it, step by step](#publishing-it-step-by-step), step 4.
-- **The deploy workflows have never run.** `.github/workflows/deploy-uat.yml`
-  and `deploy-prod.yml` need repository or organisation values that this repo
-  has never exercised: secrets `ID_RSA`, `ID_RSA_PUB`, `CACHE_CLIENT_TOKEN`,
-  `CACHE_CLIENT_SECRET`, `CACHE_ACCESS_TOKEN`, `CACHE_BASE_URI`, and variables
-  `SOURCE_FOLDER`, `DEST_FOLDER_PROD`, `PROD_URL`. Confirm they exist and point
-  where this module expects before dispatching either workflow.
+
+That is the only thing standing between this module and a live page.
+
+### Waiting on a decision, not on code
+
+- **No discount badge.** The documented endpoint carries no badge string, so a
+  sale renders as the offer with the list price struck through and no "30% off"
+  label. Bringing it back means finding another service that returns it.
+- **The colour count is authored, not live.** `products[].meta` ("3 Colors") is
+  written by hand because SGH's product service returns `frameColor` /
+  `lensColor` for the one variant it describes and no count of the siblings.
+  Making it live means a second call to a different service — there is an
+  `availableColors` on glasses.com's `/ajaxSearchDisplayView`, but no SGH
+  equivalent answers with json.
 
 ### Cleanup done
 
@@ -817,10 +822,16 @@ them.
   Figma** — see
   [What the design did not specify](#what-the-design-did-not-specify).
   `$color-switch-off` is the only invented value in the token file.
-- **One brand** — only SGH exists. The module is built to be cross-brand, but
-  every other brand needs its own tokens, copy, locale detection and store ids,
-  and each must be verified on its own storefront. See [Other brands: check
-  before porting this](#other-brands-check-before-porting-this).
+- **One brand** — only SGH exists, and SGH is the brand this goes live on. The
+  module is meant to become a template for the others, but every one of them
+  needs its own tokens, copy, locale detection and store ids, verified on its
+  own storefront. See [Other brands: check before porting
+  this](#other-brands-check-before-porting-this).
+- **There is no deploy pipeline in use.** `.github/workflows/deploy-uat.yml` and
+  `deploy-prod.yml` exist but have never run and are not part of the process:
+  the release files are uploaded by hand over SFTP. The workflows are left in
+  place unused — if anyone ever dispatches one, its secrets and variables have
+  to be checked first.
 - **`comparison.selectLabel` has no Figma frame.** It is the label above the
   mobile product picker, and no frame shows that control open, so its
   non-English values were written here. Accepted as-is. Same for

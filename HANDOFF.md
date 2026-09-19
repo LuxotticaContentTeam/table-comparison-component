@@ -235,6 +235,29 @@ prova di un barrato.
 
 ---
 
+### 5.5 Il numero di colori non esiste come dato
+
+Cercato, non trovato. Il servizio prodotto SGH torna `frameColor`, `lensColor` e
+`localizedColorLabel` della **singola variante** che sta descrivendo, e nessun
+conteggio dei sibling. Le chiavi complete della risposta sono: `active`,
+`brand`, `category`, `catentryId`, `color`, `currency`, `frameColor`, `images`,
+`isOutOfStock`, `lensColor`, `localizedColorLabel`, `moco`, `model`, `name`,
+`pdpURL`, `prices`, `productName`, `seoCurrency`, `upc`.
+
+Nel repo dei servizi un conteggio **esiste**, ma su un altro brand:
+`availableColors` nella risposta di `/ajaxSearchDisplayView` di glasses.com. I
+due path equivalenti provati su sunglasshut rispondono con l'html della
+homepage, non con json:
+
+```
+/ajaxSearchDisplayView?storeId=10152&…&partNumbers=<upc>   -> 200, ma html
+/AjaxPartNumberView?storeId=10152&…&partNumbers=<upc>      -> 404
+```
+
+Quindi `products[].meta` ("3 Colors") resta autorato a mano. Renderlo dinamico
+non è una modifica al modulo: è trovare un servizio SGH che quel numero lo
+restituisca. Vedi §6.3.
+
 ## 6. Cosa manca
 
 ### Bloccante — uno solo
@@ -245,16 +268,37 @@ prova di un barrato.
    oggetti in `comparison.products`, nient'altro. `productId` e `pdpUrl` restano
    come riferimenti e non li legge nessuno.
 
-### A carico di chi pubblica, non del codice
+   Dopo la sostituzione: rifare il confronto numerico di
+   `_meta.valuesMatchSource` **non** serve (i valori sono copy, non prodotto),
+   ma vale la pena aprire una volta le due CTA in pagina, perché il `pdpURL` lo
+   decide lo storefront.
 
-2. **Caricare i due SVG** in `<base>/img/SGH/`. Non stanno nella cartella di
-   release e non sono versionati: si caricano una volta e basta. Sono già
-   pronti in `src/static/images/SGH/`.
-3. **I workflow di deploy non hanno mai girato.** Servono secret
-   (`ID_RSA`, `ID_RSA_PUB`, `CACHE_CLIENT_TOKEN`, `CACHE_CLIENT_SECRET`,
-   `CACHE_ACCESS_TOKEN`, `CACHE_BASE_URI`) e variabili (`SOURCE_FOLDER`,
-   `DEST_FOLDER_PROD`, `PROD_URL`) a livello di repo o di org. Verificare che
-   esistano e che puntino dove serve prima di lanciarli.
+È l'unica cosa che separa il modulo da una pagina live.
+
+### In attesa di una decisione, non di codice
+
+2. **Niente badge sconto.** L'endpoint documentato non porta nessuna stringa
+   tipo "30% off", quindi una promo rende offerta + listino barrato e basta.
+   Riaverlo vuol dire trovare un altro servizio che lo restituisca.
+3. **Il numero di colori è autorato.** `products[].meta` ("3 Colors") è scritto
+   a mano perché il servizio prodotto SGH torna `frameColor` / `lensColor` della
+   singola variante e nessun conteggio dei sibling. Renderlo dinamico vuol dire
+   una seconda chiamata a un altro servizio: un `availableColors` esiste su
+   `/ajaxSearchDisplayView` di glasses.com, ma l'equivalente SGH non risponde in
+   json (§5.5).
+
+### Chiuse
+
+- **Le due SVG sono caricate.** `img/SGH/badge-photo.svg` e
+  `img/SGH/chevron-down.svg` rispondono 200 su `media.sunglasshut.com`.
+- **Non esiste una pipeline di deploy in uso.** I file di release si caricano a
+  mano via SFTP su
+  `sshacs@luxottica-media.sftp.upload.akamai.com/756788/sunglasshut/table-comparison-component/`.
+  I due workflow in `.github/workflows/` restano lì inutilizzati: se un giorno
+  qualcuno li lancia, prima vanno verificati secret e variabili.
+- **Store id di produzione, slug del `pdpURL`, endpoint su stage, nome del
+  placement analytics, colore dello switch da spento**: tutti confermati, vedi
+  §5 e §7.
 
 ### Pulizia fatta
 
@@ -616,3 +660,31 @@ Aggiunto sulla verifica dei valori:
 - Verificato anche il caso opposto: una riga che l'originale tiene **distinta**
   fra Gen 3 e Gen 2 è distinta in ogni lingua, e una che tiene **uguale** è
   uguale ovunque.
+
+---
+
+## 11. Dove siamo arrivati
+
+Alla fine della quarta sessione il modulo è completo e verificato. Quello che
+resta non è codice.
+
+| | Stato |
+| --- | --- |
+| Codice | niente in sospeso |
+| Copy | otto lingue, tutte trascritte dai frame per locale, valori verificati contro l'originale |
+| Chiamata prodotto | sul servizio documentato, verificata su produzione e stage |
+| Build | verde, `release/SGH/0.0.1/` |
+| Branch | `develop`, allineato al remote |
+
+**Aperto: uno.** I due UPC veri (§6.1).
+
+**In attesa di una decisione: due.** Badge sconto e numero di colori (§6.2,
+§6.3). Entrambi dipendono da cosa restituisce il servizio prodotto, non da come
+è scritto il modulo.
+
+Se riprendi da qui, i tre file da leggere in quest'ordine sono: questo per le
+decisioni e le trappole, il README per comandi e schema JSON, e
+`_meta` dentro `src/json/variants/SGH/json.json` per la provenienza di ogni
+stringa — `translationStatus` per i node id dei frame, `figmaDeviations` per le
+otto correzioni fatte a mano, `columnConsistency` e `valuesMatchSource` per le
+due regole da rispettare quando si tocca la copy.
