@@ -219,9 +219,15 @@ What the module takes from the response:
 | --- | --- |
 | price | `prices.offerPrice` / `prices.listPrice` — strings, coerced before use |
 | currency | `prices.currency`, the ISO code, which is what `Intl` wants |
-| PDP link | `pdpURL` |
+| PDP link | `pdpURL` — a different slug from the old endpoint's, see below |
 | packshot | `images[]` sorted by `sequence`, with its own `alt` |
 | name | `brand` + `name`, used only if the json authors none |
+
+`pdpURL` comes back as `/us/ray-ban/rw4006-…` where the endpoint this replaced
+returned `/us/ray-ban-meta/rw4006-…`. The storefront **redirects automatically**
+between the two — confirmed in a browser — so the CTA lands on the right page
+either way and the shorter slug is used as-is. Worth knowing before someone
+"fixes" it.
 
 The response also carries `frameColor`, `lensColor`, `localizedColorLabel`,
 `moco`, `category`, `isOutOfStock` and `active`. Those are **not** read: the
@@ -739,6 +745,12 @@ the project name were set:
   to end. Swapping them is a one-field change now: set `upc` on each of the two
   objects in `comparison.products` and nothing else. `productId` and `pdpUrl`
   are kept alongside as cross-references and are read by nothing.
+- **Six of the eight locales have not been through the copy team**, and three
+  keys in those six are not transcribed copy at all — `comparison.title`,
+  `comparison.subtitle` and `comparison.selectLabel`, because the per-locale
+  Figma frames start at the product header and carry no intro and no mobile
+  picker. See `_meta.notFromFigma`, `_meta.figmaDeviations` and
+  `_meta.figmaOpenQuestions` in the json.
 - **The two SVG icons have to be uploaded once** to
   `<base>/img/SGH/`. They are not in the release folder and are not versioned —
   see [Publishing it, step by step](#publishing-it-step-by-step), step 4.
@@ -748,6 +760,33 @@ the project name were set:
   `CACHE_CLIENT_SECRET`, `CACHE_ACCESS_TOKEN`, `CACHE_BASE_URI`, and variables
   `SOURCE_FOLDER`, `DEST_FOLDER_PROD`, `PROD_URL`. Confirm they exist and point
   where this module expects before dispatching either workflow.
+
+### Possible cleanup, not yet done
+
+Found on a sweep of the repo. Nothing is broken — this all works, it is just
+surplus. None of it has been removed, because three of the five touch the
+**shared boilerplate** and taking them out means diverging from the other
+modules.
+
+| What | Where | Weight |
+| --- | --- | --- |
+| The variant bundle is **shipped twice** | `tasks/script.task.js` > `concatScripts` | ~1.1 KB of 41 KB |
+| `const main = () => {}`, exported and never imported | `src/js/variants/SGH/main.js` | 1 line |
+| `map`, `clamp`, `isMobile`, imported by nothing | `src/js/modules/utils.js` | ~20 lines |
+| `CSS_URL`, `JSON_URL`, `MOBILE_COLUMNS` exported but used only in their own file | `bootstrap.js`, `comparisonState.js` | 0 |
+| The `vendors` (bower) task, with empty lists and no `bower_components/` | `tasks/vendors.task.js`, `vendor.js` | 0 at runtime |
+| 13 devDependencies nothing requires | `package.json` | 0 at runtime |
+
+The first one is the only one with a measurable cost: `aliasify` already inlines
+`variants/SGH/main.js` into the main bundle through `@currentVariant@`, and then
+`concatScripts` concatenates the standalone bundle of that same file on top. The
+released js contains `documentElement` twice. It runs harmlessly and does
+nothing.
+
+Verified **clean**: no orphan CSS (all 35 `ct_comparison*` classes are produced
+by the js or the fragment), no unimported js file, and the three `.woff2` fonts
+are not dead — `_local.scss` loads them inside `@if ($env == "development")`,
+because in production the storefront already provides them.
 
 ### Known, and deliberate
 

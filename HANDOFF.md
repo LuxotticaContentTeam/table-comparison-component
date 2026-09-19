@@ -5,7 +5,7 @@ schema JSON, deploy passo passo): questo file è complementare e contiene quello
 che il README non dice — le decisioni prese in conversazione, cosa è stato
 provato e scartato, e le trappole già pagate una volta.
 
-Ultimo aggiornamento: 17 settembre 2026 (seconda sessione).
+Ultimo aggiornamento: 20 settembre 2026 (terza sessione).
 
 ---
 
@@ -15,7 +15,7 @@ Ultimo aggiornamento: 17 settembre 2026 (seconda sessione).
 | --- | --- |
 | Nome | `table-comparison-component` — il typo `tabel` è stato corretto ovunque, repo GitHub compresa |
 | Branch | `develop`, pushato. Su `master` c'è solo l'Initial commit |
-| Commit | "Build the product comparison table module" — **uno solo**, come richiesto |
+| Commit | tre: il build iniziale, le otto lingue, il passaggio al servizio prodotto documentato |
 | Build | verde. `VARIANT=SGH npm run build` produce `dist/fragment.html` (~8 KB) |
 | Versione | `0.0.1` |
 | Brand | solo `SGH` in `projectConfig.json` |
@@ -26,9 +26,8 @@ configurazione: dopo il build non sopravvive nessun `TODO_`, nessun `[PATH]`,
 nessun token non sostituito in `dist/` o `release/`. Manca solo **un dato**: i
 codici prodotto veri. Vedi [§6](#6-cosa-manca).
 
-Se ci sono modifiche nuove: la regola è **un commit solo**, quindi si fa
-`git commit --amend`, non un secondo commit. Il branch è già sul remote, quindi
-dopo un amend serve `git push --force-with-lease`.
+La regola del commit unico è decaduta dalla seconda sessione: ora si fa un
+commit per lavoro, e si pusha normalmente su `develop`.
 
 ---
 
@@ -121,82 +120,104 @@ questi sono stati misurati.**
 ### 5.1 La chiamata prodotto su Sunglass Hut
 
 ```
-GET /wcs/resources/store/{storeId}/products/{productId}?langId={langId}
+GET /wcs/resources/store/{storeId}/productInfo?partNumbers={upc1,upc2,…}&langId={langId}
 ```
 
-Relativa → same-origin → nessun problema di CORS. Su SGH US:
-`storeId 10152`, `catalogId 20602`, `langId -1`, valuta USD. Tutti disponibili
-in `window.ct_data`, che su SGH esiste ed è popolato.
+È il servizio **documentato** da SGH: "New Prod Service (2026)" in
+[`LuxotticaContentTeam/product-services-doc`](https://github.com/LuxotticaContentTeam/product-services-doc)
+→ `sunglasshut/product-service.md`. Relativa → same-origin → nessun problema di
+CORS.
 
-**Non esiste un lookup per UPC.** Provati e falliti tutti:
+Chiave = **UPC**, tutti i prodotti in **una sola chiamata**, prezzi già risolti.
 
-| Provato | Esito |
-| --- | --- |
-| `/products/<upc>` | 200 ma `{}` vuoto — non dà errore, è la trappola |
-| `/products/byUpc/<upc>`, `/products/upc/<upc>`, `/products?upc=` | 404 |
-| `/customProductInfo/byPartNumbers/<lista>` (è quello che usa persol.com) | 404, non deployato su SGH |
-| `/productview/byPartNumber`, `/bySearchTerm`, `/byIds` | 404 |
-| ricerca del sito per UPC | 404 |
-| URL PDP con slug finto (`/us/ray-ban/xxx-<upc>`) | 404 — lo slug è significativo |
+**Verificato su produzione**, non solo su stage: `www.sunglasshut.com`, store
+`10152`, i due UPC che il modulo spedisce → 200, entrambi i prodotti nella
+stessa risposta, prezzi `USD`, URL PDP `/us/…`. Questo chiude anche la domanda
+sullo store id: **10152 è lo store US anche in produzione**, quindi il valore
+autorato nel JSON è giusto e non serve leggerlo da `ct_data`.
 
-Quindi un prodotto nel JSON deve avere **`productId`** (una sola chiamata,
-strada veloce) oppure **`pdpUrl`** (il modulo scarica la PDP e legge
-`product-id="…"` dal markup, ~170 KB in più per prodotto).
+Campi letti: `prices.offerPrice` / `prices.listPrice` (stringhe, convertite),
+`prices.currency` (codice ISO, quello che vuole `Intl`), `pdpURL`, `images[]`
+ordinate per `sequence` con il loro `alt`, `brand` + `name` come fallback del
+nome.
 
-Per ricavare un `productId` da un URL PDP:
+**Lo slug del `pdpURL` è diverso da quello del vecchio endpoint** — torna
+`/us/ray-ban/rw4006-…` invece di `/us/ray-ban-meta-gen-1/rw4006-…` — ma **c'è un
+redirect automatico**, verificato in browser. Non è un problema e si lascia così.
 
-```bash
-curl -s "https://stage.sunglasshut.com/us/ray-ban/rb3548n-8053672689679" \
-  | grep -oE 'product-id="[0-9]+"' | head -1
-```
+#### Cosa c'era prima, e perché è sparito
 
-Gli id non hanno forma uniforme: `732332` e `3074457345618661580` sono
-entrambi reali. Trattarli come stringhe opache.
+Il modulo nasceva su `/wcs/resources/store/{storeId}/products/{productId}`, che
+**non** è l'endpoint documentato. Era chiavato per product id, e su SGH non
+esisteva nessun lookup per UPC: `/products/<upc>` rispondeva 200 con `{}` vuoto,
+mentre `/products/byUpc`, `/customProductInfo/byPartNumbers` (quello di
+persol.com), `/productview/byPartNumber`, `/bySearchTerm` e `/byIds` davano 404.
+Da lì venivano due pezzi di codice ora eliminati:
 
-### 5.2 Quale prezzo — la regola non è quella ovvia
+- `resolveProductId`, che scaricava la PDP e leggeva `product-id="…"` dal
+  markup — ~170 KB di HTML in più per prodotto;
+- una chiamata per colonna invece di una sola.
 
-Ogni prodotto ha **più price list** e prenderne una a caso mette un numero
-plausibile e sbagliato su una pagina live. La regola, in `pickPrices()`:
+⚠️ Nel repo dei servizi **l'endpoint giusto non era fra quelli provati**: la
+pista era stata cercata a mano invece che nella documentazione. Se serve un
+servizio prodotto per un altro brand, **guardare prima lì**.
 
-1. Ignorare `RxPriceList*` — è il prezzo della montatura **con lenti da vista**,
-   prodotto diverso, spesso più basso.
-2. Il prezzo di listino è il `listPrice` più alto fra le rimanenti.
-3. Una promozione conta **solo se la sua finestra di date è aperta adesso**.
-   Una price list senza `startDate`/`endDate` **non** è una promozione.
-4. Niente promo attiva → un numero solo.
+La risposta contiene `catentryId`, che **è** il vecchio product id: comodo per
+debuggare, non lo legge nessuno.
 
-Il punto 3 è quello che si sbaglia, e non è un'ipotesi: su `rb3548n` la lista
-`Extended Sites Catalog Asset Store` quota 191 → 153 **con date vuote**, e la
-PDP mostra $191 secco. Onorarla avrebbe pubblicizzato uno sconto del 20%
-inesistente.
+### 5.2 Quale prezzo — ora è quello ovvio
 
-Regola ricavata da quattro PDP e poi confermata prevedendone una quinta:
+L'endpoint documentato torna **una coppia di numeri già risolta**:
+`listPrice` è il prezzo da cui si misura, `offerPrice` è quello che si paga, e
+lo sconto è semplicemente `offerPrice < listPrice`. L'unica accortezza è che
+arrivano come **stringhe** (`"224.00"`), quindi `pickPrices()` le converte prima
+di confrontarle o formattarle.
 
-| prodotto | il modulo rende | la PDP mostra |
-| --- | --- | --- |
-| `rb3548n` | `$191.00` | `$191.00` |
-| `tf4214u` | `$244.50` / `$489.00` / 50% off | identico |
-| `jc4011` | `$293.30` / `$419.00` / 30% off | identico |
-| `ar8146` | `$270.90` / `$387.00` / 30% off | identico |
+`currencySymbol` si ignora di proposito: il lato del simbolo e i separatori sono
+affari del locale, e `Intl.NumberFormat` li sa già. Si usa `currency`, il codice
+ISO.
 
-Se un giorno i prezzi non tornano più: si ri-deriva questa funzione **contro le
-PDP vere**, non contro il payload da solo.
+**Non c'è il badge sconto.** L'endpoint non porta nessuna stringa tipo
+"30% off", quindi una promo rende offerta + listino barrato e basta. È una
+rinuncia decisa, non una dimenticanza.
+
+#### La regola vecchia, per capire cosa si è buttato
+
+Il vecchio endpoint tornava **cinque price list grezze** per prodotto e
+bisognava ridurle a mano: ignorare `RxPriceList*` (è la montatura **con lenti da
+vista**, prodotto diverso e spesso più economico), prendere il `listPrice` più
+alto fra le rimanenti, e onorare una promozione **solo se la sua finestra di
+date era aperta**. Quest'ultimo era il punto che si sbagliava: su `rb3548n` la
+lista `Extended Sites Catalog Asset Store` quotava 191 → 153 **con date vuote**
+mentre la PDP mostrava $191 secco, e onorarla avrebbe pubblicizzato uno sconto
+del 20% inesistente.
+
+Tutta quella logica è stata cancellata, non disattivata. Se un giorno i prezzi
+non tornassero più con le PDP, il posto da guardare è `pickPrices()`, che ora è
+lungo dieci righe.
 
 ### 5.3 Prodotti di test già risolti
 
-Utili per provare senza aspettare i codici veri.
+Il modulo ora cerca per **UPC**: è l'unico campo che serve. `productId` resta
+nel JSON come riferimento incrociato e non lo legge nessuno.
 
-| Nome | productId | UPC | pdpUrl (stage) |
-| --- | --- | --- | --- |
-| Ray-Ban Meta Wayfarer | `3074457345618661050` | `8056597988377` | `/us/ray-ban-meta-gen-1/rw4006-8056597988377` |
-| Ray-Ban Meta Headliner | `3074457345618661055` | `8056597988391` | `/us/ray-ban-meta-gen-1/rw4009-8056597988391` |
-| Ray-Ban Hexagonal | `732332` | `8053672689679` | `/us/ray-ban/rb3548n-8053672689679` |
-| Tiffany TF4214U (50% off) | `3074457345618661580` | `8056597916660` | `/us/tiffany-co/tf4214u-8056597916660` |
-| Jimmy Choo JC4011 (30% off) | `3074457345618751322` | `8056262230008` | `/us/jimmy-choo/jc4011-8056262230008` |
-| Giorgio Armani AR8146 (30% off) | `3074457345618539864` | `8056597415514` | `/us/giorgio-armani/ar8146-8056597415514` |
+| Nome | UPC | Note |
+| --- | --- | --- |
+| Ray-Ban Meta Wayfarer **Gen 1** | `8056597988377` | nel JSON come segnaposto di Gen 3 |
+| Ray-Ban Meta Headliner **Gen 1** | `8056597988391` | nel JSON come segnaposto di Gen 2 |
+| Ray-Ban Hexagonal | `8053672689679` | |
+| Tiffany TF4214U | `8056597916660` | aveva uno sconto |
+| Jimmy Choo JC4011 | `8056262230008` | aveva uno sconto |
+| Giorgio Armani AR8146 | `8056597415514` | aveva uno sconto |
 
-I primi due sono quelli attualmente nel JSON, come **segnaposto** per Gen 3 e
-Gen 2. Gli altri servono per provare sconti e casi con 3+ prodotti.
+⚠️ I due nel JSON sono **Gen 1**, non Gen 3 / Gen 2: la risposta li chiama
+`Ray-Ban Meta (Gen 1) Wayfarer` e `… Headliner`, ed entrambi sono
+`isOutOfStock: true`. È il motivo per cui il prezzo esce piatto (224/224 e
+247/247) e non si vede nessun barrato.
+
+Gli sconti degli ultimi tre erano misurati sul vecchio endpoint e sulle sue
+price list: **da riverificare** su `productInfo` prima di usarli come casi di
+prova di un barrato.
 
 ### 5.4 Repo di riferimento consultate
 
@@ -204,10 +225,11 @@ Gen 2. Gli altri servono per provare sconti e casi con 3+ prodotti.
 | --- | --- | --- |
 | `4-card-section-module` | `/Users/tommo/Sites/4-card-section-module` | Toolchain, `bootstrap.js`, `info_store.js` SGH, pattern del fragment. **Fonte della pipeline.** |
 | `RTR-cross-hp` | `/Users/tommo/Desktop/RTR-cross-hp` (clonata a mano) | Il pattern Oakley `searchproducts/upc/` — **non** vale per SGH. La variante SGH lì dentro non chiama nessuna API. |
-| `PO_xlsv` | `/Users/tommo/Sites/PO_xlsv` | Il pattern WCS `/wcs/resources/store/{storeId}/customProductInfo/byPartNumbers/` — è da qui che è partita la pista giusta. |
+| `PO_xlsv` | `/Users/tommo/Sites/PO_xlsv` | Il pattern WCS `/wcs/resources/store/{storeId}/customProductInfo/byPartNumbers/`. Non è deployato su SGH. |
+| **`product-services-doc`** | `LuxotticaContentTeam/product-services-doc` | ⭐ **La fonte da consultare per prima.** Un file per brand con l'endpoint prodotto documentato, parametri ed esempio di risposta. `sunglasshut/product-service.md` è quello che il modulo usa adesso. Contiene anche `middle-layer.md` (manifest 3D per UPC) e le varianti di Oakley, Ray-Ban, Persol, LensCrafters, Costa, Glasses, Target Optical. |
 
-`gh` non è installato su questa macchina e `LuxotticaContentTeam/RTR-cross-hp`
-è privata: da API GitHub risponde 404.
+`gh` non è installato su questa macchina: i repo privati dell'org si clonano con
+`git clone git@github-lux:LuxotticaContentTeam/<repo>.git`, che funziona.
 
 ---
 
@@ -216,9 +238,10 @@ Gen 2. Gli altri servono per provare sconti e casi con 3+ prodotti.
 ### Bloccante — uno solo
 
 1. **Codici prodotto veri.** Il testo nel JSON è quello reale del Figma (Gen 3
-   vs Gen 2) ma `productId` / `upc` / `pdpUrl` puntano a due Ray-Ban Meta di
-   stage. Sostituire i due oggetti in `comparison.products`. Come si ricava un
-   `productId` da un URL PDP: §5.1.
+   vs Gen 2) ma gli UPC autorati risolvono a due Ray-Ban Meta **Gen 1**.
+   Sostituirli è ora una modifica a **un campo solo**: `upc` su ciascuno dei due
+   oggetti in `comparison.products`, nient'altro. `productId` e `pdpUrl` restano
+   come riferimenti e non li legge nessuno.
 
 ### A carico di chi pubblica, non del codice
 
@@ -231,16 +254,48 @@ Gen 2. Gli altri servono per provare sconti e casi con 3+ prodotti.
    `DEST_FOLDER_PROD`, `PROD_URL`) a livello di repo o di org. Verificare che
    esistano e che puntino dove serve prima di lanciarli.
 
+### Pulizia possibile, da decidere
+
+Trovata facendo un giro sulla repo. Niente di rotto — è tutta roba che funziona,
+solo superflua. Nessuna è stata rimossa: vanno decise una per una, perché tre su
+cinque toccano il **boilerplate condiviso** con gli altri moduli e toglierle
+significa divergere.
+
+| Cosa | Dove | Peso | Nota |
+| --- | --- | --- | --- |
+| Il bundle del variant è **duplicato** nel js spedito | `tasks/script.task.js` > `concatScripts` | ~1,1 KB su 41 KB | `aliasify` inlinea già `variants/SGH/main.js` dentro il bundle principale (`@currentVariant@`), ma `concatScripts` ci concatena **anche** il bundle standalone dello stesso file. Nel release `documentElement` compare 2 volte. Gira a vuoto, non fa danni. **Tocca il boilerplate.** |
+| `const main = () => {}` | `src/js/variants/SGH/main.js` | 1 riga | Esportato e mai importato: `main.js` prende solo `{ infoStore }`. Residuo di boilerplate. |
+| `map`, `clamp`, `isMobile` | `src/js/modules/utils.js` | ~20 righe | Mai importati da nessuno. **Tocca il boilerplate** (`utils.js` è preso da `4-card-section-module` senza modifiche). |
+| `CSS_URL`, `JSON_URL`, `MOBILE_COLUMNS` | `bootstrap.js`, `comparisonState.js` | 0 | Esportati ma usati solo dentro il loro file. Innocui, semmai si toglie la parola `export`. |
+| Il task `vendors` (bower) | `tasks/vendors.task.js`, `vendor.js` | 0 a runtime | `vendor.js` ha le liste vuote e `bower_components/` non esiste: il task logga "No vendors selected" ed esce. La dipendenza `bower` è morta. **Tocca il boilerplate.** |
+| devDependencies mai usate | `package.json` | 0 a runtime | `bower`, `babel-core`, `babel-preset-env` (v1, doppione di `@babel/preset-env` che è quello vero), `babel-eslint`, `babel-loader`, `expose-loader` (loader webpack, e webpack non c'è), `es6-promise-pool`, `gulp-babel`, `gulp-typescript`, `gulp-wait`, `postcss-clean`, `through2`, `debug`. Non finiscono nel bundle, ma allungano `npm install`. |
+
+Verificato **pulito**: nessuna classe CSS orfana (35 classi `ct_comparison*`,
+tutte prodotte da js o fragment), nessun file js mai importato, nessun font
+inutile — i tre `.woff2` servono, ma solo in dev (`_local.scss` li carica dentro
+`@if ($env == "development")`, perché in produzione li fornisce già lo
+storefront).
+
 ### Scelte consapevoli, non buchi
 
-4. **Lingue: `en-us` e `en`.** Non è un lavoro da finire prima di andare
-   online. `getTrad` prova country → lang → prefisso → `en-us` → `en`, quindi un
-   mercato senza copy propria rende inglese, non bianco. Aggiungere una lingua =
-   aggiungere la sua chiave accanto a `en-us`, nient'altro. L'unico divieto
-   resta la **stringa vuota**: i primi tre passi matchano la chiave, non il
-   contenuto, quindi un `fr-ca` vuoto rende bianco invece di cadere su `fr`.
-   `comparison.api.store` è l'eccezione voluta: non ricade mai sull'inglese,
-   perché uno store id sbagliato è peggio di uno store id assente.
+4. **Lingue: otto.** `en-us`, `en`, `fr`, `fr-ca`, `es`, `es-mx`, `de`, `nl` —
+   lo stesso set che SGH spedisce in `4-card-section-module` per questa
+   campagna. Trascritte dai frame Figma per locale (§9); `es-mx` non ha un frame
+   suo e riusa `es`, come richiesto. `getTrad` prova country → lang → prefisso →
+   `en-us` → `en`, quindi un mercato senza chiave propria rende inglese, non
+   bianco. L'unico divieto resta la **stringa vuota**: i primi tre passi
+   matchano la chiave, non il contenuto, quindi un `fr-ca` vuoto rende bianco
+   invece di cadere su `fr`. `comparison.api.store` è l'eccezione voluta: non
+   ricade mai sull'inglese, perché uno store id sbagliato è peggio di uno store
+   id assente.
+
+   ⚠️ **Tre chiavi non vengono dal Figma**: `comparison.title`,
+   `comparison.subtitle` e `comparison.selectLabel`. I frame per locale partono
+   dall'header prodotto e non contengono né l'intro né il picker mobile, quindi
+   nelle sei lingue nuove quei valori sono provvisori e vanno fatti validare.
+   Lo stesso per `products[].family` e `products[].shortName`. Tutto elencato in
+   `_meta.notFromFigma` dentro il JSON, insieme a `_meta.figmaDeviations` (le
+   cinque sviste corrette) e `_meta.figmaOpenQuestions`.
 5. **Stato "off" dello switch.** Figma lo esporta solo acceso. Il colore da
    spento (`$color-switch-off`) l'ho scelto io: è l'unico valore inventato.
 6. **Stato "aperto" del selettore.** Disegnato solo chiuso. La lista riusa
@@ -334,11 +389,35 @@ Il JSON reale ne ha 2. Per testare selettori e colonne multiple:
 
 ```bash
 cp src/json/variants/SGH/json.json /tmp/json.real.json
-# aggiungere un terzo prodotto (copiare un oggetto esistente e cambiare
-# id, name, shortName, productId, upc, pdpUrl)
+# sostituire con un JSON di prova
 # ... test ...
 cp /tmp/json.real.json src/json/variants/SGH/json.json   # ripristinare SEMPRE
 ```
+
+Il watcher segue `src/json/variants/`, quindi si può scambiare il file a `npm
+run dev` acceso e la pagina si ricarica da sola.
+
+⚠️ **L'`id` di ogni prodotto deve essere unico**, anche quando i prodotti sono
+lo stesso articolo ripetuto: `comparisonState` indicizza per `id`, e due id
+uguali rompono sia le colonne che le tendine. L'UPC invece può ripetersi senza
+problemi — `getProducts` deduplica prima della chiamata e poi distribuisce la
+stessa risposta a tutte le colonne che l'hanno chiesta, quindi resta **una sola
+richiesta**.
+
+Comportamento atteso, misurato sullo stato del modulo:
+
+| | 3 prodotti | 4 prodotti |
+| --- | --- | --- |
+| Desktop > 1024px | 3 colonne, `--ct-columns: 3`, nessuna tendina | 4 colonne, `--ct-columns: 4` |
+| ≤ 1024px | 2 colonne + tendina | 2 colonne + tendina |
+| opzioni offerte | il prodotto non a schermo | i due non a schermo |
+| toggle "only differences" | **assente** | **assente** |
+
+Il toggle sparisce di proposito: con tre prodotti una riga può essere uguale per
+A e B e diversa per C, quindi "nascondi le righe uguali" non ha una risposta
+sola — ed è quello che mostra anche il frame Figma a 3 prodotti. Selezionare in
+una tendina un prodotto già presente nell'altra colonna viene **rifiutato**,
+altrimenti la tabella confronterebbe un prodotto con se stesso.
 
 ---
 
@@ -373,8 +452,10 @@ Da non rifare salvo regressioni.
 - Tabella costruita solo dal JSON: 2 prodotti → 2 colonne; aggiunto un terzo →
   3 colonne e 3 celle per riga su desktop, senza toccare il codice.
 - Prezzi, packshot e link PDP combaciano con le PDP live su 4 prodotti.
-- L'API corregge anche un `pdpUrl` scritto a mano ormai obsoleto
-  (`/us/ray-ban-meta/` → `/us/ray-ban-meta-gen-1/`).
+- L'API corregge anche un `pdpUrl` scritto a mano ormai obsoleto. Con
+  l'endpoint attuale lo slug che torna è `/us/ray-ban/…`, diverso da quello del
+  prodotto (`/us/ray-ban-meta/…`): **c'è un redirect automatico**, verificato in
+  browser, quindi si lascia così.
 - Selettori: con Gen 3 | Gen 2 a schermo ogni lista contiene **solo** Gen 2
   Optics; scegliendolo, entrambe passano a contenere solo Gen 3 e la tendina si
   chiude. Apertura, click esterno, Esc, frecce e `aria-expanded` funzionano.
@@ -412,3 +493,32 @@ progetto:
 Difetto trovato e corretto nella stessa sessione: il trigger del selettore non
 aveva `data-tracking-description` e spingeva `data_description: undefined` — il
 modulo analytics protegge il valore, non elimina la chiave.
+
+Aggiunto nella terza sessione:
+
+- **Otto lingue** nel JSON, trascritte dai frame Figma per locale. Risoluzione
+  simulata su dieci mercati attraverso `getTrad`: **960 stringhe, nessuna
+  vuota**, e un mercato non elencato (`it-IT`) cade su inglese come deve.
+- **Endpoint prodotto migrato** su quello documentato, verificato contro il
+  payload reale di produzione: una `fetch` invece di due, prezzo/`pdpURL`/
+  packshot risolti, uno sconto simulato che barra correttamente, lo stesso UPC
+  distribuito su quattro colonne da **una sola** richiesta, e sei percorsi di
+  degradazione (`products[]` vuoto, 404, `fetch` che lancia, nessuno store id,
+  prodotto senza `upc`, UPC sconosciuto) che tornano tutti `{}` lasciando la
+  tabella sul contenuto autorato.
+- **Store id di produzione confermato**: `10152` su `www.sunglasshut.com`
+  risponde con prezzi `USD` e URL `/us/`. Non serve più leggerlo da `ct_data`.
+- **Colonne e tendine con 3 e 4 prodotti** verificate simulando
+  `comparisonState` sui file di prova: conteggio colonne, opzioni offerte,
+  toggle assente, e il rifiuto di selezionare un prodotto già in colonna.
+- **Confronto degli artefatti fra due build** (worktree sul commit precedente):
+  dopo la migrazione dell'endpoint cambiano solo `main__0.0.1.min.js` e
+  `json__0.0.1.json`; CSS, `fragment.html` e `index.html` sono byte per byte
+  identici, quindi CoreMedia non si tocca. Del JSON cambiano 4 chiavi su 67, e
+  sono **tutte** campi di documentazione (`_meta.*`, `api._store`): nessuna
+  copy, nessun UPC.
+
+Difetto trovato e corretto nella stessa sessione: `reduceProduct` componeva il
+nome come `brand + name`, che su Gucci è giusto (`Gucci GG1463S`) ma sulle linee
+co-branded raddoppiava il marchio (`Ray-Ban Ray-Ban Meta (Gen 1) Wayfarer`). Ora
+il brand si antepone solo se non è già in testa al nome.
