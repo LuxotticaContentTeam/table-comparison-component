@@ -195,99 +195,81 @@ Price, PDP link and packshot go stale on their own, so they are not authored.
 They come from the storefront:
 
 ```
-GET /wcs/resources/store/{storeId}/products/{productId}?langId={langId}
+GET /wcs/resources/store/{storeId}/productInfo?partNumbers={upc1,upc2,…}&langId={langId}
 ```
+
+This is SGH's documented service — **"New Prod Service (2026)"** in
+[`LuxotticaContentTeam/product-services-doc`](https://github.com/LuxotticaContentTeam/product-services-doc)
+> `sunglasshut/product-service.md`. It takes **every product in one call**,
+keyed by **UPC**, and returns prices already resolved.
 
 The call is **relative**, so it is same-origin and needs no CORS header —
 unlike the content json, which is fetched from the asset host. `storeId` and
 `langId` come from `comparison.api.store` when authored, otherwise from
-`window.ct_data`. Verified on `stage.sunglasshut.com` (store `10152`, catalog
-`20602`).
+`window.ct_data`.
+
+Verified against **production** (`www.sunglasshut.com`, store `10152`) with the
+two UPCs this module ships: 200, both products in one response, `USD` prices
+and `/us/` PDP urls. That is also what settles the store id — `10152` is the US
+store on production, not just on stage.
 
 What the module takes from the response:
 
 | | Field |
 | --- | --- |
-| price | `prices` — see [Which price](#which-price), it is not the obvious one |
-| PDP link | `links.url` |
-| packshot | `images[]` sorted by `sequence`, falling back to `variantImageUrl` |
-| name | `brand` + `model`, used only if the json authors none |
+| price | `prices.offerPrice` / `prices.listPrice` — strings, coerced before use |
+| currency | `prices.currency`, the ISO code, which is what `Intl` wants |
+| PDP link | `pdpURL` |
+| packshot | `images[]` sorted by `sequence`, with its own `alt` |
+| name | `brand` + `name`, used only if the json authors none |
 
-The response also carries `frameMaterial`, `lensMaterial`, `lensColor`,
-`frameColor`, `polarized`, `frameShape`, `size`, `fit`, `madeIn` and more.
-Those are **not** read: the comparison copy is editorial and translated, and
-the API returns English attribute values that would bypass the content json.
+The response also carries `frameColor`, `lensColor`, `localizedColorLabel`,
+`moco`, `category`, `isOutOfStock` and `active`. Those are **not** read: the
+comparison copy is editorial and translated, and the API returns English
+attribute values that would bypass the content json.
 
 ### Which price
 
-A product carries **several price lists**, and picking the wrong one puts a
-plausible, wrong number on a live page. Neither "the first one" nor a fixed
-preferred name is right. The rule, in `pickPrices` (`modules/productApi.js`):
+One pair of numbers, already resolved by the storefront:
 
-1. **Ignore `RxPriceList*`.** It quotes the frame fitted with prescription
-   lenses — a different product from the sunglasses on the page, and often
-   cheaper.
-2. **The list price is the highest `listPrice`** among the remaining lists.
-3. **A promotion counts only when its date window is open now.** A list with no
-   `startDate` / `endDate` is *not* a promotion.
-4. No live promotion → one number, the list price. Otherwise the offer, the list
-   price struck through, and the storefront's own `badge` string, which is shown
-   verbatim rather than recomputed.
+- `listPrice` is what the price is measured from, `offerPrice` is what is
+  charged, and a sale is simply `offerPrice < listPrice`.
+- Both arrive as **strings** (`"224.00"`), so `pickPrices` coerces them before
+  anything compares or formats them.
+- There is **no discount badge**. The endpoint carries no `badge` string, so
+  the table shows the offer with the list price struck through and no "30% off"
+  label. That was a deliberate trade when this module moved onto the documented
+  service, not an oversight.
+- `currencySymbol` is ignored on purpose. The symbol's side and the separators
+  are the locale's business, and `Intl.NumberFormat` already knows them.
 
-Step 3 is the one that is easy to get wrong, and it is not a guess. On
-`rb3548n` the `Extended Sites Catalog Asset Store` list quotes 191 → 153 with
-**empty** dates, and the PDP shows a flat $191 — the entry is data that is not
-in force. Honouring it would have advertised a 20% discount that does not
-exist.
+This replaced a much longer rule. The endpoint used before —
+`/wcs/resources/store/{storeId}/products/{productId}` — returned five raw price
+lists per product that had to be reduced by name (excluding `RxPriceList*`,
+which quotes the frame with prescription lenses) and by promotion date window
+before a number could be shown. None of that is needed any more, and none of it
+is still in the code.
 
-Derived from four live PDPs and then confirmed by predicting a fifth:
+### It takes a UPC, not a product id
 
-| product | what the module renders | what the PDP shows |
-| --- | --- | --- |
-| `rb3548n` | `$191.00` | `$191.00` |
-| `tf4214u` | `$244.50` / `$489.00` / 50% off | identical |
-| `jc4011` | `$293.30` / `$419.00` / 30% off | identical |
-| `ar8146` | `$270.90` / `$387.00` / 30% off | identical |
+The json authors a `upc` per product and the module needs nothing else. The
+response echoes `catentryId`, which **is** the product id — useful when
+debugging, read by nothing.
 
-If prices ever start disagreeing with the PDP, this is the function to re-derive
-— against real PDPs, not against the payload alone.
+This is the other way round from how the module started. The older endpoint was
+keyed by product id, had no UPC lookup at all on SGH (`/products/<upc>` answered
+200 with an empty `{}`; `/products/byUpc`, `/customProductInfo/byPartNumbers`,
+`/productview/byPartNumber`, `/bySearchTerm` and `/byIds` all 404'd), and so
+needed either a `productId` authored in the json or a `pdpUrl` to scrape one
+out of — a ~170 KB html round trip per product. Both paths are gone.
 
-### ⚠️ The endpoint takes a product id, not a UPC
+**One request, not one per column.** UPCs are de-duplicated before the call, so
+a table that shows the same product in more than one column still makes a
+single request and fans the result back out to every column that asked for it.
 
-There is no lookup by UPC on Sunglass Hut. Verified, all of these fail:
-
-| Tried | Result |
-| --- | --- |
-| `/products/<upc>` | 200 with an empty `{}` — no 404, so nothing raises |
-| `/products/byUpc/<upc>`, `/products/upc/<upc>`, `/products?upc=` | 404 |
-| `/customProductInfo/byPartNumbers/<list>` (what persol.com uses) | 404 — not deployed on SGH |
-| `/productview/byPartNumber`, `/bySearchTerm`, `/byIds` | 404 |
-| site search by UPC | 404 |
-
-The PDP url is not UPC-routed either: the model slug is significant, so
-`/us/ray-ban/xxx-8053672689679` is a 404 while the real slug answers 200.
-
-So a product needs one of two things in the json:
-
-- **`productId`** — the fast path. One request per product, nothing to scrape.
-  This is what a shipping json should carry.
-- **`pdpUrl`** — the fallback. The module fetches the PDP once and reads
-  `product-id="…"` out of its markup, then makes the same request. It costs an
-  extra ~170 KB html round trip per product and breaks if that attribute is
-  ever renamed.
-
-`upc` is always authored as the human-readable key, but nothing resolves from
-it.
-
-**To get a `productId` from a PDP url:**
-
-```bash
-curl -s "https://stage.sunglasshut.com/us/ray-ban/rb3548n-8053672689679" \
-  | grep -oE 'product-id="[0-9]+"' | head -1
-```
-
-Ids are not all the same shape — `732332` and `3074457345618661580` are both
-real — so treat them as opaque strings.
+A UPC the storefront does not know is simply absent from `products[]` in the
+response, which is why the result is matched back by UPC rather than by
+position — that column keeps its authored content and says so in the console.
 
 **Nothing blanks the column.** The table is built from the authored json first
 and enriched with whatever the API returns. A dead product costs that column its
@@ -751,12 +733,12 @@ the project name were set:
 ### Before it can go live
 
 - **The product codes in the json are placeholders.** The copy is the real
-  Gen 3 / Gen 2 comparison from Figma, but `productId` / `upc` / `pdpUrl` point
-  at two real Ray-Ban Meta products on stage so the module can be seen working
-  end to end. Swap the two objects in `comparison.products` when the real codes
-  land. "The endpoint takes a product id, not a UPC", under [Live product
-  data](#live-product-data), has the one-liner that resolves a `productId` from
-  a PDP url.
+  Gen 3 / Gen 2 comparison from Figma, but the authored UPCs resolve to
+  Ray-Ban Meta **Gen 1** — `8056597988377` is a Gen 1 Wayfarer, `8056597988391`
+  a Gen 1 Headliner, both `isOutOfStock` — so the module can be seen working end
+  to end. Swapping them is a one-field change now: set `upc` on each of the two
+  objects in `comparison.products` and nothing else. `productId` and `pdpUrl`
+  are kept alongside as cross-references and are read by nothing.
 - **The two SVG icons have to be uploaded once** to
   `<base>/img/SGH/`. They are not in the release folder and are not versioned —
   see [Publishing it, step by step](#publishing-it-step-by-step), step 4.
