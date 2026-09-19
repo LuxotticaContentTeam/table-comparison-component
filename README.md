@@ -208,9 +208,10 @@ unlike the content json, which is fetched from the asset host. `storeId` and
 `langId` come from `comparison.api.store` when authored, otherwise from
 `window.ct_data`.
 
-Verified against **production** (`www.sunglasshut.com`, store `10152`) with the
-two UPCs this module ships: 200, both products in one response, `USD` prices
-and `/us/` PDP urls. That is also what settles the store id — `10152` is the US
+Verified on **production and stage** (`www.sunglasshut.com` and
+`stage.sunglasshut.com`, store `10152`) with the two UPCs this module ships:
+200 on both, both products in one response, identical `USD` prices and `/us/`
+PDP urls. That is also what settles the store id — `10152` is the US
 store on production, not just on stage.
 
 What the module takes from the response:
@@ -761,32 +762,43 @@ the project name were set:
   `SOURCE_FOLDER`, `DEST_FOLDER_PROD`, `PROD_URL`. Confirm they exist and point
   where this module expects before dispatching either workflow.
 
-### Possible cleanup, not yet done
+### Cleanup done
 
-Found on a sweep of the repo. Nothing is broken — this all works, it is just
-surplus. None of it has been removed, because three of the five touch the
-**shared boilerplate** and taking them out means diverging from the other
-modules.
+A sweep of the repo turned up six pieces of surplus. Five were removed; the
+sixth was left alone deliberately.
 
-| What | Where | Weight |
-| --- | --- | --- |
-| The variant bundle is **shipped twice** | `tasks/script.task.js` > `concatScripts` | ~1.1 KB of 41 KB |
-| `const main = () => {}`, exported and never imported | `src/js/variants/SGH/main.js` | 1 line |
-| `map`, `clamp`, `isMobile`, imported by nothing | `src/js/modules/utils.js` | ~20 lines |
-| `CSS_URL`, `JSON_URL`, `MOBILE_COLUMNS` exported but used only in their own file | `bootstrap.js`, `comparisonState.js` | 0 |
-| The `vendors` (bower) task, with empty lists and no `bower_components/` | `tasks/vendors.task.js`, `vendor.js` | 0 at runtime |
-| 13 devDependencies nothing requires | `package.json` | 0 at runtime |
+**The variant bundle was shipped twice.** `main.js` imports the variant as
+`@currentVariant@` and the aliasify transform resolves that at bundle time, so
+`variants/SGH/main.js` is already inside the main bundle. `script.task.js` also
+built it a *second* time as its own browserify bundle, and `concatScripts` glued
+that onto the release — two copies of `info_store`, one of which nothing
+referenced and which ran for nothing on every page load. In dev the same file
+was injected as an extra `<script>`. The released js went from **40,962 to
+39,619 bytes (−1,343, −3.3%)** and now contains `documentElement` once instead
+of twice.
 
-The first one is the only one with a measurable cost: `aliasify` already inlines
-`variants/SGH/main.js` into the main bundle through `@currentVariant@`, and then
-`concatScripts` concatenates the standalone bundle of that same file on top. The
-released js contains `documentElement` twice. It runs harmlessly and does
-nothing.
+Also removed: a no-op `main` export from `variants/SGH/main.js` and from the
+template new variants are scaffolded from; `map`, `clamp` and `isMobile` from
+`utils.js`, imported by nothing; the `vendors` task with its `vendor.js` (empty
+lists, no `bower_components/`, so it only ever logged "No vendors selected"),
+along with the now-pointless `dist_vendors` wiring in `_config.js`,
+`inject-css-js` and `buildEspot`; and **14 devDependencies** nothing requires,
+taking the list from 55 to 41.
 
-Verified **clean**: no orphan CSS (all 35 `ct_comparison*` classes are produced
-by the js or the fragment), no unimported js file, and the three `.woff2` fonts
-are not dead — `_local.scss` loads them inside `@if ($env == "development")`,
-because in production the storefront already provides them.
+Three were kept on purpose, because they are used in ways a plain grep misses:
+`gulp-filter` is reached as `$.filter()` through `gulp-load-plugins`
+(`style.task.js`), `postcss` is a peer dependency of `gulp-postcss`, and
+`cross-env` is used in the npm scripts rather than in any source file.
+
+Left alone: `CSS_URL`, `JSON_URL` and `MOBILE_COLUMNS` are exported but read
+only inside their own file. Dropping the `export` keyword changes nothing that
+ships, so they stay.
+
+Verified **clean** in the same sweep: no orphan CSS (all 35 `ct_comparison*`
+classes are produced by the js or the fragment), no unimported js file, and the
+three `.woff2` fonts are not dead — `_local.scss` loads them inside
+`@if ($env == "development")`, because in production the storefront provides
+them.
 
 ### Known, and deliberate
 

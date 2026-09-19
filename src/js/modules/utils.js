@@ -1,12 +1,3 @@
-// check if mobile
-function isMobile(breakpoints) {
-  if (window.innerWidth > breakpoints.mob_max) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
 /**
  * Determines the type of device based on the window width and specified breakpoints.
  *
@@ -159,26 +150,4 @@ const checkData = (dataToCheck, timeout = 10000, startTime = Date.now()) => {
     }
   });
 };
-/**
- *
- * @param {*} x - value to map
- * @param {*} a - min value
- * @param {*} b - max value
- * @param {*} c - min value of the new range
- * @param {*} d - max value of the new range
- * @returns
- */
-const map = (x, a, b, c, d) => ((x - a) * (d - c)) / (b - a) + c;
-
-/**
- *
- * @param {*} min - min value
- * @param {*} input - value to clamp
- * @param {*} max - max value
- * @returns - clamped value
- */
-const clamp = (min, input, max) => {
-  return Math.max(min, Math.min(input, max));
-};
-
-export { checkData, map, clamp, customLog, eventCatcher, eventDispatch, getTrad, getDeviceType, isMobile };
+export { checkData, customLog, eventCatcher, eventDispatch, getTrad, getDeviceType };

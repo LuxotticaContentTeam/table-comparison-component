@@ -21,9 +21,6 @@ vendor
 # npm
 node_modules
 
-# bower
-bower_components
-
 # temporary build files
 .tmp
 src/scss/.tmp

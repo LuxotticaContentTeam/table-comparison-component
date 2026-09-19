@@ -8,7 +8,6 @@ const { clean, cleanRelease } = require("./tasks/clean.task.js");
 const { views, exportViews, exportEspot } = require("./tasks/views.task.js");
 const genericAssets = require("./tasks/generic-assets.task.js");
 const images = require("./tasks/images.task.js");
-const vendors = require("./tasks/vendors.task.js");
 const { style, exportCss, criticalCss } = require("./tasks/style.task.js");
 const { script, criticalJs, concatScripts } = require("./tasks/script.task.js");
 const bs = require("./tasks/browser-sync.task.js");
@@ -34,7 +33,6 @@ exports.serve = series(
   views,
   genericAssets,
   staticAsset,
-  vendors,
   images,
   style,
   json,
@@ -56,7 +54,6 @@ exports.build = series(
   json,
   jsonBuild,
   staticAsset,
-  vendors,
   images,
   style,
   exportCss,

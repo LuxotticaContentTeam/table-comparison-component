@@ -130,9 +130,11 @@ CORS.
 
 Chiave = **UPC**, tutti i prodotti in **una sola chiamata**, prezzi già risolti.
 
-**Verificato su produzione**, non solo su stage: `www.sunglasshut.com`, store
-`10152`, i due UPC che il modulo spedisce → 200, entrambi i prodotti nella
-stessa risposta, prezzi `USD`, URL PDP `/us/…`. Questo chiude anche la domanda
+**Verificato su produzione e su stage**: `www.sunglasshut.com` e
+`stage.sunglasshut.com`, store `10152`, i due UPC che il modulo spedisce → 200
+su entrambe, stessa risposta, stessi prezzi `USD`, URL PDP `/us/…`. (Stage era
+irraggiungibile il giorno della migrazione — da qui il dubbio, ora chiuso: il
+servizio è deployato anche lì.) Questo chiude anche la domanda
 sullo store id: **10152 è lo store US anche in produzione**, quindi il valore
 autorato nel JSON è giusto e non serve leggerlo da `ct_data`.
 
@@ -254,27 +256,48 @@ prova di un barrato.
    `DEST_FOLDER_PROD`, `PROD_URL`) a livello di repo o di org. Verificare che
    esistano e che puntino dove serve prima di lanciarli.
 
-### Pulizia possibile, da decidere
+### Pulizia fatta
 
-Trovata facendo un giro sulla repo. Niente di rotto — è tutta roba che funziona,
-solo superflua. Nessuna è stata rimossa: vanno decise una per una, perché tre su
-cinque toccano il **boilerplate condiviso** con gli altri moduli e toglierle
-significa divergere.
+Sei cose superflue trovate girando la repo. Cinque rimosse, una lasciata apposta.
 
-| Cosa | Dove | Peso | Nota |
-| --- | --- | --- | --- |
-| Il bundle del variant è **duplicato** nel js spedito | `tasks/script.task.js` > `concatScripts` | ~1,1 KB su 41 KB | `aliasify` inlinea già `variants/SGH/main.js` dentro il bundle principale (`@currentVariant@`), ma `concatScripts` ci concatena **anche** il bundle standalone dello stesso file. Nel release `documentElement` compare 2 volte. Gira a vuoto, non fa danni. **Tocca il boilerplate.** |
-| `const main = () => {}` | `src/js/variants/SGH/main.js` | 1 riga | Esportato e mai importato: `main.js` prende solo `{ infoStore }`. Residuo di boilerplate. |
-| `map`, `clamp`, `isMobile` | `src/js/modules/utils.js` | ~20 righe | Mai importati da nessuno. **Tocca il boilerplate** (`utils.js` è preso da `4-card-section-module` senza modifiche). |
-| `CSS_URL`, `JSON_URL`, `MOBILE_COLUMNS` | `bootstrap.js`, `comparisonState.js` | 0 | Esportati ma usati solo dentro il loro file. Innocui, semmai si toglie la parola `export`. |
-| Il task `vendors` (bower) | `tasks/vendors.task.js`, `vendor.js` | 0 a runtime | `vendor.js` ha le liste vuote e `bower_components/` non esiste: il task logga "No vendors selected" ed esce. La dipendenza `bower` è morta. **Tocca il boilerplate.** |
-| devDependencies mai usate | `package.json` | 0 a runtime | `bower`, `babel-core`, `babel-preset-env` (v1, doppione di `@babel/preset-env` che è quello vero), `babel-eslint`, `babel-loader`, `expose-loader` (loader webpack, e webpack non c'è), `es6-promise-pool`, `gulp-babel`, `gulp-typescript`, `gulp-wait`, `postcss-clean`, `through2`, `debug`. Non finiscono nel bundle, ma allungano `npm install`. |
+**Il bundle del variant era spedito due volte.** `main.js` importa il variant
+come `@currentVariant@` e la transform aliasify lo risolve in fase di bundle,
+quindi `variants/SGH/main.js` è già dentro il bundle principale.
+`script.task.js` lo costruiva **anche** come bundle browserify a sé, e
+`concatScripts` lo incollava al release: due copie di `info_store`, una delle
+quali non referenziata da nessuno e che girava a vuoto a ogni caricamento. In
+dev lo stesso file veniva iniettato come `<script>` in più. Il js spedito è
+passato da **40.962 a 39.619 byte (−1.343, −3,3%)** e ora contiene
+`documentElement` una volta sola invece di due.
 
-Verificato **pulito**: nessuna classe CSS orfana (35 classi `ct_comparison*`,
-tutte prodotte da js o fragment), nessun file js mai importato, nessun font
-inutile — i tre `.woff2` servono, ma solo in dev (`_local.scss` li carica dentro
-`@if ($env == "development")`, perché in produzione li fornisce già lo
-storefront).
+Rimossi anche: l'export `main` a vuoto da `variants/SGH/main.js` e dal template
+da cui si scaffoldano i variant nuovi; `map`, `clamp` e `isMobile` da
+`utils.js`, importati da nessuno; il task `vendors` con il suo `vendor.js`
+(liste vuote e `bower_components/` inesistente, quindi logava solo "No vendors
+selected") insieme al cablaggio `dist_vendors` ormai inutile in `_config.js`,
+`inject-css-js` e `buildEspot`; e **14 devDependencies** che nessuno richiede,
+da 55 a 41.
+
+⚠️ **Tre sono state tenute apposta**, perché un grep ingenuo non le vede:
+
+| Pacchetto | Perché resta |
+| --- | --- |
+| `gulp-filter` | usato come `$.filter()` via `gulp-load-plugins` in `style.task.js` — **l'ho rimosso per errore e il build è morto** con `TypeError: $.filter is not a function` |
+| `postcss` | peer dependency di `gulp-postcss` |
+| `cross-env` | usato negli `scripts` di `package.json`, non in un sorgente |
+
+La lezione: per i plugin caricati da `gulp-load-plugins` bisogna cercare la
+forma **camelCase** (`gulp-svg-sprite` → `$.svgSprite()`), non il nome del
+pacchetto.
+
+Lasciati stare: `CSS_URL`, `JSON_URL` e `MOBILE_COLUMNS` sono esportati ma letti
+solo dentro il loro file. Togliere la parola `export` non cambia niente di
+quello che viene spedito, quindi restano.
+
+Verificato **pulito** nello stesso giro: nessuna classe CSS orfana (35 classi
+`ct_comparison*`, tutte prodotte da js o fragment), nessun file js mai
+importato, e i tre `.woff2` non sono morti — `_local.scss` li carica dentro
+`@if ($env == "development")`, perché in produzione li fornisce lo storefront.
 
 ### Scelte consapevoli, non buchi
 
@@ -382,6 +405,8 @@ Costano tempo se le si ricalpesta.
 | Scrivere i nomi dei token (`@assetPath@`, `@buildVersion@`) nei commenti di `live/live.html` | La sostituzione è un replace di stringa: riscrive anche la prosa, e il commento finisce nella pagina di preview con dentro l'URL | Nel commento parlarne a parole, senza scriverli |
 | Controllare `naturalWidth` delle immagini a pagina appena caricata in una tab in background | Zero su tutte, sembrano rotte: sono `loading="lazy"` dentro un container `content-visibility: auto` e non partono proprio | Verificare il path con `fetch()` (status 200) e la decodifica con un `new Image()` fuori dalla pagina |
 | Ricaricare la pagina di dev dopo aver cambiato `projectName` | Chrome serve la copia in cache e il vecchio id continua ad apparire | Navigare con un query param nuovo (`?cb=1`); `curl` sul dev server dice cosa viene servito davvero |
+| Un `gulp serve` rimasto aperto da una sessione precedente | Il nuovo dev server prende la porta successiva (348, 349, 350…), ma `inject-css-js` inietta gli asset con prefisso **hardcoded** `http://localhost:347`: la pagina si apre e resta sullo skeleton per sempre, senza un solo errore in console | `lsof -i -sTCP:LISTEN -n -P \| grep node`, poi `pkill -9 -f "gulp serve"`. `kill` semplice non basta, gulp non muore. Il sintomo si riconosce dal `<script src>` nell'html che punta a una porta diversa da quella su cui si sta navigando |
+| Verificare il modulo in una tab Chrome non in primo piano | `visibilityState: "hidden"`, l'IntersectionObserver non scatta e il modulo resta sullo skeleton | È il lazy loading, non un bug. Portare la tab in primo piano, oppure lanciare l'evento a mano: `window.dispatchEvent(new CustomEvent("#ct_cm--table-comparison-component__loadData"))` |
 
 ### Procedura per provare con 3+ prodotti
 
@@ -522,3 +547,21 @@ Difetto trovato e corretto nella stessa sessione: `reduceProduct` componeva il
 nome come `brand + name`, che su Gucci è giusto (`Gucci GG1463S`) ma sulle linee
 co-branded raddoppiava il marchio (`Ray-Ban Ray-Ban Meta (Gen 1) Wayfarer`). Ora
 il brand si antepone solo se non è già in testa al nome.
+
+Verifiche della pulizia (quarta tornata):
+
+- `npm install` da zero con `node_modules` e `package-lock.json` cancellati,
+  poi build di produzione **verde**.
+- Il js di release è ora **byte per byte** uguale a `dist/js/main.min.js`:
+  `concatScripts` concatena un file solo. `dist/js/SGH/` non viene più prodotto.
+- Nel bundle: `documentElement` e `no lang attribute` compaiono **una volta**
+  (erano due), e restano presenti `productInfo`, `partNumbers`,
+  `ct_cm--table-comparison-component`, `X_ProductComparisonPlacement`,
+  `media.sunglasshut.com`.
+- In dev l'html iniettato ha **un solo** `<script>` e due `<link>`: niente più
+  `SGH/main.js`.
+- **Modulo aperto in Chrome sul dev server** e verificato vivo: skeleton
+  sostituito, 2 colonne, `--ct-columns: 2`, 9 righe di label, toggle presente,
+  `3 Colors` / `4 Colors`, prezzi `Starting from $224.00` e `$247.00` dall'API,
+  CTA su `/us/ray-ban/rw4006-…` e `/us/ray-ban/rw4009-…`, e i due global
+  `ct_cm__tableComparisonComponent` / `…Config` sul `window`.

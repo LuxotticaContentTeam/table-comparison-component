@@ -77,7 +77,6 @@ module.exports = {
   dist_folder: conf.paths.distFolder, // change to whatever root you want it to be.
   dist_css: path.join(conf.paths.distFolder, "/css"),
   dist_js: path.join(conf.paths.distFolder, "/js"),
-  dist_vendors: path.join(conf.paths.distFolder, "vendors"),
   dist_img: path.join(conf.paths.distFolder, "/images"),
   dist_font: path.join(conf.paths.distFolder, "/fonts"),
   dist_html: path.join(conf.paths.distFolder, "/**/*.{twig,html}"),

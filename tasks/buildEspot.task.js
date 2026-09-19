@@ -4,10 +4,9 @@
 const concat = require("gulp-concat");
 const { src, dest } = require("gulp");
 ($ = require("gulp-load-plugins")({ pattern: ["gulp-*"] })), // Setting a global variable to include all glup- plugin
-  (streamSeries = require("stream-series")),
   (path = require("path"));
 
-let { dist_folder, dist_js, dist_css, dist_html, dist_vendors, dist_release, dist_json } = require("./_config.js");
+let { dist_folder, dist_js, dist_css, dist_html, dist_release, dist_json } = require("./_config.js");
 
 module.exports = function buildEspot() {
   const sources = [
