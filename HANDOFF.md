@@ -5,7 +5,7 @@ schema JSON, deploy passo passo): questo file è complementare e contiene quello
 che il README non dice — le decisioni prese in conversazione, cosa è stato
 provato e scartato, e le trappole già pagate una volta.
 
-Ultimo aggiornamento: 20 settembre 2026 (terza sessione).
+Ultimo aggiornamento: 20 settembre 2026 (quarta sessione).
 
 ---
 
@@ -312,13 +312,25 @@ importato, e i tre `.woff2` non sono morti — `_local.scss` li carica dentro
    ricade mai sull'inglese, perché uno store id sbagliato è peggio di uno store
    id assente.
 
-   ⚠️ **Tre chiavi non vengono dal Figma**: `comparison.title`,
-   `comparison.subtitle` e `comparison.selectLabel`. I frame per locale partono
-   dall'header prodotto e non contengono né l'intro né il picker mobile, quindi
-   nelle sei lingue nuove quei valori sono provvisori e vanno fatti validare.
-   Lo stesso per `products[].family` e `products[].shortName`. Tutto elencato in
-   `_meta.notFromFigma` dentro il JSON, insieme a `_meta.figmaDeviations` (le
-   cinque sviste corrette) e `_meta.figmaOpenQuestions`.
+   Ogni locale è trascritto da **due** frame suoi: il comparatore e l'intro
+   (titolo + sottotitolo). Gli id sono in `_meta.translationStatus`.
+
+   ⚠️ **Una sola chiave non ha un frame**: `comparison.selectLabel`, la label
+   sopra il picker prodotto su mobile — i frame coprono intro e tabella, e
+   quel controllo non sta in nessuno dei due. Lo stesso per
+   `products[].family` e `products[].shortName`, che alimentano solo quella
+   tendina. Restano provvisori.
+
+   ⚠️ **Le due colonne sono tenute allineate**: una riga che in `en-us` è uguale
+   per Gen 3 e Gen 2 è uguale anche in ogni altra lingua. I frame non lo
+   facevano — divergevano su 29 righe — e le colonne stanno affiancate, quindi
+   si vedeva. Le differenze vere (6 microfoni contro 5, 9 ore contro 8,
+   `flash storage`) sono intatte. **Se si modifica una riga condivisa in una
+   colonna va modificata anche nell'altra**: sta scritto in
+   `_meta.columnConsistency`.
+
+   Le sei lingue non inglesi **non sono passate dal copy team**, e le correzioni
+   in `_meta.figmaDeviations` sono scelte editoriali fatte qui.
 5. **Stato "off" dello switch.** Figma lo esporta solo acceso. Il colore da
    spento (`$color-switch-off`) l'ho scelto io: è l'unico valore inventato.
 6. **Stato "aperto" del selettore.** Disegnato solo chiuso. La lista riusa
@@ -565,3 +577,25 @@ Verifiche della pulizia (quarta tornata):
   `3 Colors` / `4 Colors`, prezzi `Starting from $224.00` e `$247.00` dall'API,
   CTA su `/us/ray-ban/rw4006-…` e `/us/ray-ban/rw4009-…`, e i due global
   `ct_cm__tableComparisonComponent` / `…Config` sul `window`.
+
+Aggiunto nella quarta tornata, sulla copy:
+
+- **Titoli e sottotitoli** presi dai frame intro per locale, che prima mancavano
+  (`en` 1093:44580, `nl` 1249:27015, `de` 1249:62482, `es` 1249:53652, `fr`
+  1249:71312, `fr-ca` 1249:35992). Quattro su sei erano diversi da quelli
+  provvisori: `de` "Technische Details" e non "Technische Highlights", `nl`
+  "Technologische hoogtepunten", `es` "Características técnicas destacadas",
+  `fr` "Caractéristiques techniques".
+- **`Dom` → `Sol`** in `es` e `es-mx`: il frame spagnolo aveva tradotto così il
+  tipo di lente "Sun". `Lunettes de soleil` in francese e `Sonnenbrillen` in
+  tedesco **restano**, per decisione presa.
+- **29 righe allineate fra le due colonne** con la regola dell'`en-us`, più 18
+  sostituzioni per le incoerenze di notazione che l'allineamento ha fatto
+  emergere dentro la stessa lingua (`fr` e `es` scrivevano "à 120 fps" e poi
+  "30fps"; `fr-ca` scriveva "images par seconde" per esteso e poi "30fps", e
+  "1000+ photos" sopra "Plus de 100 vidéos").
+- Ricontrollato dopo: **960 stringhe su dieci mercati, nessuna vuota**, e zero
+  righe ancora divergenti fra le colonne dove l'`en-us` le ha uguali.
+- **Le due SVG sono già caricate** e rispondono 200 su
+  `media.sunglasshut.com/table-comparison-component/img/SGH/`. Non era un punto
+  aperto, lo era solo nella mia lista.

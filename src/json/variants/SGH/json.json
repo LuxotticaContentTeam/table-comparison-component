@@ -2,35 +2,35 @@
   "_meta": {
     "locales": "Every translatable value is an object keyed by locale. A locale is NEVER mandatory: getTrad (src/js/modules/utils.js) tries the country key (fr-ca), then the language (fr), then any key starting with it, then en-us, then en — so a market with no copy of its own renders English rather than nothing. Adding a language means adding its key next to en-us; nothing else changes. The one rule is never to leave a key as an empty string: the country key is matched before the fallback runs, so an empty fr-ca renders blank instead of falling through to fr. A locale with no copy yet simply has no key. The keys present here also ARE the locale list the dev prompt offers (tasks/prompt.task.js > localesForVariant).",
     "localeList": "Eight locales: en-us, en, fr, fr-ca, es, es-mx, de, nl — the same set SGH ships in 4-card-section-module for this campaign.",
-    "translationStatus": "Copy transcribed from the per-locale Figma comparator frames (file qP9YNquHyjNhP5S34X0JRJ): en 1093:44584, nl 1249:33206, de 1249:68526, es 1249:59696, fr 1249:77356, fr-ca 1249:42036. en-us is the original desktop frame 1020:42173. es-mx has NO frame of its own — it reuses the es copy, as requested. Brand and feature names (Ray-Ban Meta, Meta AI, Transitions®, Bluetooth, WiFi, Hyperlapse where kept, the app names) are left untranslated exactly as the frames have them.",
+    "translationStatus": "Copy transcribed from the per-locale Figma frames (file qP9YNquHyjNhP5S34X0JRJ). Comparator: en 1093:44584, nl 1249:33206, de 1249:68526, es 1249:59696, fr 1249:77356, fr-ca 1249:42036. Intro title + subtitle: en 1093:44580, nl 1249:27015, de 1249:62482, es 1249:53652, fr 1249:71312, fr-ca 1249:35992. en-us is the original desktop frame 1020:42173. es-mx has NO frame of its own and reuses the es copy, as requested. Brand and feature names (Ray-Ban Meta, Meta AI, Transitions®, Bluetooth, WiFi, the app names) are left untranslated exactly as the frames have them.",
     "source": "Copy transcribed from Figma 'SGH - RB META APEROL': desktop 1020:42173, mobile 1020:47170, title 1020:36519. The hideWhenOnlyDifferences flags are the designer's 'Don't show in differences' annotations on that desktop frame.",
     "productCodes": "PLACEHOLDER. The authored UPCs resolve to Ray-Ban Meta Gen 1 (8056597988377 = Gen 1 Wayfarer, 8056597988391 = Gen 1 Headliner, both isOutOfStock) — they are NOT the Gen 2 / Gen 3 the copy describes. Swapping them is a one-field change: set `upc` on each product, nothing else. `productId` (the catentryId) and `pdpUrl` are kept as cross-references and are read by nothing — the lookup is by UPC. See README, \"It takes a UPC, not a product id\".",
     "icons": "Icon values are resolved against package.json > projectConfigurations.paths.productionImage (https://media.sunglasshut.com/table-comparison-component/img/ in production, ./static/images/ in dev), so the brand subfolder is part of the value. An absolute http(s) url is used as-is instead — see isSelfContainedUrl in src/js/contents.js.",
-    "notFromFigma": "THREE keys have no source frame and are NOT transcribed copy: comparison.title, comparison.subtitle and comparison.selectLabel. The per-locale comparator frames start at the product header — they carry no intro title/subtitle, and no mobile product picker. Their non-English values are provisional and still need the copy team. Same for products[].family and products[].shortName, which only feed the mobile dropdown.",
-    "figmaDeviations": "Five deliberate deviations from the frames, each a clear slip rather than a choice. (1) es, Gen 3 case: the frame reads \"Hasta 5 horas de uso con una sola carga\" — every other locale, and the product itself, say 9. Set to 9; revert if the Spanish deck is right. (2) nl and de camera, Gen 3: the frames have an unbalanced bracket, \"(t.o.v. (Gen 2)\" and \"(im Vergleich zu (Gen 2)\" — closed to a single pair. (3) es, Gen 2 product name: the frame reads \"Ray-Ban Meta (Gen 2)\" where every other locale reads \"Ray-Ban | Meta Gen 2\" — normalised. (4) fr-ca, Gen 3 Meta AI: \"TRADUCTION EN DIRECT\" was the only all-caps line in the table — set to sentence case. (5) Straight apostrophes in the fr, fr-ca and nl frames were normalised to the typographic apostrophe used everywhere else; nl \"videos\" to \"video’s\". Row labels are stored in natural case because .ct_comparison__label applies text-transform: uppercase.",
-    "figmaOpenQuestions": "Not changed, but worth a look before go-live: the \"Sun\" lens type became \"Dom\" in es (reads like a mistranslation of Sol), \"Lunettes de soleil\" in fr and \"Sonnenbrillen\" in de — i.e. the product, not the lens type. Several rows also differ between the Gen 3 and Gen 2 columns of the same locale (nl \"ultragroothoek\" vs \"ultra-wide\", de \"automatische Aufnahme\" vs \"Autoaufnahme\", es \"en tiempo real\" vs \"en directo\"); transcribed as-is.",
-    "colorCount": "products[].meta (\"3 Colors\") is AUTHORED, not live, and always will be. SGH’s documented product service returns frameColor / lensColor / localizedColorLabel for the single variant it describes and no count of the siblings. A count exists in the group’s services — `availableColors` on glasses.com’s /ajaxSearchDisplayView — but there is no SGH equivalent: the two candidate paths answer with the homepage html, not json. Unlike the packshot, the price and the PDP link, which do come from the call."
+    "notFromFigma": "ONE key has no source frame: comparison.selectLabel, the label above the mobile product picker. The per-locale frames cover the intro and the comparator table, neither of which contains that control. Its non-English values are provisional. Same for products[].family and products[].shortName, which only feed that dropdown.",
+    "figmaDeviations": "Deliberate deviations from the frames, each a slip rather than a choice. (1) es, Gen 3 case: the frame read \"Hasta 5 horas de uso con una sola carga\" where every other locale, and the Gen 2 column beside it at 8, say 9. Set to 9. (2) es, lens type: the frame read \"Dom\" for \"Sun\" — corrected to \"Sol\". The same line reads \"Lunettes de soleil\" in fr and \"Sonnenbrillen\" in de, which name the product rather than the lens type; those are KEPT, as decided. (3) nl and de camera, Gen 3: the frames had an unbalanced bracket, \"(t.o.v. (Gen 2)\" and \"(im Vergleich zu (Gen 2)\" — closed to a single pair. (4) es, Gen 2 product name: the frame read \"Ray-Ban Meta (Gen 2)\" where every other locale reads \"Ray-Ban | Meta Gen 2\" — normalised. (5) fr-ca, Gen 3 Meta AI: \"TRADUCTION EN DIRECT\" was the only all-caps line in the table — set to sentence case. (6) Straight apostrophes in the fr, fr-ca and nl frames were normalised to the typographic apostrophe used everywhere else; nl \"videos\" to \"video’s\". (7) Unit notation was made consistent inside each locale, because aligning the columns exposed it: fr and es wrote \"à 120 fps\" on one line and \"30fps\" on the next, fr-ca spelled out \"images par seconde\" then wrote \"30fps\", and fr-ca wrote \"1000+ photos\" above \"Plus de 100 vidéos\". Row labels are stored in natural case because .ct_comparison__label applies text-transform: uppercase.",
+    "colorCount": "products[].meta (\"3 Colors\") is AUTHORED, not live, and always will be. SGH’s documented product service returns frameColor / lensColor / localizedColorLabel for the single variant it describes and no count of the siblings. A count exists in the group’s services — `availableColors` on glasses.com’s /ajaxSearchDisplayView — but there is no SGH equivalent: the two candidate paths answer with the homepage html, not json. Unlike the packshot, the price and the PDP link, which do come from the call.",
+    "columnConsistency": "The two product columns are kept in step: any line that reads the same for Gen 3 and Gen 2 in en-us reads the same in every other locale too. The per-locale frames did not do this — they drifted on 29 lines (nl \"ultragroothoek\" vs \"ultra-wide\", de \"automatische Aufnahme\" vs \"Autoaufnahme\", es \"en tiempo real\" vs \"en directo\", and so on) — and the two columns sit side by side, so the drift was visible. Genuine differences (6-mic vs 5-mic, 9 vs 8 hours, 50 vs 48, \"flash storage\", the extra 36% line) are untouched. If a line is edited in one column, edit it in the other."
   },
   "comparison": {
     "title": {
       "en-us": "Tech highlights",
       "en": "Tech highlights",
-      "fr": "Points forts techniques",
+      "fr": "Caractéristiques techniques",
       "fr-ca": "Points forts techniques",
-      "es": "Aspectos técnicos destacados",
-      "es-mx": "Aspectos técnicos destacados",
-      "de": "Technische Highlights",
-      "nl": "Technische hoogtepunten"
+      "es": "Características técnicas destacadas",
+      "es-mx": "Características técnicas destacadas",
+      "de": "Technische Details",
+      "nl": "Technologische hoogtepunten"
     },
     "subtitle": {
       "en-us": "See what’s been added and enhanced in the new Ray-Ban Meta collection.",
       "en": "See what’s been added and enhanced in the new Ray-Ban Meta collection.",
-      "fr": "Découvrez les nouveautés et les améliorations de la nouvelle collection Ray-Ban Meta.",
-      "fr-ca": "Découvrez les nouveautés et les améliorations de la nouvelle collection Ray-Ban Meta.",
-      "es": "Descubre todo lo que se ha añadido y mejorado en la nueva colección Ray-Ban Meta.",
-      "es-mx": "Descubre todo lo que se agregó y mejoró en la nueva colección Ray-Ban Meta.",
-      "de": "Entdecke, was in der neuen Ray-Ban Meta Kollektion hinzugekommen ist und verbessert wurde.",
-      "nl": "Ontdek wat er is toegevoegd en verbeterd in de nieuwe Ray-Ban Meta collectie."
+      "fr": "Découvrez tout ce qui a été ajouté et amélioré dans la nouvelle collection Ray-Ban Meta.",
+      "fr-ca": "Découvrez ce que nous avons ajouté et amélioré dans la nouvelle collection Ray-Ban Meta.",
+      "es": "Descubre las novedades y mejoras de la nueva colección Ray-Ban Meta.",
+      "es-mx": "Descubre las novedades y mejoras de la nueva colección Ray-Ban Meta.",
+      "de": "Entdecke alle Neuheiten und Verbesserungen der neuen Ray-Ban Meta-Kollektion.",
+      "nl": "Bekijk wat er is toegevoegd en verbeterd in de nieuwe Ray-Ban Meta-collectie."
     },
     "onlyDifferencesLabel": {
       "en-us": "Only show differences",
@@ -295,31 +295,31 @@
                 "Résolution de la caméra : 12 MP ultra grand angle",
                 "Capture d’image : 3024x4032 pixels",
                 "Résolution vidéo : 720p+ à 120 fps, 1080p+ à 30 fps/60 fps, 3K Ultra HD à 30 fps",
-                "Stabilisation ajustable pour vidéos 1080p+ 30fps",
+                "Stabilisation ajustable pour les vidéos 1080p+ à 30 fps",
                 "Modes de capture : hyperlapse, ralenti, capture automatique"
               ],
               "fr-ca": [
                 "Caméra 36% plus petite (par rapport à Gen 2)",
-                "Résolution de l’appareil photo : 12 MPx centrée à très grand angle",
+                "Résolution de la caméra : très grand angle 12 MPx",
                 "Capture d’image : 3024x4032 pixels",
                 "Résolution vidéo : 720p+ à 120 images par seconde, 1080p+ à 30/60 images par seconde, 3K Ultra HD à 30 images par seconde",
-                "Stabilisation ajustable pour vidéos 1080p+ 30fps",
+                "Stabilisation ajustable pour les vidéos 1080p+ à 30 images par seconde",
                 "Modes de capture : hyperlapse, ralenti, autocapture"
               ],
               "es": [
                 "Abertura de cámara y led un 36% más pequeña (en comparación con Gen 2)",
-                "Resolución de la cámara: cámara ultra gran angular 12MP",
+                "Resolución de la cámara: 12 MP ultra gran angular",
                 "Captura de imagen: 3024x4032 píxeles",
                 "Resolución de vídeo: 720p+ a 120 fps, 1080p+ a 30 fps/60 fps, 3K Ultra HD a 30 fps",
-                "Estabilización ajustable para vídeos 1080p+ 30fps",
+                "Estabilización ajustable para vídeos 1080p+ a 30 fps",
                 "Modos de captura: hiperlapso, cámara lenta, autocaptura"
               ],
               "es-mx": [
                 "Abertura de cámara y led un 36% más pequeña (en comparación con Gen 2)",
-                "Resolución de la cámara: cámara ultra gran angular 12MP",
+                "Resolución de la cámara: 12 MP ultra gran angular",
                 "Captura de imagen: 3024x4032 píxeles",
                 "Resolución de vídeo: 720p+ a 120 fps, 1080p+ a 30 fps/60 fps, 3K Ultra HD a 30 fps",
-                "Estabilización ajustable para vídeos 1080p+ 30fps",
+                "Estabilización ajustable para vídeos 1080p+ a 30 fps",
                 "Modos de captura: hiperlapso, cámara lenta, autocaptura"
               ],
               "de": [
@@ -391,7 +391,7 @@
                 "MMAI (IA multimodale)",
                 "IA en direct",
                 "Traduction de texte",
-                "Traductions en direct",
+                "Traduction en direct",
                 "Retouche photo par IA (via l’application Meta AI)"
               ],
               "fr-ca": [
@@ -459,12 +459,12 @@
                 "Transparents"
               ],
               "es": [
-                "Dom",
+                "Sol",
                 "Transitions®",
                 "Transparentes"
               ],
               "es-mx": [
-                "Dom",
+                "Sol",
                 "Transitions®",
                 "Transparentes"
               ],
@@ -543,7 +543,7 @@
               ],
               "fr-ca": [
                 "32 Go",
-                "1000+ photos (rafale de 3 images)",
+                "Plus de 1000 photos (rafale de 3 images)",
                 "Plus de 100 vidéos (30 s)"
               ],
               "es": [
@@ -810,45 +810,45 @@
                 "Capture modes: Hyperlapse, Slow Motion, Autocapture"
               ],
               "fr": [
-                "Résolution de la caméra : 12 MP ultra grand-angle",
+                "Résolution de la caméra : 12 MP ultra grand angle",
                 "Capture d’image : 3024x4032 pixels",
                 "Résolution vidéo : 720p+ à 120 fps, 1080p+ à 30 fps/60 fps, 3K Ultra HD à 30 fps",
-                "Stabilisation réglable pour les vidéos 1080p+ 30 fps",
+                "Stabilisation ajustable pour les vidéos 1080p+ à 30 fps",
                 "Modes de capture : hyperlapse, ralenti, capture automatique"
               ],
               "fr-ca": [
                 "Résolution de la caméra : très grand angle 12 MPx",
-                "Capture d’image : 3024 x 4032 pixels",
+                "Capture d’image : 3024x4032 pixels",
                 "Résolution vidéo : 720p+ à 120 images par seconde, 1080p+ à 30/60 images par seconde, 3K Ultra HD à 30 images par seconde",
                 "Stabilisation ajustable pour les vidéos 1080p+ à 30 images par seconde",
-                "Modes de capture : Hyperlapse, ralenti, autocapture"
+                "Modes de capture : hyperlapse, ralenti, autocapture"
               ],
               "es": [
                 "Resolución de la cámara: 12 MP ultra gran angular",
                 "Captura de imagen: 3024x4032 píxeles",
                 "Resolución de vídeo: 720p+ a 120 fps, 1080p+ a 30 fps/60 fps, 3K Ultra HD a 30 fps",
-                "Estabilización ajustable para vídeos 1080p+ 30 fps",
+                "Estabilización ajustable para vídeos 1080p+ a 30 fps",
                 "Modos de captura: hiperlapso, cámara lenta, autocaptura"
               ],
               "es-mx": [
                 "Resolución de la cámara: 12 MP ultra gran angular",
                 "Captura de imagen: 3024x4032 píxeles",
                 "Resolución de vídeo: 720p+ a 120 fps, 1080p+ a 30 fps/60 fps, 3K Ultra HD a 30 fps",
-                "Estabilización ajustable para vídeos 1080p+ 30 fps",
+                "Estabilización ajustable para vídeos 1080p+ a 30 fps",
                 "Modos de captura: hiperlapso, cámara lenta, autocaptura"
               ],
               "de": [
                 "Kameraauflösung: 12-MP-Ultraweitwinkel",
                 "Bildaufnahme: 3024x4032 Pixel",
-                "Videoauflösung: 720p+ bei 120 fps, 1080p+ bei 30 fps/60 fps, 3K Ultra HD bei 30 fps",
-                "Einstellbare Stabilisierung für 1080p+ 30 fps Videos",
-                "Aufnahmemodi: Hyperlapse, Zeitlupe, Autoaufnahme"
+                "Videoauflösung: 720p+ bei 120fps, 1080p+ bei 30fps/60fps, 3K Ultra HD bei 30fps",
+                "Einstellbare Stabilisierung für 1080p+ 30fps-Videos",
+                "Aufnahmemodi: Hyperlapse, Zeitlupe, automatische Aufnahme"
               ],
               "nl": [
-                "Cameraresolutie: 12 MP ultra-wide",
+                "Cameraresolutie: 12 MP ultragroothoek",
                 "Beeldopname: 3024x4032 pixels",
                 "Videoresolutie: 720p+ bij 120fps, 1080p+ bij 30fps/60fps, 3K Ultra HD bij 30fps",
-                "Instelbare stabilisatie voor 1080p+ 30fps video’s",
+                "Verstelbare stabilisatie voor 1080p+ 30fps video’s",
                 "Opnamemodi: Hyperlapse, Slow Motion, Autocapture"
               ]
             }
@@ -934,18 +934,18 @@
               "es": [
                 "Chatbot de IA",
                 "MMAI (IA multimodal)",
-                "IA en directo",
+                "IA en tiempo real",
                 "Traducción de texto",
-                "Traducción en directo",
-                "Edición de fotos con IA (a través de la app de Meta AI)"
+                "Traducción en tiempo real",
+                "Edición de fotos con IA (a través de la aplicación de Meta AI)"
               ],
               "es-mx": [
                 "Chatbot de IA",
                 "MMAI (IA multimodal)",
-                "IA en directo",
+                "IA en tiempo real",
                 "Traducción de texto",
-                "Traducción en directo",
-                "Edición de fotos con IA (a través de la app de Meta AI)"
+                "Traducción en tiempo real",
+                "Edición de fotos con IA (a través de la aplicación de Meta AI)"
               ],
               "de": [
                 "KI-Chatbot",
@@ -956,12 +956,12 @@
                 "KI-Fotobearbeitung (über die Meta AI-App)"
               ],
               "nl": [
-                "AI Chatbot",
+                "AI-chatbot",
                 "MMAI (Multimodale AI)",
                 "Live AI",
                 "Tekstvertaling",
                 "Live vertaling",
-                "AI-fotobewerking (via Meta AI-app)"
+                "AI-fotobewerking (via de Meta AI-app)"
               ]
             }
           },
@@ -988,12 +988,12 @@
                 "Transparents"
               ],
               "es": [
-                "Dom",
+                "Sol",
                 "Transitions®",
                 "Transparentes"
               ],
               "es-mx": [
-                "Dom",
+                "Sol",
                 "Transitions®",
                 "Transparentes"
               ],
@@ -1072,23 +1072,23 @@
               ],
               "fr-ca": [
                 "Stockage flash de 32 Go",
-                "Plus de 1 000 photos (rafale de 3 images)",
+                "Plus de 1000 photos (rafale de 3 images)",
                 "Plus de 100 vidéos (30 s)"
               ],
               "es": [
                 "32 GB de almacenamiento flash",
                 "Más de 1000 fotos (ráfaga de 3 fotogramas)",
-                "Más de 100 vídeos (30 s)"
+                "Más de 100 vídeos (30 segundos)"
               ],
               "es-mx": [
                 "32 GB de almacenamiento flash",
                 "Más de 1000 fotos (ráfaga de 3 fotogramas)",
-                "Más de 100 vídeos (30 s)"
+                "Más de 100 vídeos (30 segundos)"
               ],
               "de": [
                 "32 GB Flash-Speicher",
-                "1000+ Fotos (3-Bild-Serienaufnahme)",
-                "100+ Videos (30 Sek.)"
+                "Über 1000 Fotos (3-Bilder-Serie)",
+                "Über 100 Videos (30 Sekunden)"
               ],
               "nl": [
                 "32GB flashopslag",

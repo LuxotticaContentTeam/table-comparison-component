@@ -345,9 +345,19 @@ register of each language (`fr`/`fr-ca` vouvoiement, `de` *du*, `es` *tú*, `nl`
 locale. A market with no key of its own, `it-IT` say, still renders the English
 copy rather than nothing.
 
-⚠️ Only `en-us` and `en` are the transcribed Figma copy. The other six were
-produced against `4-card-section-module`'s approved terminology and have **not
-been through the copy team** — see `_meta.translationStatus` in the json.
+Every locale is transcribed from its own Figma frame — a comparator frame and
+an intro frame each — except `es-mx`, which has none and reuses the `es` copy.
+The node ids are in `_meta.translationStatus`.
+
+**The two product columns are kept in step.** Any line that reads the same for
+Gen 3 and Gen 2 in `en-us` reads the same in every other locale. The frames did
+not do this: they drifted on 29 lines, and the columns sit side by side, so it
+showed. Real differences — 6-mic against 5-mic, 9 hours against 8, `flash
+storage` — are untouched. Edit a shared line in one column and you must edit it
+in the other; `_meta.columnConsistency` says so in the json.
+
+⚠️ The six non-English locales have **not been through the copy team**, and the
+corrections in `_meta.figmaDeviations` are editorial calls made here.
 
 There is no project-wide locale list: the keys present in a brand's json **are**
 that brand's locale list, and that is what the dev prompt offers
@@ -746,12 +756,13 @@ the project name were set:
   to end. Swapping them is a one-field change now: set `upc` on each of the two
   objects in `comparison.products` and nothing else. `productId` and `pdpUrl`
   are kept alongside as cross-references and are read by nothing.
-- **Six of the eight locales have not been through the copy team**, and three
-  keys in those six are not transcribed copy at all — `comparison.title`,
-  `comparison.subtitle` and `comparison.selectLabel`, because the per-locale
-  Figma frames start at the product header and carry no intro and no mobile
-  picker. See `_meta.notFromFigma`, `_meta.figmaDeviations` and
-  `_meta.figmaOpenQuestions` in the json.
+- **Six of the eight locales have not been through the copy team.** Every
+  string in them is transcribed from a Figma frame, but nobody has signed them
+  off, and the deviations listed in `_meta.figmaDeviations` are editorial calls
+  made here. One key has no frame at all: `comparison.selectLabel`, the label
+  above the mobile product picker — the frames cover the intro and the table,
+  neither of which contains that control. See `_meta.notFromFigma` and
+  `_meta.columnConsistency` in the json.
 - **The two SVG icons have to be uploaded once** to
   `<base>/img/SGH/`. They are not in the release folder and are not versioned —
   see [Publishing it, step by step](#publishing-it-step-by-step), step 4.
@@ -811,10 +822,9 @@ them.
   and each must be verified on its own storefront. See [Other brands: check
   before porting this](#other-brands-check-before-porting-this).
 - **Six of the eight locales are unreviewed.** The json carries `en-us`, `en`,
-  `fr`, `fr-ca`, `es`, `es-mx`, `de`, `nl`; only the two English keys come from
-  Figma. The rest follow `4-card-section-module`'s terminology and still need a
-  copy-team pass. Any market with no key falls back to English on its own. See
-  [Language](#language).
+  `fr`, `fr-ca`, `es`, `es-mx`, `de`, `nl`, all transcribed from their own Figma
+  frames, but only the English ones have been signed off. Any market with no key
+  falls back to English on its own. See [Language](#language).
 - **The analytics placement name is ours, not the analytics team's.**
   `X_ProductComparisonPlacement` was chosen to read well in a report because no
   name was assigned. If one is assigned later it is a one-line change in
