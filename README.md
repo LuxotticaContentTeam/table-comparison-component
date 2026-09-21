@@ -954,15 +954,21 @@ non-English market the module is published to.
 
 ### Before it can go live
 
-- **The product codes in the json are placeholders.** The copy is the real
-  Gen 3 / Gen 2 comparison from Figma, but the authored UPCs resolve to
-  Ray-Ban Meta **Gen 1** — `8056597988377` is a Gen 1 Wayfarer, `8056597988391`
-  a Gen 1 Headliner, both `isOutOfStock` — so the module can be seen working end
-  to end. Swapping them is a one-field change now: set `upc` on each of the two
-  objects in `comparison.products` and nothing else. `productId` and `pdpUrl`
-  are kept alongside as cross-references and are read by nothing.
+Nothing blocking. **The product codes have been swapped for the real
+articles**: `upc` on both objects in `comparison.products` now holds Gen 3
+(`8056266261459`) and Gen 2 (`8056262721339`), in place of the Gen 1 Wayfarer /
+Headliner placeholders (`8056597988377` / `8056597988391`) the module launched
+with. `productId` and `pdpUrl` were left as they were — cross-references read
+by nothing — so their values, including the old UPC inside the `pdpUrl` slug,
+still describe the Gen 1 placeholders; update them by hand once the real
+`pdpURL` the storefront returns is confirmed.
 
-That is the only thing standing between this module and a live page.
+Not yet re-verified against the new articles: whether both sell in every
+market authored here (the Gen 1 placeholders were missing from `/mx` and
+`/nl`, and only one of the two from `/au` — see `_meta.api._upcMissing`), and
+whether real pricing/discount differs from the flat, no-discount figures seen
+on the Gen 1 test placeholders. Re-open the two CTAs on stage after the next
+deploy to close this out.
 
 ### Waiting on a decision, not on code
 
