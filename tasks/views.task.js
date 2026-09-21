@@ -58,7 +58,7 @@ const exportViews = (done) => {
       // live.html carries @assetPath@ / @buildVersion@ rather than hand-written
       // values: the preview page's <script src> then follows package.json on
       // its own, instead of going stale at the next version bump.
-      .pipe($.replace("@assetPath@", assetPath))
+      .pipe($.replace("@assetPath@", assetPath()))
       .pipe($.replace("@buildVersion@", buildVersion))
       // .pipe($.if(isProd, $.rename({ basename: `index__${release}` })))
       .pipe(dest(path.join(dist_release, global.selectedVariant, release)))

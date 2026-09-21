@@ -18,7 +18,7 @@ Ultimo aggiornamento: 21 settembre 2026 (quinta sessione, con il deploy su stage
 | Commit | tre: il build iniziale, le otto lingue, il passaggio al servizio prodotto documentato |
 | Build | verde. `VARIANT=SGH npm run build` produce `dist/fragment.html` (~7 KB) |
 | Versione | `0.0.1` |
-| Brand | solo `SGH` in `projectConfig.json` |
+| Brand | `SGH` e `LC` in `projectConfig.json`. LC pubblica in `…/table-comparison-component/LC/`, SGH alla radice |
 | Asset | `https://media.sunglasshut.com/table-comparison-component/` — icone in `img/SGH/` |
 
 Il modulo è **funzionalmente e visivamente completo** e non ha più segnaposto di
@@ -842,6 +842,51 @@ due regole da rispettare quando si tocca la copy.
 
 Aggiunto nella quinta sessione:
 
+- **La variante LC.** Secondo brand del modulo, completa: token, contenuti,
+  viste, icone e `release/LC/0.0.1/`. Il meccanismo di theming esisteva già e
+  ha retto — componente condiviso, un `_variables.scss` per brand — ma nessuno
+  lo aveva mai esercitato con due varianti, e reggendolo ha fatto emergere tre
+  cose che con un brand solo non si vedevano (sotto).
+
+  Contenuti: struttura di SGH ridotta a `en-us`, perché LC per ora esce in
+  inglese. Token letti dal Figma `5720:35673` / `5720:35891`: Sofia Pro al posto
+  di Acta, celle `#f6f6f6` a 4px invece di `#f7f7f7` a 2px, colonne prodotto
+  **centrate**, righe a 24px invece di 8, sezione a 64px invece di 40.
+
+  ⚠️ **Il frame LC mostra tre prodotti**, il terzo senza fotocamera. Il json ne
+  ha due: il terzo è authoring. Sopra i due prodotti compare lo switcher
+  compatto, quindi `family` e `shortName` servono su tutti — ci sono già.
+
+  ⚠️ **Non verificato su LC**: che lenscrafters.com server-renderizzi
+  `<html lang>` (da cui `info_store.js` prende il locale) e che pubblichi
+  `window.storeId` / `window.langId` (da cui dipendono prezzo, packshot e link).
+  Se non li pubblica il modulo degrada in silenzio: copy autorata, niente altro.
+  Anche `comparison.api.devOrigin` è un'ipotesi, non un dato.
+- **Tre cose che si rompevano con due brand**, tutte sistemate qui:
+
+  1. **URL di produzione identici.** `bootstrap.js` costruisce gli url da
+     `@assetPath@` senza segmento di variante, e `productionAsset` era uno solo:
+     LC e SGH avrebbero pubblicato `main__0.0.1.min.css`, `main__0.0.1.min.js` e
+     `json__0.0.1.json` allo stesso indirizzo, col secondo upload a cancellare
+     il primo. **In sviluppo non si vede**, perché lì il json è già per-variante
+     — è la ragione per cui era sopravvissuto fin qui. Ora
+     `projectConfig.json > assetSubfolder` dà a LC una cartella sua; SGH resta
+     alla radice di proposito, perché è già online lì e spostarlo vorrebbe dire
+     ricaricare i file e ri-incollare il fragment per nulla.
+     `_config.js > assetPath` è diventata una **funzione**: era una costante
+     calcolata al require, cioè prima che `prompt.task.js` sappia quale variante
+     si sta costruendo.
+     ⚠️ La sottocartella vale **solo in produzione**: applicandola anche in dev
+     l'url diventa `./LC/json/LC/json.json` e fa 404. Pagata sul posto.
+  2. **Il critical css era uno solo, con i valori SGH cablati.** Viene inlinato
+     nel fragment, quindi la pagina LC apriva con celle e raggi SGH finché non
+     arrivava il css vero. Ora il corpo sta in `components/_critical.scss` e usa
+     i token, e ogni variante ha il suo `critical.scss` di due righe, come già
+     faceva `main.scss`. Verificato: il fragment SGH esce identico a prima
+     (40px, `#f7f7f7`, 2px, row-gap 8px), quello LC coi suoi valori.
+  3. **Le icone vanno duplicate per brand** anche quando sono identiche:
+     `staticAsset.task.js` esclude dal build di una variante le cartelle degli
+     altri brand, quindi un json LC che puntasse a `SGH/…` avrebbe l'icona rotta.
 - **Badge "New" accanto al nome.** Nuovo campo `products[].nameBadge`, mappa
   per locale come ogni altra stringa autorata: popolato rende la pillola,
   omesso non emette **niente**, stringa vuota su un locale lo spegne solo per

@@ -33,7 +33,7 @@ const buildFragment = () => {
 
   return src(sources, { allowEmpty: true })
     .pipe(concat(FRAGMENT))
-    .pipe(replace("@assetPath@", assetPath))
+    .pipe(replace("@assetPath@", assetPath()))
     .pipe(replace("@buildVersion@", buildVersion))
     .pipe(dest(dist_folder));
 };

@@ -23,7 +23,10 @@ const scss = (done) => {
   log(`-> Style: compiling scss`);
 
   const variantMainScssPath = path.join(src_asset_scss_variants, global.selectedVariant, "main.scss");
-  const criticalScssPath = path.join(conf.paths.srcFolder, "/scss/critical.scss");
+  // Per variant, like main.scss: the critical css is inlined into the fragment,
+  // so a shared one would open every brand's page with the first brand's
+  // geometry until the real stylesheet lands.
+  const criticalScssPath = path.join(src_asset_scss_variants, global.selectedVariant, "critical.scss");
 
   if (!fs.existsSync(variantMainScssPath)) {
     log(c.red.bold(`🛑 File ${variantMainScssPath} does not exist`));

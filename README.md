@@ -548,9 +548,28 @@ The scaffolding creates `src/{js,scss,json}/variants/<BRAND>/` and
 those by hand.
 
 ⚠️ `src/scss/variants/<BRAND>/main.scss` must keep its
-`@import "../../components/comparison-table"`. The markup is shared, the styling
-is not: without that import the table renders unstyled and **nothing warns you**
-— Sass compiles happily.
+`@import "../../components/comparison-table"`, and `critical.scss` beside it its
+`@import "../../components/critical"`. The markup is shared, the styling is not:
+without those imports the table renders unstyled and **nothing warns you** —
+Sass compiles happily.
+
+Four more things the scaffolding cannot know, all learned adding LC:
+
+1. **Give the brand its own `assetSubfolder`** in `projectConfig.json` unless it
+   is the one already deployed at the root. Without it two brands publish
+   `main__<version>.min.css`, `main__<version>.min.js` and
+   `json__<version>.json` to the same url and overwrite each other. It does not
+   show up in development, where `dist/` is already per-variant.
+2. **Copy the icons into `src/static/images/<BRAND>/`** even when they are
+   identical to another brand's, and point the json at the new folder.
+   `tasks/staticAsset.task.js` strips the other brands' folders out of a build,
+   so a json pointing at `SGH/` ships a broken icon.
+3. **Read the tokens with `get_variable_defs`, not off the generated code.** A
+   Figma node mapped through Code Connect returns the *component library's*
+   defaults. That is how the "New" pill was first built blue and 6px-cornered
+   when the file says black and fully rounded.
+4. **Check `<html lang>` and the two store globals on that storefront** before
+   trusting the copied `info_store.js` — see above.
 
 ## Configuration
 
@@ -559,15 +578,16 @@ is not: without that import the table renders unstyled and **nothing warns you**
 | Key | Value | Notes |
 | --- | --- | --- |
 | `projectName` | `table-comparison-component` | Drives the container id `#ct_cm--table-comparison-component`, the config object `ct_cm__tableComparisonComponentConfig` and the `data-ct-css` marker on the injected stylesheet. Brand-neutral on purpose: every variant shares them. |
-| `variants` | `SGH` | Brand code is the part before the first `_`, and must exist in `BRANDS` in `tasks/_config.js`. |
+| `variants` | `SGH`, `LC` | Brand code is the part before the first `_`, and must exist in `BRANDS` in `tasks/_config.js`. |
+| `assetSubfolder` | `{ "LC": "LC/" }` | Appended to `productionAsset` for that variant, so two brands do not publish the same three filenames to the same url. **Production only** — in a dev build `dist/` is already per-variant and the json url carries `@currentVariant@` of its own. SGH has no entry on purpose: it is already deployed at the unqualified path, and moving it would mean re-uploading it and re-pasting the CoreMedia fragment to no benefit. |
 
 Asset paths live in `package.json` > `projectConfigurations.paths`, and both
 production values are set:
 
 | Key | Value | Notes |
 | --- | --- | --- |
-| `productionAsset` | `https://media.sunglasshut.com/table-comparison-component/` | The one that matters for a live fragment. Every runtime url — stylesheet, json, script — is derived from it, substituted into the bundle as `@assetPath@`. Trailing slash included, always. |
-| `productionImage` | `https://media.sunglasshut.com/table-comparison-component/img/` | Where a relative image value in the json resolves, as `@imagePath@`. The brand folder is part of the json value, so the chevron lands at `…/img/SGH/chevron-down.svg`. |
+| `productionAsset` | `https://media.sunglasshut.com/table-comparison-component/` | The one that matters for a live fragment. Every runtime url — stylesheet, json, script — is derived from it, substituted into the bundle as `@assetPath@`, with `assetSubfolder` appended for the variants that have one. Trailing slash included, always. |
+| `productionImage` | `https://media.sunglasshut.com/table-comparison-component/img/` | Where a relative image value in the json resolves, as `@imagePath@`. Shared by every brand — `assetSubfolder` does not apply here. The brand folder is part of the json value, so the chevron lands at `…/img/SGH/chevron-down.svg` or `…/img/LC/chevron-down.svg`. |
 | `developmentAsset` / `developmentImage` | `./` and `./static/images/` | The same two tokens in a dev build, served by BrowserSync out of `dist/`. |
 
 There is no `productionConf`. The boilerplate declared one and substituted it as

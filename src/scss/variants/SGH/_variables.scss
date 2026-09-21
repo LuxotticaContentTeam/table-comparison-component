@@ -7,10 +7,14 @@
 // this file with its own values, not a second stylesheet.
 //
 // The LC variant of the same module (Figma "LC_RBM Aperol - Luna", 5720:35673)
-// is what proved that split — it is the same table with Inter instead of Acta,
-// #f2f2f2 cells at 16px radius instead of #f7f7f7 at 2px, centred product
-// columns instead of left-aligned, and 24px row gaps instead of 8px. Every one
-// of those is a token below.
+// is what proved that split: see scss/variants/LC/_variables.scss. It is the
+// same table in Sofia Pro instead of Acta, #f6f6f6 cells at 4px radius instead
+// of #f7f7f7 at 2px, centred product columns instead of left-aligned, and 24px
+// row gaps instead of 8px. Every one of those is a token below.
+//
+// An earlier version of this note guessed at those values — Inter, #f2f2f2,
+// 16px — from the frames. They were wrong: the real ones came from
+// get_variable_defs on the file itself, not from reading the design.
 // ---------------------------------------------------------------------------
 
 // Breakpoints (shared with src/scss/utils/_variables.scss)

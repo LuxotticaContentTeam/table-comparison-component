@@ -1,0 +1,330 @@
+{
+  "_meta": {
+    "origin": "Structure and copy lifted from the SGH variant, reduced to en-us on purpose: LC ships English only for now and the other seven locales arrive from the copy team. getTrad falls back to en-us for every market, so a non-English market renders English rather than nothing. Adding a language means adding its key beside en-us; nothing else changes. The one rule is never to leave a key as an empty string — the country key is matched before the fallback runs, so an empty fr-ca renders blank instead of falling through to fr.",
+    "source": "Figma \"LC_RBM Aperol - Luna\": desktop 5720:35673, compact 5720:35891. The design tokens are in src/scss/variants/LC/_variables.scss; this file carries only content.",
+    "products": "TWO products, carried over from SGH. The LC desktop frame shows THREE, the third a model with no camera (\"No camera\", \"Not applicable (no camera)\" down its column). Adding it is authoring, not code — but note that above two products the compact switcher appears, so family and shortName have to be populated on every product, as they already are.",
+    "productCodes": "products[].upc is the ONLY product field authored here: name fallback, packshot, price and the PDP link all come back from the product service keyed by that UPC. The two UPCs are SGH's. VERIFIED 2026-09-21 against the SGH storefront only: whether lenscrafters.com sells these articles, and whether it publishes the window.storeId / window.langId the call needs, is NOT verified. If it does not, every column keeps its authored copy and loses packshot, price and link — the designed degradation, with a console warning.",
+    "nameBadge": "products[].nameBadge is the pill beside the product name, and it is OPTIONAL. Populated it renders, omitted it emits no markup at all. It is a locale map like every other authored string, so it is per market too. It is NOT products[].badge, which is the \"Camera + Audio\" line under the name with its icon; both can be on at once. Authored in natural case, because the pill is uppercased in CSS.",
+    "icons": "Icon values resolve against package.json > projectConfigurations.paths.productionImage, so the brand subfolder is part of the value — LC/, not SGH/. The two svg files are byte-identical copies of the SGH ones, and they have to be copies: tasks/staticAsset.task.js excludes the other brands' folders from a build, so an LC json pointing at SGH/ would ship a broken icon.",
+    "devOrigin": "comparison.api.devOrigin is development only and ignored in a production build: it is the storefront the CORS proxy (npm run proxy) is aimed at. UNVERIFIED for LC — it is the SGH value with the host swapped, and nobody has checked that stage.lenscrafters.com answers the product endpoint. On localhost no call is made at all, because there is no storefront to publish window.storeId."
+  },
+  "comparison": {
+    "onlyDifferencesLabel": {
+      "en-us": "Only show differences"
+    },
+    "shopNowLabel": {
+      "en-us": "Shop now"
+    },
+    "priceLabel": {
+      "en-us": "Starting from"
+    },
+    "selectLabel": {
+      "en-us": "Select a model"
+    },
+    "selectorIcon": "LC/chevron-down.svg",
+    "api": {
+      "devOrigin": "https://stage.lenscrafters.com"
+    },
+    "rows": [
+      {
+        "id": "camera",
+        "label": {
+          "en-us": "Camera"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "audio",
+        "label": {
+          "en-us": "Audio"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "meta-ai",
+        "label": {
+          "en-us": "Meta AI"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "lenses",
+        "label": {
+          "en-us": "Lenses"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "case",
+        "label": {
+          "en-us": "Case"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "memory",
+        "label": {
+          "en-us": "Memory"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "connectivity",
+        "label": {
+          "en-us": "Connectivity"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "water-resistance",
+        "label": {
+          "en-us": "Water resistance"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "compatible-apps",
+        "label": {
+          "en-us": "Compatible apps"
+        },
+        "hideWhenOnlyDifferences": true
+      }
+    ],
+    "products": [
+      {
+        "id": "rbm-gen-3",
+        "upc": {
+          "en-us": "8056266261459"
+        },
+        "nameBadge": {
+          "en-us": "New"
+        },
+        "name": {
+          "en-us": "Ray-Ban | Meta Gen 3"
+        },
+        "family": {
+          "en-us": "Ray-Ban Meta"
+        },
+        "shortName": {
+          "en-us": "Gen 3"
+        },
+        "meta": {
+          "en-us": "3 Colors"
+        },
+        "badge": {
+          "label": {
+            "en-us": "Camera + Audio"
+          },
+          "icon": "LC/badge-photo.svg"
+        },
+        "cells": {
+          "camera": {
+            "value": {
+              "en-us": [
+                "36% smaller camera and LED opening (vs. Gen 2)",
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ]
+            }
+          },
+          "audio": {
+            "value": {
+              "en-us": [
+                "6-mic array with immersive audio recording and advanced wind noise reduction"
+              ]
+            }
+          },
+          "meta-ai": {
+            "value": {
+              "en-us": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ]
+            }
+          },
+          "lenses": {
+            "value": {
+              "en-us": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ]
+            }
+          },
+          "case": {
+            "value": {
+              "en-us": [
+                "133 gr",
+                "Up to 9 hours of use on a single charge",
+                "Up to 50 additional hours with fully charged case"
+              ]
+            }
+          },
+          "memory": {
+            "value": {
+              "en-us": [
+                "32GB",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ]
+            }
+          },
+          "connectivity": {
+            "value": {
+              "en-us": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ]
+            }
+          },
+          "water-resistance": {
+            "value": {
+              "en-us": [
+                "Water resistance IPX4"
+              ]
+            }
+          },
+          "compatible-apps": {
+            "value": {
+              "en-us": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "rbm-gen-2",
+        "upc": {
+          "en-us": "8056262721339"
+        },
+        "name": {
+          "en-us": "Ray-Ban | Meta Gen 2"
+        },
+        "family": {
+          "en-us": "Ray-Ban Meta"
+        },
+        "shortName": {
+          "en-us": "Gen 2"
+        },
+        "meta": {
+          "en-us": "4 Colors"
+        },
+        "badge": {
+          "label": {
+            "en-us": "Camera + Audio"
+          },
+          "icon": "LC/badge-photo.svg"
+        },
+        "cells": {
+          "camera": {
+            "value": {
+              "en-us": [
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ]
+            }
+          },
+          "audio": {
+            "value": {
+              "en-us": [
+                "5-mic array with immersive audio recording",
+                "Up to 5 hours continuous audio",
+                "5.5 hours continuous phone calls"
+              ]
+            }
+          },
+          "meta-ai": {
+            "value": {
+              "en-us": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ]
+            }
+          },
+          "lenses": {
+            "value": {
+              "en-us": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ]
+            }
+          },
+          "case": {
+            "value": {
+              "en-us": [
+                "133 gr",
+                "Up to 8 hours of use on a single charge",
+                "Up to 48 additional hours with fully charged case"
+              ]
+            }
+          },
+          "memory": {
+            "value": {
+              "en-us": [
+                "32GB flash storage",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ]
+            }
+          },
+          "connectivity": {
+            "value": {
+              "en-us": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ]
+            }
+          },
+          "water-resistance": {
+            "value": {
+              "en-us": [
+                "Water resistance IPX4"
+              ]
+            }
+          },
+          "compatible-apps": {
+            "value": {
+              "en-us": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

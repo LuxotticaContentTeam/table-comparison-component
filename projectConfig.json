@@ -1,5 +1,8 @@
 {
   "projectName": "table-comparison-component",
   "serveInNewTab": false,
-  "variants": ["SGH"]
+  "variants": ["SGH", "LC"],
+  "assetSubfolder": {
+    "LC": "LC/"
+  }
 }

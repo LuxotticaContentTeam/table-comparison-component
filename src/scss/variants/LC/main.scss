@@ -1,0 +1,7 @@
+@import "./variables";
+
+$banner-id: $bannerName;
+
+#{$banner-id} {
+  @import "../../components/comparison-table";
+}

@@ -29,5 +29,14 @@
     * {
       font-family: "Helvetica Neue", sans-serif;
     }
+  } @else if ($brand == "LC") {
+    // No @font-face here: LC runs on Sofia Pro and the woff2 files are not in
+    // this repo, so the local preview falls back to the stack's next entry. In
+    // production the storefront serves the font, which is why this whole block
+    // is development-only — but it does mean the dev preview is not the place
+    // to judge LC's typography.
+    * {
+      font-family: "Helvetica Neue", sans-serif;
+    }
   }
 }

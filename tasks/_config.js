@@ -38,9 +38,32 @@ module.exports = {
   conf: conf,
   isProd: process.env.NODE_ENV === "production",
   imagePath: process.env.NODE_ENV === "production" ? conf.paths.productionImage : conf.paths.developmentImage,
-  // Base URL the built css/json/script are served from once uploaded. Every
-  // runtime asset URL is derived from this single value — see src/js/modules/bootstrap.js.
-  assetPath: process.env.NODE_ENV === "production" ? conf.paths.productionAsset : conf.paths.developmentAsset,
+  /**
+   * Base URL the built css/js/json are served from once uploaded. Every runtime
+   * asset URL is derived from it — see src/js/modules/bootstrap.js.
+   *
+   * It is a FUNCTION, not a value, and it has to be: the variant is chosen by
+   * tasks/prompt.task.js at run time, long after gulpfile.js has required every
+   * task module, so a constant captured here would always be the unqualified
+   * path.
+   *
+   * Two variants would otherwise publish the same three filenames to the same
+   * folder and overwrite each other — invisible in development, where the json
+   * is already per-variant, and fatal in production. projectConfig.json >
+   * assetSubfolder gives a variant a folder of its own. SGH deliberately has no
+   * entry: it is already deployed at the unqualified path, and moving it would
+   * mean re-uploading it and re-pasting the CoreMedia fragment for nothing.
+   */
+  assetPath: () => {
+    if (process.env.NODE_ENV !== "production") return conf.paths.developmentAsset;
+
+    // Production only: in development dist/ is already per-variant and the json
+    // url carries @currentVariant@ of its own, so appending the folder here
+    // would ask for ./LC/json/LC/json.json and 404.
+    const subfolder = (projectConfigurations.assetSubfolder || {})[global.selectedVariant] || "";
+
+    return `${conf.paths.productionAsset}${subfolder}`;
+  },
   proxyPath: process.env.NODE_ENV === "production" ? "" : conf.paths.proxy,
   now: Date.now(),
   BRANDS,
