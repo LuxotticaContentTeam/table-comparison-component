@@ -847,9 +847,16 @@ Aggiunto nella quinta sessione:
   omesso non emette **niente**, stringa vuota su un locale lo spegne solo per
   quel mercato. È un secondo badge, indipendente da `products[].badge`
   ("Camera + Audio", che resta sotto il nome con la sua icona): possono stare
-  accesi entrambi. Preso dal Figma LC `5720-35673` (radius 6px, padding 4/8,
-  12px bold, gap 8px dal nome) ma **nero su tutti i brand** per scelta, non il
-  blu `#0354a6` del design system LC.
+  accesi entrambi. Preso dal Figma LC `5720-35673`: pillola a estremità tonde
+  (`radius/badge/color01` = 999), padding 4/8, 12px bold, gap 8px dal nome,
+  **nera su tutti i brand**.
+
+  ⚠️ Trappola pagata una volta: `get_design_context` sul nodo del badge
+  restituisce Tailwind con dentro `#0354a6` e `6px`, che **non** sono i valori
+  di questo file — sono i default della libreria di componenti React a cui il
+  nodo è mappato via Code Connect. I valori veri si leggono con
+  `get_variable_defs`, e dicono `#222222` e 999. Con i primi ero partito, e
+  erano sbagliati sia di colore sia di forma.
 
   Il nome sta in un wrapper `__product-name-row` perché la colonna è un flex in
   colonna: un fratello sarebbe finito sotto il nome, non accanto. Sotto il

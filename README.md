@@ -230,8 +230,9 @@ without, because `getTrad` matches a key before it falls back. Never author
 
 The text is free. The design says "New", nothing in the code does, and it is
 authored in natural case because the pill is uppercased in CSS. It is black on
-every brand by decision rather than by design system: the LC frame it is taken
-from paints it that brand's blue, and moving a brand back to that is the two
+every brand — a decision, but not a deviation: the LC frame resolves
+`color/badge/color01` to its own near-black `#222222`, so both brands reach the
+same result from their own palette. Moving one to something else is the two
 `$color-name-badge-*` tokens.
 
 ### Adding a row
