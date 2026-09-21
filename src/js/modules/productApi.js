@@ -23,8 +23,20 @@
  * ⚠️ The response carries `catentryId`, which **is** the product id the old
  * endpoint wanted — handy when debugging, but nothing here needs it. A product
  * needs a `upc` in the json and nothing else.
+ *
+ * **A `upc` may be authored per market.** Markets do not all sell the same
+ * article, so `upc` is either a plain string — one product everywhere — or an
+ * object keyed by locale, resolved by the same `getTrad` that resolves the
+ * copy: exact country, then language, then any key starting with it, then
+ * `en-us`, then `en`. A market with no key of its own therefore falls back to
+ * the English product rather than to no product at all.
+ *
+ * The **store** is a different matter and does not fall back (see
+ * `resolveStore`): it is what decides currency, price and discount, so one page
+ * asks one store for every column, and a market whose store is not authored
+ * makes no call at all.
  */
-import { customLog } from "./utils";
+import { customLog, getTrad } from "./utils";
 
 const IS_DEV = "@env@" === "development";
 // cors-anywhere, started by `npm run proxy`. Empty in production.
@@ -47,6 +59,20 @@ const absolute = (path, apiConfig) => {
   if (!origin) return path;
 
   return `${PROXY_PATH}${origin.replace(/\/$/, "")}${path}`;
+};
+
+/**
+ * The UPC this market should ask for.
+ *
+ * `getTrad` is the copy resolver, used here on purpose: a market that sells no
+ * article of its own should show the English one rather than an empty column,
+ * which is the opposite of the rule for store ids and is the decision on
+ * record. A plain string is returned untouched, so the common case — one
+ * product in every market — stays a one-line authoring change.
+ */
+const resolveUpc = (product, infoStore) => {
+  const upc = getTrad(product.upc, infoStore);
+  return upc ? String(upc) : null;
 };
 
 const productInfoUrl = ({ storeId, langId }, upcs) =>
@@ -72,6 +98,12 @@ const resolveStore = (apiConfig = {}, infoStore = {}) => {
   const storeId = (authored && authored.storeId) || globals.storeId;
   const langId = (authored && authored.langId) || globals.langID || "-1";
 
+  // ct_data is the last resort and is no longer trustworthy — the storefront
+  // stopped keeping window.storeId current — so say so when it is what answered.
+  if (!authored && storeId) {
+    customLog(`storeId ${storeId} came from ct_data, not from the json — author comparison.api.store for this market`, "", "warn");
+  }
+
   if (!storeId) {
     customLog("no storeId: ct_data is absent and none is authored in the json — prices and CTAs stay as authored", "", "warn");
     return null;
@@ -91,9 +123,37 @@ const pickImage = (product) => {
 };
 
 /**
- * The two numbers the PDP shows.
+ * The discount badge, as the storefront writes it.
  *
- * The endpoint quotes them already resolved — no price list to pick, no
+ * `saleBadgeValue` and `saleBadgeColor` are present **only on a product that is
+ * actually on sale**, which is why they look absent on a full-price product and
+ * why this module was briefly written as though the endpoint had no badge at
+ * all. Verified on four live products: Tiffany, Jimmy Choo and Giorgio Armani
+ * all carry it, the full-price Ray-Ban Meta does not.
+ *
+ * The string is **not** recomputed from the two prices, because its wording is
+ * the market's own: the same Tiffany reads "30% off" on the US store and "-30%"
+ * on ca-en. The colours travel with it so the badge matches whatever palette
+ * the promotion is running elsewhere on the page.
+ */
+const pickBadge = (prices) => {
+  const value = typeof prices.saleBadgeValue === "string" ? prices.saleBadgeValue.trim() : "";
+  if (!value) return null;
+
+  const colors = prices.saleBadgeColor && typeof prices.saleBadgeColor === "object" ? prices.saleBadgeColor : {};
+
+  return {
+    value,
+    bgColor: colors.bgColor || null,
+    fontColor: colors.fontColor || null,
+    fontWeight: colors.fontWeight || null,
+  };
+};
+
+/**
+ * The two numbers the PDP shows, and the badge that goes with them.
+ *
+ * The endpoint quotes the prices already resolved — no price list to pick, no
  * promotion window to honour — but as **strings** ("224.00"), so they are
  * coerced before anything compares or formats them. A sale is simply an offer
  * below the list price.
@@ -112,12 +172,16 @@ const pickPrices = (prices) => {
 
   const base = Number.isFinite(list) ? list : offer;
   const current = Number.isFinite(offer) ? offer : list;
+  const hasDiscount = current < base;
 
   return {
     list: base,
     offer: current,
     currency: prices.currency || null,
-    hasDiscount: current < base,
+    hasDiscount,
+    // Only meaningful next to a struck-through price, so it is dropped when
+    // the storefront quotes one number.
+    badge: hasDiscount ? pickBadge(prices) : null,
   };
 };
 
@@ -166,7 +230,7 @@ const reduceProduct = (product) => ({
  * is simply absent from the response, which is why the result is matched back
  * by UPC rather than by position.
  *
- * @param {Array<{id: string, upc?: string}>} products
+ * @param {Array<{id: string, upc?: string|object}>} products
  * @param {object} apiConfig  json > comparison.api
  * @param {object} infoStore  { lang, country }
  * @returns {Promise<Object<string, object>>} keyed by the product's json id
@@ -175,18 +239,22 @@ const getProducts = async (products = [], apiConfig = {}, infoStore = {}) => {
   const store = resolveStore(apiConfig, infoStore);
   if (!store) return {};
 
-  const wanted = products.filter((product) => {
-    if (product.upc) return true;
-    customLog(`[${product.id}] has no upc — skipping the lookup`, "", "warn");
-    return false;
-  });
+  // Resolved once per product, because a market may be authored a different
+  // article and the resolution depends on the locale, not on the column.
+  const wanted = products
+    .map((product) => ({ product, upc: resolveUpc(product, infoStore) }))
+    .filter(({ product, upc }) => {
+      if (upc) return true;
+      customLog(`[${product.id}] has no upc for this market — skipping the lookup`, "", "warn");
+      return false;
+    });
 
   if (!wanted.length) return {};
 
   // The same product may legitimately sit in more than one column (a test
   // table, or two authored entries of one model), so the request is de-duped
   // while the result is fanned back out to every entry that asked for it.
-  const upcs = [...new Set(wanted.map((product) => String(product.upc)))];
+  const upcs = [...new Set(wanted.map(({ upc }) => upc))];
   const url = absolute(productInfoUrl(store, upcs), apiConfig);
 
   let payload;
@@ -217,11 +285,11 @@ const getProducts = async (products = [], apiConfig = {}, infoStore = {}) => {
     return acc;
   }, {});
 
-  return wanted.reduce((acc, product) => {
-    const data = byUpc[String(product.upc)];
+  return wanted.reduce((acc, { product, upc }) => {
+    const data = byUpc[upc];
 
     if (!data) {
-      customLog(`[${product.id}] upc ${product.upc} is not in the response — staying as authored`, "", "warn");
+      customLog(`[${product.id}] upc ${upc} is not in the response — staying as authored`, "", "warn");
       return acc;
     }
 

@@ -297,6 +297,28 @@
   text-decoration: line-through;
 }
 
+// The discount badge. Background, text colour and weight are set inline from
+// the API (see contents.js > buildPriceBadge); what is declared here is only
+// the shape, plus a neutral fallback for a promotion that sends no colours.
+.ct_comparison__price-badge {
+  // Centred against the baseline-aligned row on desktop; on compact the price
+  // block stacks, so the badge follows the left edge like everything else.
+  align-self: center;
+
+  @media (max-width: $tab-max) {
+    align-self: flex-start;
+  }
+
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: $color-text;
+  color: $color-surface;
+  font-size: $font-size-small;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-body;
+  white-space: nowrap;
+}
+
 .ct_comparison__cta {
   display: inline-flex;
   align-items: center;

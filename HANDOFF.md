@@ -5,7 +5,7 @@ schema JSON, deploy passo passo): questo file è complementare e contiene quello
 che il README non dice — le decisioni prese in conversazione, cosa è stato
 provato e scartato, e le trappole già pagate una volta.
 
-Ultimo aggiornamento: 20 settembre 2026 (quarta sessione).
+Ultimo aggiornamento: 21 settembre 2026 (quinta sessione).
 
 ---
 
@@ -167,6 +167,32 @@ servizio prodotto per un altro brand, **guardare prima lì**.
 La risposta contiene `catentryId`, che **è** il vecchio product id: comodo per
 debuggare, non lo legge nessuno.
 
+### 5.2 bis Store id per mercato — quelli che ho trovato
+
+Lo **store** decide valuta, prezzo e sconto: lo stesso Tiffany fa `30% off` in
+USD sullo store 10152 e `50% off` in GBP sullo store 11352. Quindi un UPC per
+mercato senza lo store per mercato chiederebbe il prodotto francese allo store
+americano.
+
+Ricavati sondando `www.sunglasshut.com` con lo stesso UPC e leggendo mercato e
+valuta della risposta:
+
+| store | mercato | valuta | badge sullo stesso prodotto |
+| --- | --- | --- | --- |
+| `10152` | `/us` | USD | `30% off` |
+| `10154` | `/ca-en` | CAD | `-30%` |
+| `11352` | `/uk` | GBP | `50% off` |
+| `11351` | `/au` | AUD | `50% off` |
+| `11353` | — | ZAR | rotto: risponde con una error view e `Price pending` |
+
+⚠️ **Non trovati**: `/ca-fr` e tutti i mercati europei (`fr`, `es`, `de`, `nl`).
+Sullo store canadese 10154 rispondono solo `langId` −1 e −24 e **entrambi danno
+`/ca-en`**, e una scansione di 82 id attorno a quelli noti non ha prodotto altro
+— gli store id SGH sono sparsi, non contigui. Vanno chiesti a chi gestisce lo
+storefront, oppure letti una volta da `window.ct_data.storeId` sulla pagina viva
+di quel mercato. Finché mancano, quelle lingue rendono la copy autorata senza
+packshot, prezzo e CTA.
+
 ### 5.2 Quale prezzo — ora è quello ovvio
 
 L'endpoint documentato torna **una coppia di numeri già risolta**:
@@ -179,9 +205,25 @@ di confrontarle o formattarle.
 affari del locale, e `Intl.NumberFormat` li sa già. Si usa `currency`, il codice
 ISO.
 
-**Non c'è il badge sconto.** L'endpoint non porta nessuna stringa tipo
-"30% off", quindi una promo rende offerta + listino barrato e basta. È una
-rinuncia decisa, non una dimenticanza.
+**Il badge sconto c'è.** Mi ero sbagliato prima: l'endpoint lo manda, ma
+**solo sui prodotti effettivamente in promo**, e i due Gen 1 nel JSON non lo
+sono. Su un prodotto scontato `prices` contiene anche:
+
+```json
+"saleBadgeValue": "30% off",
+"saleBadgeColor": { "bgColor": "#000000", "fontColor": "#ffffff", "fontWeight": "500" }
+```
+
+Verificato su quattro prodotti veri: Tiffany, Jimmy Choo e Giorgio Armani lo
+portano, il Ray-Ban Meta a prezzo pieno no.
+
+La stringa **non** si ricalcola dai due numeri, perché la formulazione è del
+mercato: lo stesso Tiffany scrive `30% off` su `/us` e `-30%` su `/ca-en`. I
+colori viaggiano con lei e si applicano inline, così il badge resta coerente con
+la palette della promo sul resto della pagina.
+
+⚠️ Il badge **non è nel Figma** — il frame mostra solo prezzo scontato e
+listino barrato. È un'aggiunta decisa in questa sessione.
 
 #### La regola vecchia, per capire cosa si è buttato
 
@@ -688,3 +730,24 @@ decisioni e le trappole, il README per comandi e schema JSON, e
 stringa — `translationStatus` per i node id dei frame, `figmaDeviations` per le
 otto correzioni fatte a mano, `columnConsistency` e `valuesMatchSource` per le
 due regole da rispettare quando si tocca la copy.
+
+Aggiunto nella quinta sessione:
+
+- **UPC per mercato.** `products[].upc` accetta un oggetto per locale, risolto
+  da `getTrad` come i testi. Verificato sul codice vero: `en-us` prende la sua
+  chiave, `fr-fr` cade su `fr`, `de-at` su `de`, `it-it` e `en-ca` sull'inglese,
+  e una stringa semplice continua a funzionare ovunque.
+- **Store id per mercato** autorati per `en-us`, `en-ca`, `en-gb`, `en-au`.
+  Verificato che il modulo chiami lo store giusto per ciascuno e che un mercato
+  non elencato (`fr-ca`, `de-de`) non faccia nessuna chiamata.
+- **Badge sconto** reso accanto al listino barrato, stringa e colori dall'API.
+  Provato in pagina con due prodotti realmente in promo: `30% off` su sfondo
+  nero, testo bianco, peso 500, tutto da `saleBadgeColor`. Un badge senza colori
+  non rompe niente, cade sui token del foglio di stile.
+- **Layout del badge verificato a 390px e 1440px**: nel compatto il blocco
+  prezzo va in colonna e il badge si allinea a sinistra come il resto, nel
+  desktop resta in riga centrato sulla baseline. Nessun overflow orizzontale in
+  nessuna delle due.
+- Un difetto trovato e corretto subito: `align-self: center` centrava il badge
+  anche nel compatto, dove il prezzo è allineato a sinistra. Ora è scopato al
+  solo desktop.

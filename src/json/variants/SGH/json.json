@@ -4,13 +4,15 @@
     "localeList": "Eight locales: en-us, en, fr, fr-ca, es, es-mx, de, nl — the same set SGH ships in 4-card-section-module for this campaign.",
     "translationStatus": "Copy transcribed from the per-locale Figma frames (file qP9YNquHyjNhP5S34X0JRJ). Comparator: en 1093:44584, nl 1249:33206, de 1249:68526, es 1249:59696, fr 1249:77356, fr-ca 1249:42036. Intro title + subtitle: en 1093:44580, nl 1249:27015, de 1249:62482, es 1249:53652, fr 1249:71312, fr-ca 1249:35992. en-us is the original desktop frame 1020:42173. es-mx has NO frame of its own and reuses the es copy, as requested. Brand and feature names (Ray-Ban Meta, Meta AI, Transitions®, Bluetooth, WiFi, the app names) are left untranslated exactly as the frames have them.",
     "source": "Copy transcribed from Figma \"SGH - RB META APEROL\": the en-us reference is desktop 1020:42173, with mobile 1020:47170 and title 1020:36519. The hideWhenOnlyDifferences flags are that desktop frame’s \"Don’t show in differences\" annotations, on the Meta AI, Lenses, Connectivity, Water resistance and Compatible apps rows.",
-    "productCodes": "PLACEHOLDER. The authored UPCs resolve to Ray-Ban Meta Gen 1 (8056597988377 = Gen 1 Wayfarer, 8056597988391 = Gen 1 Headliner, both isOutOfStock) — they are NOT the Gen 2 / Gen 3 the copy describes. Swapping them is a one-field change: set `upc` on each product, nothing else. `productId` (the catentryId) and `pdpUrl` are kept as cross-references and are read by nothing — the lookup is by UPC. See README, \"It takes a UPC, not a product id\".",
+    "productCodes": "PLACEHOLDER. The authored UPCs resolve to Ray-Ban Meta Gen 1 (8056597988377 = Gen 1 Wayfarer, 8056597988391 = Gen 1 Headliner, both isOutOfStock) — they are NOT the Gen 2 / Gen 3 the copy describes. `upc` is keyed by locale: add a key per market that sells a different article, and a market with none falls back to en-us through getTrad. `productId` (the catentryId) and `pdpUrl` are kept beside it as human-readable cross-references and are read by nothing — the lookup is by UPC. See README, “It takes a UPC, not a product id”.",
     "icons": "Icon values are resolved against package.json > projectConfigurations.paths.productionImage (https://media.sunglasshut.com/table-comparison-component/img/ in production, ./static/images/ in dev), so the brand subfolder is part of the value. An absolute http(s) url is used as-is instead — see isSelfContainedUrl in src/js/contents.js.",
     "notFromFigma": "ONE key has no source frame: comparison.selectLabel, the label above the mobile product picker. The per-locale frames cover the intro and the comparator table, neither of which contains that control. Its non-English values are provisional. Same for products[].family and products[].shortName, which only feed that dropdown.",
     "figmaDeviations": "Deliberate deviations from the frames, each a slip rather than a choice. (1) es, Gen 3 case: the frame read \"Hasta 5 horas de uso con una sola carga\" where every other locale, and the Gen 2 column beside it at 8, say 9. Set to 9. (2) es, lens type: the frame read \"Dom\" for \"Sun\" — corrected to \"Sol\". The same line reads \"Lunettes de soleil\" in fr and \"Sonnenbrillen\" in de, which name the product rather than the lens type; those are KEPT, as decided. (3) nl and de camera, Gen 3: the frames had an unbalanced bracket, \"(t.o.v. (Gen 2)\" and \"(im Vergleich zu (Gen 2)\" — closed to a single pair. (4) es, Gen 2 product name: the frame read \"Ray-Ban Meta (Gen 2)\" where every other locale reads \"Ray-Ban | Meta Gen 2\" — normalised. (5) fr-ca, Gen 3 Meta AI: \"TRADUCTION EN DIRECT\" was the only all-caps line in the table — set to sentence case. (6) Straight apostrophes in the fr, fr-ca and nl frames were normalised to the typographic apostrophe used everywhere else; nl \"videos\" to \"video’s\". (7) Unit notation was made consistent inside each locale, because aligning the columns exposed it: fr and es wrote \"à 120 fps\" on one line and \"30fps\" on the next, fr-ca spelled out \"images par seconde\" then wrote \"30fps\", and fr-ca wrote \"1000+ photos\" above \"Plus de 100 vidéos\". (8) fr-ca, Gen 2 audio: the frame spelled the number out, “Ensemble de cinq micros”, where the source has “5-mic array” and the Gen 3 column of the same locale already wrote “Ensemble de 6 micros” — set to “5”. Row labels are stored in natural case because .ct_comparison__label applies text-transform: uppercase.",
     "colorCount": "products[].meta (\"3 Colors\") is AUTHORED, not live, and always will be. SGH’s documented product service returns frameColor / lensColor / localizedColorLabel for the single variant it describes and no count of the siblings. A count exists in the group’s services — `availableColors` on glasses.com’s /ajaxSearchDisplayView — but there is no SGH equivalent: the two candidate paths answer with the homepage html, not json. Unlike the packshot, the price and the PDP link, which do come from the call.",
     "columnConsistency": "The two product columns are kept in step: any line that reads the same for Gen 3 and Gen 2 in en-us reads the same in every other locale too. The per-locale frames did not do this — they drifted on 29 lines (nl \"ultragroothoek\" vs \"ultra-wide\", de \"automatische Aufnahme\" vs \"Autoaufnahme\", es \"en tiempo real\" vs \"en directo\", and so on) — and the two columns sit side by side, so the drift was visible. Genuine differences (6-mic vs 5-mic, 9 vs 8 hours, 50 vs 48, \"flash storage\", the extra 36% line) are untouched. If a line is edited in one column, edit it in the other.",
-    "valuesMatchSource": "VERIFIED against the original desktop frame 1020:42173. en-us is identical to it line for line, row labels and annotations included. Every other locale carries the same figures: 497 lines compared across the seven translated locales by extracting each line’s numeric values (normalising the decimal comma and the thousands separator, so 5,5 = 5.5 and 1 000 = 1000) and matching them against the en-us line at the same index — zero discrepancies. The structural differences are the same everywhere too: a line the source keeps distinct between Gen 3 and Gen 2 is distinct in every locale, and a line it keeps identical is identical in every locale. Re-run that check after any copy edit — a translated figure that drifts from the source is the one error this table cannot afford."
+    "valuesMatchSource": "VERIFIED against the original desktop frame 1020:42173. en-us is identical to it line for line, row labels and annotations included. Every other locale carries the same figures: 497 lines compared across the seven translated locales by extracting each line’s numeric values (normalising the decimal comma and the thousands separator, so 5,5 = 5.5 and 1 000 = 1000) and matching them against the en-us line at the same index — zero discrepancies. The structural differences are the same everywhere too: a line the source keeps distinct between Gen 3 and Gen 2 is distinct in every locale, and a line it keeps identical is identical in every locale. Re-run that check after any copy edit — a translated figure that drifts from the source is the one error this table cannot afford.",
+    "perMarketProducts": "products[].upc is keyed by locale and resolved by getTrad — exact country, then language, then any key starting with it, then en-us, then en — so a market that sells a different article gets its own key and a market with none shows the English product. A plain string still works and means one article everywhere. comparison.api.store is the deliberate opposite: it never falls back, because the store decides currency, price and discount, and quoting another market’s currency is worse than quoting nothing.",
+    "discountBadge": "prices.saleBadgeValue and prices.saleBadgeColor arrive ONLY on a product that is actually on sale, which is why an earlier version of this module recorded that the endpoint had no badge — it was pointed at two full-price products. The string is rendered verbatim and never recomputed from the two figures: the same Tiffany reads “30% off” on /us and “-30%” on /ca-en. The colours are applied inline so the badge matches the promotion running elsewhere on the page. The badge is NOT in the Figma frame, which shows only the offer and the struck list price — it was added on request."
   },
   "comparison": {
     "title": {
@@ -75,15 +77,29 @@
     },
     "selectorIcon": "SGH/chevron-down.svg",
     "api": {
-      "_store": "Store ids per market, used to call /wcs/resources/store/{storeId}/productInfo. Authored values win over window.ct_data, so a market whose globals are wrong can be pinned without a code change. Drop a market here and it falls back to ct_data — which is what every locale other than en-us does on purpose: a store id is market configuration, not copy, and inheriting the US one would be silently wrong. 10152 is VERIFIED on production: www.sunglasshut.com/wcs/resources/store/10152/productInfo answers with USD prices and /us/ PDP urls.",
+      "_store": "Store ids per market, used to call /wcs/resources/store/{storeId}/productInfo. The store is what decides currency, price and discount, so it never falls back to English the way the copy and the UPCs do: a market that is not listed here makes NO call, and its columns keep the authored content. That is deliberate — a wrong store id is worse than an absent one. All four below were verified against www.sunglasshut.com by asking each store for the same UPC and reading back the market and the currency: 10152 -> /us USD, 10154 -> /ca-en CAD, 11352 -> /uk GBP, 11351 -> /au AUD.",
       "_devOrigin": "Development only, ignored in a production build: the storefront the CORS proxy (npm run proxy) is pointed at, so prices are real on localhost. In production every call is relative and same-origin. NOTE: on localhost there is no ct_data, so only the locales listed under `store` make live calls in dev — build with LANGUAGE=en-us to see them.",
       "devOrigin": "https://stage.sunglasshut.com",
       "store": {
         "en-us": {
           "storeId": "10152",
           "langId": "-1"
+        },
+        "en-ca": {
+          "storeId": "10154",
+          "langId": "-1"
+        },
+        "en-gb": {
+          "storeId": "11352",
+          "langId": "-1"
+        },
+        "en-au": {
+          "storeId": "11351",
+          "langId": "-1"
         }
-      }
+      },
+      "_storeMissing": "NOT FOUND from the outside, and needed before those markets can show live data: /ca-fr and every European market (fr, es, de, nl). Store 10154 answers only langId -1 and -24 and returns /ca-en for both, and a sweep of 82 ids around the known ones turned up nothing else — SGH store ids are sparse, not contiguous. Ask the storefront team, or read window.ct_data.storeId once on each market's live page. Until then those locales render their authored copy without packshot, price or CTA.",
+      "_upc": "products[].upc may be a plain string — one article in every market — or an object keyed by locale. The object is resolved by getTrad, exactly like the copy: exact country, then language, then any key starting with it, then en-us, then en. So a market with no key of its own shows the English article rather than an empty column. This is the opposite of the store rule above, and on purpose: an empty column is worse than a neighbouring market's product, while a wrong store is worse than no store."
     },
     "rows": [
       {
@@ -216,9 +232,11 @@
     "products": [
       {
         "id": "rbm-gen-3",
-        "upc": "8056597988377",
-        "pdpUrl": "/us/ray-ban-meta/rw4006-8056597988377",
+        "upc": {
+          "en-us": "8056597988377"
+        },
         "productId": "3074457345618661050",
+        "pdpUrl": "/us/ray-ban/rw4006-8056597988377",
         "name": {
           "en-us": "Ray-Ban | Meta Gen 3",
           "en": "Ray-Ban | Meta Gen 3",
@@ -737,9 +755,11 @@
       },
       {
         "id": "rbm-gen-2",
-        "upc": "8056597988391",
-        "pdpUrl": "/us/ray-ban-meta/rw4009-8056597988391",
+        "upc": {
+          "en-us": "8056597988391"
+        },
         "productId": "3074457345618661055",
+        "pdpUrl": "/us/ray-ban/rw4009-8056597988391",
         "name": {
           "en-us": "Ray-Ban | Meta Gen 2",
           "en": "Ray-Ban | Meta Gen 2",

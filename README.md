@@ -111,7 +111,14 @@ renders comes from here, except price, PDP link and packshot — see
     "selectLabel":          { "en-us": "Select a model" },
     "selectorIcon":         "SGH/chevron-down.svg",      // chevron on the compact switcher
 
-    "api": { "store": { "en-us": { "storeId": "10152", "langId": "-1" } } },
+    // Store per market. Decides currency, price and discount, so it NEVER
+    // falls back to English: an unlisted market makes no call at all.
+    "api": {
+      "store": {
+        "en-us": { "storeId": "10152", "langId": "-1" },
+        "en-ca": { "storeId": "10154", "langId": "-1" }
+      }
+    },
 
     // The ROWS. Label and filter flag are declared once, here — not repeated
     // inside every product.
@@ -124,9 +131,14 @@ renders comes from here, except price, PDP link and packshot — see
     "products": [
       {
         "id": "rbm-gen-3",
-        "upc": "8056597988377",                              // reference only, nothing resolves from it
-        "pdpUrl": "/us/ray-ban-meta/rw4006-8056597988377",   // fallback, and how productId is scraped
-        "productId": "3074457345618661050",                  // the fast path: one request, no scraping
+
+        // THE one field the lookup needs. A plain string is the same article
+        // everywhere; an object is resolved per market by getTrad, so a market
+        // with no key of its own falls back to the English product.
+        "upc": { "en-us": "8056597988377", "fr-ca": "8056597988391" },
+
+        "productId": "3074457345618661050",                  // cross-reference, read by nothing
+        "pdpUrl": "/us/ray-ban/rw4006-8056597988377",        // cross-reference, read by nothing
         "name": { "en-us": "Ray-Ban | Meta Gen 3" },
         "meta": { "en-us": "3 Colors" },                     // the small line above the name
         "family": { "en-us": "Ray-Ban Meta" },               // eyebrow in the compact switcher
@@ -220,6 +232,7 @@ What the module takes from the response:
 | --- | --- |
 | price | `prices.offerPrice` / `prices.listPrice` — strings, coerced before use |
 | currency | `prices.currency`, the ISO code, which is what `Intl` wants |
+| discount badge | `prices.saleBadgeValue` + `prices.saleBadgeColor`, **only on a product that is on sale** |
 | PDP link | `pdpURL` — a different slug from the old endpoint's, see below |
 | packshot | `images[]` sorted by `sequence`, with its own `alt` |
 | name | `brand` + `name`, used only if the json authors none |
@@ -243,10 +256,15 @@ One pair of numbers, already resolved by the storefront:
   charged, and a sale is simply `offerPrice < listPrice`.
 - Both arrive as **strings** (`"224.00"`), so `pickPrices` coerces them before
   anything compares or formats them.
-- There is **no discount badge**. The endpoint carries no `badge` string, so
-  the table shows the offer with the list price struck through and no "30% off"
-  label. That was a deliberate trade when this module moved onto the documented
-  service, not an oversight.
+- **The discount badge is there**, but only on a product that is actually on
+  sale: `saleBadgeValue` ("30% off") and `saleBadgeColor` (`bgColor`,
+  `fontColor`, `fontWeight`) are simply absent from a full-price product, which
+  is what made them look missing when this module was first pointed at two
+  full-price products. Verified on four live ones — Tiffany, Jimmy Choo and
+  Giorgio Armani carry it, the full-price Ray-Ban Meta does not.
+- The badge string is **not** recomputed from the two figures, because its
+  wording belongs to the market: the same Tiffany reads `30% off` on `/us` and
+  `-30%` on `/ca-en`.
 - `currencySymbol` is ignored on purpose. The symbol's side and the separators
   are the locale's business, and `Intl.NumberFormat` already knows them.
 
@@ -262,6 +280,29 @@ is still in the code.
 The json authors a `upc` per product and the module needs nothing else. The
 response echoes `catentryId`, which **is** the product id — useful when
 debugging, read by nothing.
+
+#### A UPC may be authored per market
+
+Markets do not all sell the same article, so `upc` is either a plain string —
+one product everywhere — or an object keyed by locale:
+
+```jsonc
+"upc": {
+  "en-us": "8056597988377",
+  "fr-ca": "8056597988391"   // added when a market sells something else
+}
+```
+
+The object is resolved by **`getTrad`**, the same function that resolves the
+copy: exact country, then language, then any key starting with it, then
+`en-us`, then `en`. A market with no key of its own therefore shows the English
+article rather than an empty column.
+
+⚠️ That is the **opposite** of the rule for `comparison.api.store` just below,
+and the difference is deliberate. An empty column is worse than a neighbouring
+market's product, so the UPC falls back. A wrong store id is worse than no store
+id — it would quote another market's currency and discount — so the store does
+not.
 
 This is the other way round from how the module started. The older endpoint was
 keyed by product id, had no UPC lookup at all on SGH (`/products/<upc>` answered

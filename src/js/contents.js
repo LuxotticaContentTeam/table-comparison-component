@@ -462,7 +462,15 @@ export class Contents {
 
   /**
    * "Starting from $349.99", with the list price struck through beside it when
-   * the storefront reports a live promotion.
+   * the storefront reports a live promotion, and the storefront's own discount
+   * badge after that.
+   *
+   * The badge is **not** in the Figma frame — the design shows the two figures
+   * and nothing else — so it is an addition, made because the percentage is the
+   * part a shopper reads first. Its wording and its colours both come from the
+   * API and are applied inline rather than tokenised: the string is the
+   * market's own ("30% off" on /us, "-30%" on /ca-en), and the colours are
+   * whatever palette the promotion is running elsewhere on the page.
    */
   renderPrice(node, prices) {
     node.textContent = "";
@@ -492,6 +500,31 @@ export class Contents {
     was.className = `${BLOCK}__price-was`;
     was.textContent = formatPrice(prices.list, prices.currency, this.infoStore);
     node.appendChild(was);
+
+    const badge = this.buildPriceBadge(prices.badge);
+    if (badge) node.appendChild(badge);
+  }
+
+  /**
+   * The discount badge, styled from the API.
+   *
+   * Only the three properties the storefront actually sends are set, so a
+   * promotion that omits its colours falls back to the stylesheet rather than
+   * to an empty background. A missing badge is normal — the endpoint sends one
+   * only on a product that is genuinely on sale.
+   */
+  buildPriceBadge(badge) {
+    if (!badge || !badge.value) return null;
+
+    const node = document.createElement("span");
+    node.className = `${BLOCK}__price-badge`;
+    node.textContent = badge.value;
+
+    if (badge.bgColor) node.style.backgroundColor = badge.bgColor;
+    if (badge.fontColor) node.style.color = badge.fontColor;
+    if (badge.fontWeight) node.style.fontWeight = badge.fontWeight;
+
+    return node;
   }
 
   // --- viewport --------------------------------------------------------
