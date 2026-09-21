@@ -36,6 +36,12 @@ $color-switch-on: #000;
 $color-switch-off: $color-border;
 $color-switch-knob: #f7f7f7;
 
+// The "New" pill beside the product name. Black on every brand by decision,
+// not by design system: the LC frame it comes from paints it its own blue
+// (#0354a6), and swapping a brand back to that is these two values.
+$color-name-badge-bg: $color-text-strong;
+$color-name-badge-text: $color-surface;
+
 // --- type -----------------------------------------------------------------
 $font-primary: "Helvetica Neue", Helvetica, Arial, sans-serif;
 $font-display: "Acta Headline", Georgia, serif;
@@ -64,6 +70,10 @@ $font-size-meta-mob: 14px;
 $font-size-small: 12px;
 $letter-spacing-label: 0.12px;
 
+// Text xs/Bold — the "New" pill. Its line height is the one figure the body
+// scale cannot give: 16px on a 12px font is 1.333, not $line-height-body.
+$line-height-name-badge: 16px;
+
 // CTAs/Medium
 $line-height-cta: 20px;
 
@@ -86,6 +96,14 @@ $product-image-height: 140px;
 $product-image-radius: 8px;
 $product-gap: 8px;
 $product-padding-bottom: 40px;
+
+// The "New" pill: 6px radius and 4/8 padding come from the LC frame and are
+// kept even though SGH rounds everything else at $cell-radius, because the
+// pill is the same object on both brands.
+$name-badge-gap: 8px; // pill -> name
+$name-badge-radius: 6px;
+$name-badge-padding-block: 4px;
+$name-badge-padding-inline: 8px;
 
 $cell-padding-desk: 16px;
 $cell-padding-mob: 8px;

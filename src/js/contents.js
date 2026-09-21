@@ -249,10 +249,20 @@ export class Contents {
       cell.appendChild(metaNode);
     }
 
+    // The name and the "New" badge share a row, so the badge sits beside the
+    // name rather than under it — the column itself is a flex column.
+    const nameRow = document.createElement("span");
+    nameRow.className = `${BLOCK}__product-name-row`;
+
     const nameNode = document.createElement("span");
     nameNode.className = `${BLOCK}__product-name`;
     nameNode.textContent = name;
-    cell.appendChild(nameNode);
+    nameRow.appendChild(nameNode);
+
+    const nameBadge = this.buildNameBadge(product);
+    if (nameBadge) nameRow.appendChild(nameBadge);
+
+    cell.appendChild(nameRow);
 
     const badge = this.buildBadge(product);
     if (badge) cell.appendChild(badge);
@@ -302,6 +312,26 @@ export class Contents {
       icon.src = isSelfContainedUrl(badge.icon) ? badge.icon : `${IMAGE_PATH}${badge.icon}`;
       node.appendChild(icon);
     }
+
+    return node;
+  }
+
+  /**
+   * The pill beside the product name — "New" in the design, but the string is
+   * authored, so a column can carry any short flag.
+   *
+   * `nameBadge` is a locale map like every other authored string, which is what
+   * makes it per-market: omit the key and no market shows it, author an empty
+   * string for one locale and only that market goes without. Nothing is
+   * emitted when it resolves to nothing — not an empty node.
+   */
+  buildNameBadge(product) {
+    const label = this.trad(product.nameBadge);
+    if (!label) return null;
+
+    const node = document.createElement("span");
+    node.className = `${BLOCK}__name-badge`;
+    node.textContent = label;
 
     return node;
   }

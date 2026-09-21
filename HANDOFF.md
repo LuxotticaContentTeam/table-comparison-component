@@ -842,6 +842,19 @@ due regole da rispettare quando si tocca la copy.
 
 Aggiunto nella quinta sessione:
 
+- **Badge "New" accanto al nome.** Nuovo campo `products[].nameBadge`, mappa
+  per locale come ogni altra stringa autorata: popolato rende la pillola,
+  omesso non emette **niente**, stringa vuota su un locale lo spegne solo per
+  quel mercato. È un secondo badge, indipendente da `products[].badge`
+  ("Camera + Audio", che resta sotto il nome con la sua icona): possono stare
+  accesi entrambi. Preso dal Figma LC `5720-35673` (radius 6px, padding 4/8,
+  12px bold, gap 8px dal nome) ma **nero su tutti i brand** per scelta, non il
+  blu `#0354a6` del design system LC.
+
+  Il nome sta in un wrapper `__product-name-row` perché la colonna è un flex in
+  colonna: un fratello sarebbe finito sotto il nome, non accanto. Sotto il
+  breakpoint compatto il wrapper va a capo, quindi la pillola scende su riga
+  propria invece di stringere il nome — verificato a 390px in iframe.
 - **I due UPC veri**, al posto dei Gen 1 tenuti come segnaposto da lancio. Il
   Gen 2 risolve, il Gen 3 no (§6.1).
 - **`productId` e `pdpUrl` tolti dal json.** Il catentryId lo rimanda già la

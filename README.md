@@ -136,6 +136,7 @@ renders comes from here, except price, PDP link and packshot — see
 
         "name": { "en-us": "Ray-Ban | Meta Gen 3" },
         "meta": { "en-us": "3 Colors" },                     // the small line above the name
+        "nameBadge": { "en-us": "New" },                     // optional pill BESIDE the name; omit it and nothing renders
         "family": { "en-us": "Ray-Ban Meta" },               // eyebrow in the compact switcher
         "shortName": { "en-us": "Gen 3" },                   // its value; falls back to `name`
         "badge": {
@@ -210,6 +211,28 @@ soon as there are more than two products.
 Add `family` and `shortName` too if the table will ever hold more than two
 products — they are what the switcher shows, and without them it falls back to
 the full name on one line.
+
+### The two badges are different things
+
+A product can carry two, and they are independent — both on, either one, or
+neither:
+
+| | Where | Authored as |
+| --- | --- | --- |
+| `nameBadge` | a pill **beside** the name | one locale map: `{ "en-us": "New" }` |
+| `badge` | a line **under** the name, with an icon | `{ label: {…}, icon: "SGH/…svg" }` |
+
+`nameBadge` is its own switch: populated it renders, omitted it emits no
+markup. Being a locale map makes it per market — drop the key and no market
+shows it, author an empty string for one locale and only that market goes
+without, because `getTrad` matches a key before it falls back. Never author
+`null`.
+
+The text is free. The design says "New", nothing in the code does, and it is
+authored in natural case because the pill is uppercased in CSS. It is black on
+every brand by decision rather than by design system: the LC frame it is taken
+from paints it that brand's blue, and moving a brand back to that is the two
+`$color-name-badge-*` tokens.
 
 ### Adding a row
 
