@@ -27,7 +27,7 @@ import { getDeviceType } from "./utils";
  */
 
 class StateManager {
-  constructor({ selector, brand, device }) {
+  constructor({ selector, brand, device, productService }) {
     if (StateManager._instance) {
       return StateManager._instance;
     }
@@ -36,6 +36,9 @@ class StateManager {
     this.brand = brand;
     this.env = "@env@";
     this.infoStore = null;
+    // The brand's storefront adapter — which service to call and how to
+    // read it. See src/js/variants/<BRAND>/product_service.js.
+    this.productService = productService;
     // Kept, not just consumed: the comparison table re-resolves the device on
     // resize (the column count depends on it), so it needs the thresholds and
     // not only the answer they produced at startup.

@@ -842,26 +842,64 @@ due regole da rispettare quando si tocca la copy.
 
 Aggiunto nella quinta sessione:
 
+- **LC ha un servizio prodotto tutto suo, e ora il modulo lo parla.** Era la
+  cosa non verificata dell'ultimo giro, ed è saltata fuori peggiore del previsto:
+  **il path di SGH risponde 404 su LensCrafters**. Non è lo stesso servizio su un
+  altro host, è un servizio diverso — `/AjaxPartNumberView` — che vuole un
+  `catalogId`, annida i prodotti in `products.products.product[]`, manda
+  `listPrice` come la stringa letterale `"$ 0"` e **non manda affatto il codice
+  valuta**.
+
+  Quindi ogni variante ha il suo adapter in
+  `src/js/variants/<BRAND>/product_service.js` con quattro funzioni
+  (`resolveStore`, `requestUrl`, `extract`, `reduce`), e `modules/productApi.js`
+  resta solo orchestrazione: sceglie l'UPC del mercato, deduplica, chiama,
+  sopravvive all'errore e ridistribuisce per UPC. Nel bundle finisce **solo il
+  brand che si sta costruendo** — verificato: `AjaxPartNumberView` non compare
+  nel js di SGH, `productInfo` non compare in quello di LC.
+
+  Due conseguenze da sapere quando si autora LC: **su questo brand non esistono
+  prezzo barrato né badge sconto** (il servizio non li dà), e la valuta si legge
+  da `ct_data.currency` perché la risposta non ce l'ha. L'`alt` del packshot di
+  LC vale "Image for 8056262721339" — l'UPC letto ad alta voce — quindi viene
+  scartato a favore del nome autorato.
+
+  ⚠️ **Su lenscrafters.com le globali non ci sono sulla homepage**: né
+  `window.storeId`, né `<html lang>`. Sulla PDP ci sono tutte. Conta su che tipo
+  di pagina viene messo il modulo.
+
+  ⚠️ **Il Canada è un dominio separato**, `lenscrafters.ca`, non un path di
+  `.com`: store 10852, langId -24 en-CA e -25 fr-CA, `catalogId` 22701 ovunque.
+
+  ⚠️ Sulla pagina **fr-CA** lo storefront torna `pdpURL` con path `/lc-us/…`
+  invece di `/fr-ca/` o `/en-ca/`. Dalla en-CA torna `/en-ca/…` corretto. È un
+  difetto loro, non nostro, ma il CTA francese ci finisce sopra.
 - **La variante LC.** Secondo brand del modulo, completa: token, contenuti,
   viste, icone e `release/LC/0.0.1/`. Il meccanismo di theming esisteva già e
   ha retto — componente condiviso, un `_variables.scss` per brand — ma nessuno
   lo aveva mai esercitato con due varianti, e reggendolo ha fatto emergere tre
   cose che con un brand solo non si vedevano (sotto).
 
-  Contenuti: struttura di SGH ridotta a `en-us`, perché LC per ora esce in
-  inglese. Token letti dal Figma `5720:35673` / `5720:35891`: Sofia Pro al posto
-  di Acta, celle `#f6f6f6` a 4px invece di `#f7f7f7` a 2px, colonne prodotto
-  **centrate**, righe a 24px invece di 8, sezione a 64px invece di 40.
+  Token letti dal Figma `5720:35673` / `5720:35891`: Sofia Pro al posto di Acta,
+  celle `#f6f6f6` a 4px invece di `#f7f7f7` a 2px, colonne prodotto **centrate**,
+  righe a 24px invece di 8, sezione a 64px invece di 40.
 
-  ⚠️ **Il frame LC mostra tre prodotti**, il terzo senza fotocamera. Il json ne
-  ha due: il terzo è authoring. Sopra i due prodotti compare lo switcher
-  compatto, quindi `family` e `shortName` servono su tutti — ci sono già.
+  Contenuti: **tre prodotti**, come il frame — Gen 2, Gen 3 e **Blayzer**
+  (`0RW7001`, quello senza fotocamera, che porta il badge NEW). Tutti e tre
+  risolvono a catalogo LC. Sopra i due prodotti compare lo switcher compatto e
+  sparisce il toggle, quindi `family` e `shortName` sono popolati su tutti e tre.
 
-  ⚠️ **Non verificato su LC**: che lenscrafters.com server-renderizzi
-  `<html lang>` (da cui `info_store.js` prende il locale) e che pubblichi
-  `window.storeId` / `window.langId` (da cui dipendono prezzo, packshot e link).
-  Se non li pubblica il modulo degrada in silenzio: copy autorata, niente altro.
-  Anche `comparison.api.devOrigin` è un'ipotesi, non un dato.
+  Lingue: `en-us`, `en-ca`, `es-mx`, `fr-ca`. ⚠️ **Solo le due inglesi sono
+  vere**: `es-mx` e `fr-ca` portano la copy inglese come segnaposto, così le
+  chiavi esistono per il copy team. Attenzione che una chiave presente **batte**
+  il fallback, quindi vanno sovrascritte, non aggiunte.
+
+  Due scostamenti dal frame, entrambi sviste del design e non scelte, segnati in
+  `_meta.figmaDeviations`: il frame scrive `MMAl AI not available` (i maiuscola
+  al posto della elle, e l'acronimo doppiato) ed è stato corretto in `MMAI`; e dà
+  il badge "CAMERA + AUDIO" **anche alla colonna senza fotocamera**, dove
+  l'istanza è rimasta al default — lì il badge è stato omesso invece che autorato
+  come contraddizione.
 - **Tre cose che si rompevano con due brand**, tutte sistemate qui:
 
   1. **URL di produzione identici.** `bootstrap.js` costruisce gli url da

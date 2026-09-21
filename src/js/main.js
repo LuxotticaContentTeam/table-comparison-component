@@ -5,8 +5,10 @@ import Lazy from "./modules/lazy";
 
 import { Contents } from "./contents";
 
-// info store is imported from the current variant variants/<variantName>/info_store.js
-import { infoStore } from "@currentVariant@";
+// The current variant supplies both: where the locale comes from
+// (variants/<variantName>/info_store.js) and which storefront product
+// service to talk to (variants/<variantName>/product_service.js).
+import { infoStore, productService } from "@currentVariant@";
 
 class Main {
   constructor() {
@@ -62,6 +64,7 @@ class Main {
         mob_max: 767,
       },
       infoStore: undefined,
+      productService,
     });
 
     // GET INFO STORE  es: { lang:"en", storeId: 12001, catalog: 241241, country: "en-us", langID: -1 }

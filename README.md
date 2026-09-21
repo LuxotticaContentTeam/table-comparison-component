@@ -242,19 +242,42 @@ Append an object to `rows`, then add a cell under that id to **every** product.
 ## Live product data
 
 Price, PDP link and packshot go stale on their own, so they are not authored.
-They come from the storefront:
+They come from the storefront — and **which storefront service, and how to read
+it, is per brand**:
 
 ```
-GET /wcs/resources/store/{storeId}/productInfo?partNumbers={upc1,upc2,…}&langId={langId}
+SGH   GET /wcs/resources/store/{storeId}/productInfo?partNumbers={upc,…}&langId={langId}
+LC    GET /AjaxPartNumberView?storeId={id}&catalogId={id}&langId={id}&pageSize={n}&orderBy=1&partNumbers={upc,…}
 ```
 
-This is SGH's documented service — **"New Prod Service (2026)"** in
-[`LuxotticaContentTeam/product-services-doc`](https://github.com/LuxotticaContentTeam/product-services-doc)
-> `sunglasshut/product-service.md`. It takes **every product in one call**,
-keyed by **UPC**, and returns prices already resolved.
+Both are documented in
+[`LuxotticaContentTeam/product-services-doc`](https://github.com/LuxotticaContentTeam/product-services-doc),
+one file per brand. Both take **every product in one call**, keyed by **UPC**.
+Both are **relative**, so same-origin and needing no CORS header — unlike the
+content json, which comes from the asset host.
 
-The call is **relative**, so it is same-origin and needs no CORS header —
-unlike the content json, which is fetched from the asset host.
+There the resemblance ends, which is why each variant ships an adapter at
+`src/js/variants/<BRAND>/product_service.js` with four functions —
+`resolveStore()`, `requestUrl(store, upcs)`, `extract(payload)` and
+`reduce(raw, store)`. `modules/productApi.js` only orchestrates: it picks each
+market's UPC, de-duplicates the call, makes it, survives its failure and fans
+the answer back out by UPC. Only the brand being built is bundled.
+
+The split is not tidiness. Verified 2026-09-21: **SGH's path answers 404 on
+LensCrafters**, and the differences behind it are not cosmetic:
+
+| | SGH | LC |
+| --- | --- | --- |
+| Extra parameter | — | `catalogId`, mandatory |
+| Products at | `products[]` | `products.products.product[]` |
+| Struck price | `prices.listPrice` | none — `listPrice` is the literal `"$ 0"` |
+| Discount badge | `saleBadgeValue` + colours | none |
+| Currency | `prices.currency`, ISO | not in the response; read from `ct_data.currency` |
+| Packshot | `images[]` by `sequence`, real `alt` | one `productImage`; `alt` is "Image for `<upc>`", so it is dropped in favour of the authored name |
+| PDP link | relative | absolute |
+
+So **on LC there is never a struck-through price or a discount badge**. That is
+the service, not a gap in the module.
 
 ### The store comes from the page, not from the json
 
@@ -262,18 +285,33 @@ unlike the content json, which is fetched from the asset host.
 which is what the service doc tells a client to do — its own example opens with
 `{ storeID: window.storeId, langId: window.langId }`. Nothing about the store is
 authored, so **adding a market means adding its copy and its UPC and nothing
-else**.
+else**. LC publishes the same two, plus `window.catalogId` and the legacy
+`ct_data` object its own doc reads, which is where its currency comes from.
+
+⚠️ On LC they are **not on every page**: a PDP has all of them, the
+www.lenscrafters.com home page has none of them and no `<html lang>` either. So
+the page the module is placed on matters. Without a store id it degrades the
+same way it does anywhere: no call, every column keeps its authored copy.
 
 They are written by an inline, server-rendered script in the page header, so
 they are simply there — no polling, no globals that land late. `loadProducts()`
 runs from the lazy intersection observer anyway, long after the page is parsed.
 
-Verified on all ten markets, on **production and stage**:
+SGH, verified on all ten markets, on **production and stage**:
 
 | | `/us` | `/ca-en` | `/ca-fr` | `/uk` | `/au` | `/de` | `/fr` | `/es` | `/mx` | `/nl` |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `window.storeId` | 10152 | 10154 | 10154 | 11352 | 11351 | 14351 | 13801 | 13251 | 16001 | 19001 |
 | `window.langId` | -1 | -25 | -28 | -24 | -26 | -3 | -2 | -5 | -29 | -44 |
+
+LC, verified on **production**. Note Canada is a separate **domain** here, not a
+path — and that `catalogId` is the same on both:
+
+| | `.com` en-US | `.ca` en-CA | `.ca` fr-CA |
+| --- | --- | --- | --- |
+| `window.storeId` | 10851 | 10852 | 10852 |
+| `window.langId` | -1 | -24 | -25 |
+| `window.catalogId` | 22701 | 22701 | 22701 |
 
 ⚠️ **`langId` is not derivable from the language.** It names the market's
 catalog, not the tongue — English alone answers to four different ids. Canada is

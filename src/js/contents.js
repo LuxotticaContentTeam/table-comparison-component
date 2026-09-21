@@ -76,6 +76,7 @@ export class Contents {
 
     this.data = data;
     this.infoStore = this.stateManger.infoStore;
+    this.productService = this.stateManger.productService;
 
     this.state = createComparisonState({ products: data.products, rows: data.rows });
     this.state.setDevice(this.stateManger.device);
@@ -433,7 +434,7 @@ export class Contents {
   // --- live product data -----------------------------------------------
 
   async loadProducts() {
-    this.productData = await getProducts(this.data.products, this.data.api || {}, this.infoStore);
+    this.productData = await getProducts(this.data.products, this.data.api || {}, this.infoStore, this.productService);
 
     if (!Object.keys(this.productData).length) return;
 
