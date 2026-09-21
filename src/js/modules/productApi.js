@@ -33,8 +33,10 @@
  *
  * The **store** is a different matter and does not fall back (see
  * `resolveStore`): it is what decides currency, price and discount, so one page
- * asks one store for every column, and a market whose store is not authored
- * makes no call at all.
+ * asks one store for every column. It is not authored at all — it is read from
+ * `window.storeId` and `window.langId`, which the storefront renders into every
+ * market's page — so adding a market to this module means adding its copy and
+ * its UPC, and nothing else.
  */
 import { customLog, getTrad } from "./utils";
 
@@ -75,41 +77,68 @@ const resolveUpc = (product, infoStore) => {
   return upc ? String(upc) : null;
 };
 
-const productInfoUrl = ({ storeId, langId }, upcs) =>
-  `/wcs/resources/store/${storeId}/productInfo?partNumbers=${upcs.map(encodeURIComponent).join(",")}&langId=${langId}`;
+const productInfoUrl = ({ storeId, langId }, upcs) => {
+  const path = `/wcs/resources/store/${storeId}/productInfo?partNumbers=${upcs.map(encodeURIComponent).join(",")}`;
+
+  // Only when there is one to send. `langId=undefined` is not a soft failure:
+  // the endpoint answers CWXFR0230E with no products, so every column loses its
+  // price. Leaving the parameter off entirely is safe — see `resolveStore`.
+  return langId ? `${path}&langId=${langId}` : path;
+};
 
 /**
- * Store identifiers, in the order they can be trusted.
+ * Store identifiers, as the storefront publishes them.
  *
- * `ct_data` is deprecated as a *locale* source — it lands seconds after
- * navigation on a cold load, which is why the locale comes from <html lang>
- * instead (src/js/variants/SGH/info_store.js). It is still the only place the
- * storefront publishes the store and catalog ids, and by the time this runs the
- * module has already been scrolled to, so it is there in practice. An id
- * authored in the json wins over it, so a market whose globals disagree can be
- * pinned without a code change.
+ * These two are what the service documentation tells a client to read — see
+ * "New Prod Service (2026)" in LuxotticaContentTeam/product-services-doc >
+ * sunglasshut/product-service.md, whose own example opens with
+ * `{ storeID: window.storeId, langId: window.langId }` and calls store 11352
+ * with langId -24, the /uk pair below.
  *
- * @returns {{storeId: string, langId: string}|null} null when nothing supplies a store id
+ * `window.storeId` and `window.langId` are written by an inline, server-rendered
+ * script in the page header, so they are plain strings that are simply there —
+ * no polling, no globals that land late. Verified on all ten markets, on
+ * www.sunglasshut.com and on stage: /us 10152/-1, /ca-en 10154/-25,
+ * /ca-fr 10154/-28, /uk 11352/-24, /au 11351/-26, /de 14351/-3, /fr 13801/-2,
+ * /es 13251/-5, /mx 16001/-29, /nl 19001/-44. They are read here rather than
+ * authored in the json on purpose: the page cannot disagree with itself, and a
+ * new market needs nothing but its copy and its UPC.
+ *
+ * Timing is not a worry. These are defined while the document is still being
+ * parsed, and `getProducts` runs from the lazy intersection observer, once the
+ * reader has scrolled the module into view.
+ *
+ * The **langId is not derived from the language**: it names the market's
+ * catalog, not the tongue, and English alone answers to four different ids. The
+ * one market where it is the only thing that varies is Canada, where store 10154
+ * serves both /ca-en and /ca-fr and the langId is what flips the CTA between
+ * them.
+ *
+ * Two degradations, both deliberate:
+ * - no `storeId` — no call at all, and every column keeps its authored content.
+ *   The store decides currency, price and discount, so a guessed one is worse
+ *   than none. This is the case in development, where there is no storefront.
+ * - a `storeId` but no `langId` — the call still goes out without the parameter,
+ *   and the store answers in its own default language (verified on 10152, 10154
+ *   and 19001). Only /ca-fr loses something by this: it would read as /ca-en,
+ *   same currency, same prices.
+ *
+ * @returns {{storeId: string, langId: string}|null} null when the page publishes no store id
  */
-const resolveStore = (apiConfig = {}, infoStore = {}) => {
-  const authored = apiConfig.store && (apiConfig.store[infoStore.country] || apiConfig.store[infoStore.lang]);
-  const globals = typeof window.ct_data === "object" && window.ct_data ? window.ct_data : {};
-
-  const storeId = (authored && authored.storeId) || globals.storeId;
-  const langId = (authored && authored.langId) || globals.langID || "-1";
-
-  // ct_data is the last resort and is no longer trustworthy — the storefront
-  // stopped keeping window.storeId current — so say so when it is what answered.
-  if (!authored && storeId) {
-    customLog(`storeId ${storeId} came from ct_data, not from the json — author comparison.api.store for this market`, "", "warn");
-  }
+const resolveStore = () => {
+  const storeId = window.storeId;
+  const langId = window.langId;
 
   if (!storeId) {
-    customLog("no storeId: ct_data is absent and none is authored in the json — prices and CTAs stay as authored", "", "warn");
+    customLog("no window.storeId on the page — prices and CTAs stay as authored", "", "warn");
     return null;
   }
 
-  return { storeId: String(storeId), langId: String(langId) };
+  if (!langId) {
+    customLog(`no window.langId on the page — asking store ${storeId} in its default language`, "", "warn");
+  }
+
+  return { storeId: String(storeId), langId: langId ? String(langId) : "" };
 };
 
 /**
@@ -151,11 +180,44 @@ const pickBadge = (prices) => {
 };
 
 /**
+ * A price string from the endpoint, as a number.
+ *
+ * `Number()` is not enough, because the two prices are **not formatted the same
+ * way**: `offerPrice` is always raw ("150.00"), while `listPrice` is already
+ * formatted for the market — "300,00" on /de, "1.150,00" on /nl, "1,550.00" on
+ * /us, "9,859.00" on /mx. `Number("300,00")` is NaN, which used to make `list`
+ * collapse onto `offer` and silently cost every non-English market its
+ * struck-through price and its discount badge. A US product over a thousand hit
+ * the same wall through the thousands comma alone.
+ *
+ * The last `,` or `.` is the decimal point when one or two digits follow it;
+ * anything else is a thousands mark, so "1,550" is fifteen hundred and fifty
+ * rather than one and a half. Spaces — including the narrow no-break kind some
+ * markets group with — are dropped before any of that.
+ */
+const parseAmount = (value) => {
+  if (typeof value === "number") return value;
+  if (typeof value !== "string") return NaN;
+
+  const cleaned = value.replace(/[^\d,.-]/g, "");
+  // Number("") is 0, which would read as a real price of nothing and pass the
+  // isFinite guards downstream. An absent price has to stay absent.
+  if (!/\d/.test(cleaned)) return NaN;
+
+  const decimalAt = Math.max(cleaned.lastIndexOf(","), cleaned.lastIndexOf("."));
+  const decimals = decimalAt === -1 ? 0 : cleaned.length - decimalAt - 1;
+
+  if (decimals < 1 || decimals > 2) return Number(cleaned.replace(/[.,]/g, ""));
+
+  return Number(`${cleaned.slice(0, decimalAt).replace(/[.,]/g, "")}.${cleaned.slice(decimalAt + 1)}`);
+};
+
+/**
  * The two numbers the PDP shows, and the badge that goes with them.
  *
  * The endpoint quotes the prices already resolved — no price list to pick, no
- * promotion window to honour — but as **strings** ("224.00"), so they are
- * coerced before anything compares or formats them. A sale is simply an offer
+ * promotion window to honour — but as **strings**, and in two different
+ * notations, which is `parseAmount`'s whole job. A sale is simply an offer
  * below the list price.
  *
  * `currency` is the ISO code ("USD"), which is what Intl.NumberFormat wants;
@@ -165,8 +227,8 @@ const pickBadge = (prices) => {
 const pickPrices = (prices) => {
   if (!prices || typeof prices !== "object") return null;
 
-  const list = Number(prices.listPrice);
-  const offer = Number(prices.offerPrice);
+  const list = parseAmount(prices.listPrice);
+  const offer = parseAmount(prices.offerPrice);
 
   if (!Number.isFinite(list) && !Number.isFinite(offer)) return null;
 
@@ -231,12 +293,12 @@ const reduceProduct = (product) => ({
  * by UPC rather than by position.
  *
  * @param {Array<{id: string, upc?: string|object}>} products
- * @param {object} apiConfig  json > comparison.api
- * @param {object} infoStore  { lang, country }
+ * @param {object} apiConfig  json > comparison.api — only `devOrigin` is read here; the store comes from the page
+ * @param {object} infoStore  { lang, country } — picks the per-market upc
  * @returns {Promise<Object<string, object>>} keyed by the product's json id
  */
 const getProducts = async (products = [], apiConfig = {}, infoStore = {}) => {
-  const store = resolveStore(apiConfig, infoStore);
+  const store = resolveStore();
   if (!store) return {};
 
   // Resolved once per product, because a market may be authored a different

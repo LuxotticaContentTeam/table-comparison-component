@@ -111,13 +111,10 @@ renders comes from here, except price, PDP link and packshot — see
     "selectLabel":          { "en-us": "Select a model" },
     "selectorIcon":         "SGH/chevron-down.svg",      // chevron on the compact switcher
 
-    // Store per market. Decides currency, price and discount, so it NEVER
-    // falls back to English: an unlisted market makes no call at all.
+    // No store is authored. The module reads window.storeId / window.langId
+    // off the page, so a new market needs its copy and its UPC, nothing else.
     "api": {
-      "store": {
-        "en-us": { "storeId": "10152", "langId": "-1" },
-        "en-ca": { "storeId": "10154", "langId": "-1" }
-      }
+      "devOrigin": "https://stage.sunglasshut.com"      // localhost only, see Live product data
     },
 
     // The ROWS. Label and filter flag are declared once, here — not repeated
@@ -216,21 +213,49 @@ This is SGH's documented service — **"New Prod Service (2026)"** in
 keyed by **UPC**, and returns prices already resolved.
 
 The call is **relative**, so it is same-origin and needs no CORS header —
-unlike the content json, which is fetched from the asset host. `storeId` and
-`langId` come from `comparison.api.store` when authored, otherwise from
-`window.ct_data`.
+unlike the content json, which is fetched from the asset host.
 
-Verified on **production and stage** (`www.sunglasshut.com` and
-`stage.sunglasshut.com`, store `10152`) with the two UPCs this module ships:
-200 on both, both products in one response, identical `USD` prices and `/us/`
-PDP urls. That is also what settles the store id — `10152` is the US
-store on production, not just on stage.
+### The store comes from the page, not from the json
+
+`storeId` and `langId` are read from **`window.storeId` and `window.langId`**,
+which is what the service doc tells a client to do — its own example opens with
+`{ storeID: window.storeId, langId: window.langId }`. Nothing about the store is
+authored, so **adding a market means adding its copy and its UPC and nothing
+else**.
+
+They are written by an inline, server-rendered script in the page header, so
+they are simply there — no polling, no globals that land late. `loadProducts()`
+runs from the lazy intersection observer anyway, long after the page is parsed.
+
+Verified on all ten markets, on **production and stage**:
+
+| | `/us` | `/ca-en` | `/ca-fr` | `/uk` | `/au` | `/de` | `/fr` | `/es` | `/mx` | `/nl` |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `window.storeId` | 10152 | 10154 | 10154 | 11352 | 11351 | 14351 | 13801 | 13251 | 16001 | 19001 |
+| `window.langId` | -1 | -25 | -28 | -24 | -26 | -3 | -2 | -5 | -29 | -44 |
+
+⚠️ **`langId` is not derivable from the language.** It names the market's
+catalog, not the tongue — English alone answers to four different ids. Canada is
+the one market where it is the *only* thing that varies: store `10154` serves
+both `/ca-en` and `/ca-fr`, and the langId is what flips the CTA between them.
+
+Two degradations, both deliberate and both measured:
+
+- **no `storeId`** — no call at all, every column keeps its authored content.
+  The store decides currency, price and discount, so a guessed one is worse than
+  none. This is the case on localhost, where there is no storefront.
+- **a `storeId` but no `langId`** — the call goes out *without the parameter*
+  and the store answers in its own default language. Sending `langId=undefined`
+  instead would answer `CWXFR0230E` with no products, and a *wrong* langId
+  answers `CMN0409E` with no products, so every column would lose its price.
+  Only `/ca-fr` loses anything by the omission: it reads as `/ca-en`, same
+  currency, same prices.
 
 What the module takes from the response:
 
 | | Field |
 | --- | --- |
-| price | `prices.offerPrice` / `prices.listPrice` — strings, coerced before use |
+| price | `prices.offerPrice` / `prices.listPrice` — strings, and in two different notations; see [Which price](#which-price) |
 | currency | `prices.currency`, the ISO code, which is what `Intl` wants |
 | discount badge | `prices.saleBadgeValue` + `prices.saleBadgeColor`, **only on a product that is on sale** |
 | PDP link | `pdpURL` — a different slug from the old endpoint's, see below |
@@ -254,8 +279,15 @@ One pair of numbers, already resolved by the storefront:
 
 - `listPrice` is what the price is measured from, `offerPrice` is what is
   charged, and a sale is simply `offerPrice < listPrice`.
-- Both arrive as **strings** (`"224.00"`), so `pickPrices` coerces them before
-  anything compares or formats them.
+- Both arrive as **strings**, and — the trap — **in two different notations**.
+  `offerPrice` is always raw (`"150.00"`), while `listPrice` is already
+  formatted for the market: `"300,00"` on `/de`, `"1.150,00"` on `/nl`,
+  `"1,550.00"` on `/us`, `"9,859.00"` on `/mx`. `Number("300,00")` is `NaN`,
+  which used to collapse `list` onto `offer` and silently cost every non-English
+  market its struck-through price and its badge — and cost `/us` the same on any
+  product over a thousand. `parseAmount` handles both: the last `,` or `.` is
+  the decimal point when one or two digits follow it, anything else is a
+  thousands mark.
 - **The discount badge is there**, but only on a product that is actually on
   sale: `saleBadgeValue` ("30% off") and `saleBadgeColor` (`bgColor`,
   `fontColor`, `fontWeight`) are simply absent from a full-price product, which
@@ -298,11 +330,11 @@ copy: exact country, then language, then any key starting with it, then
 `en-us`, then `en`. A market with no key of its own therefore shows the English
 article rather than an empty column.
 
-⚠️ That is the **opposite** of the rule for `comparison.api.store` just below,
-and the difference is deliberate. An empty column is worse than a neighbouring
-market's product, so the UPC falls back. A wrong store id is worse than no store
-id — it would quote another market's currency and discount — so the store does
-not.
+⚠️ That is the **opposite** of the rule for the store, and the difference is
+deliberate. An empty column is worse than a neighbouring market's product, so
+the UPC falls back. A wrong store is worse than no store — it would quote
+another market's currency and discount — so the store never falls back at all;
+it is read from the page, which cannot disagree with itself.
 
 This is the other way round from how the module started. The older endpoint was
 keyed by product id, had no UPC lookup at all on SGH (`/products/<upc>` answered
@@ -339,9 +371,10 @@ module resolves its locale on the first tick and renders immediately. This
 replaced a `ct_data` / `wcs_config` lookup that is deprecated, lands seconds
 after navigation on a cold load, and whose globals disagree with each other.
 
-`ct_data` is still read for `storeId` / `langID`, because it is the only place
-the storefront publishes them — but never for the locale, and an authored
-`comparison.api.store` entry wins over it.
+`ct_data` is no longer read at all. The store comes from `window.storeId` /
+`window.langId` (see [Live product data](#live-product-data)), which the service
+doc names and which carry the same values `ct_data` does — so there is no reason
+to reach for the deprecated object.
 
 Every translatable value in the json is an object keyed by locale, resolved
 through `getTrad()` (`src/js/modules/utils.js`) — the same function, line for
@@ -411,11 +444,11 @@ There is no project-wide locale list: the keys present in a brand's json **are**
 that brand's locale list, and that is what the dev prompt offers
 (`tasks/prompt.task.js` > `localesForVariant`).
 
-One thing is deliberately **not** a translation: `comparison.api.store` is
-looked up by exact `country`, then `lang`, and never falls back to English. A
-store id is market configuration, not copy — an unlisted market falls back to
-`window.ct_data`, which is right, where inheriting the US store id would be
-silently wrong.
+One thing is deliberately **not** a translation: the store. A store id is market
+configuration, not copy, and inheriting the US one would be silently wrong — so
+it is not authored anywhere and never falls back. It is read from the page
+(`window.storeId` / `window.langId`), which is always the market the reader is
+actually on.
 
 ### Other brands: check before porting this
 
@@ -431,8 +464,9 @@ and on every market it ships to:
    everywhere is worse than the globals: the module renders English copy on a
    French page with no console message.
 
-Then check whether that brand exposes `ct_data.storeId`, or author the store ids
-under `comparison.api.store`.
+Then check whether that brand publishes `window.storeId` and `window.langId` the
+way SGH does. `product-services-doc` has a folder per brand — read that brand's
+page before assuming the same two globals are there.
 
 ## Adding a brand
 
@@ -793,6 +827,28 @@ the project name were set:
   `X_ProductComparisonPlacement_SelectProduct_rb-hexagonal | Hexagonal`, and the
   column switched while both lists moved on to offering Gen 3.
 
+Re-verified on 21 September 2026, when the store stopped being authored:
+
+- **the two globals exist on every market.** Read in a real browser on
+  production — `/de` gives `window.storeId "14351"` / `window.langId "-3"`,
+  `/mx` gives `"16001"` / `"-29"` — and read off the served markup for all ten
+  markets on stage. `window.wcs_config` and `window.ct_data` carry the same
+  values, so nothing disagrees; the two documented globals are simply the ones
+  the module reads;
+- **the real module, driven only by those globals, against the real endpoint**:
+  ten markets, each with its own currency and its own market path in the PDP
+  url, `/ca-fr` included. The discount survives everywhere — a Jimmy Choo at
+  50% off reads `hasDiscount: true` with its badge on all ten, which before the
+  `parseAmount` fix it did on none of the six non-English ones;
+- **the three degradations**, each exercised: both globals → exact; `storeId`
+  only → the call goes out without `langId` and the store answers in its default
+  language (`/ca-fr` degrading to `/ca-en`); neither → no call, a console
+  warning, columns as authored;
+- **`parseAmount` on nineteen cases**, including `"1.150,00"`, `"1,550"`,
+  narrow no-break spaces, and `""` → `NaN` rather than `0`;
+- `npm run build` is green and the string `"store"` appears nowhere in
+  `dist/json/`.
+
 ## Open items
 
 ### Before it can go live
@@ -809,9 +865,6 @@ That is the only thing standing between this module and a live page.
 
 ### Waiting on a decision, not on code
 
-- **No discount badge.** The documented endpoint carries no badge string, so a
-  sale renders as the offer with the list price struck through and no "30% off"
-  label. Bringing it back means finding another service that returns it.
 - **The colour count is authored, not live.** `products[].meta` ("3 Colors") is
   written by hand because SGH's product service returns `frameColor` /
   `lensColor` for the one variant it describes and no count of the siblings.

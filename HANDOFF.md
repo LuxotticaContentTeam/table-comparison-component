@@ -135,8 +135,8 @@ Chiave = **UPC**, tutti i prodotti in **una sola chiamata**, prezzi già risolti
 su entrambe, stessa risposta, stessi prezzi `USD`, URL PDP `/us/…`. (Stage era
 irraggiungibile il giorno della migrazione — da qui il dubbio, ora chiuso: il
 servizio è deployato anche lì.) Questo chiude anche la domanda
-sullo store id: **10152 è lo store US anche in produzione**, quindi il valore
-autorato nel JSON è giusto e non serve leggerlo da `ct_data`.
+sullo store id: **10152 è lo store US anche in produzione**, che è poi quello
+che la pagina `/us` pubblica in `window.storeId` — vedi 5.2 bis.
 
 Campi letti: `prices.offerPrice` / `prices.listPrice` (stringhe, convertite),
 `prices.currency` (codice ISO, quello che vuole `Intl`), `pdpURL`, `images[]`
@@ -167,31 +167,50 @@ servizio prodotto per un altro brand, **guardare prima lì**.
 La risposta contiene `catentryId`, che **è** il vecchio product id: comodo per
 debuggare, non lo legge nessuno.
 
-### 5.2 bis Store id per mercato — quelli che ho trovato
+### 5.2 bis Lo store non si autora: lo pubblica la pagina
 
 Lo **store** decide valuta, prezzo e sconto: lo stesso Tiffany fa `30% off` in
 USD sullo store 10152 e `50% off` in GBP sullo store 11352. Quindi un UPC per
 mercato senza lo store per mercato chiederebbe il prodotto francese allo store
 americano.
 
-Ricavati sondando `www.sunglasshut.com` con lo stesso UPC e leggendo mercato e
-valuta della risposta:
+Per un po' questi id sono stati autorati a mano in `comparison.api.store`. Non
+lo sono più, ed è la cosa giusta: duplicavano nel JSON un dato che la pagina già
+pubblica, e obbligavano ad aggiungere uno store a mano a ogni mercato nuovo.
+Ora `resolveStore()` legge **`window.storeId` e `window.langId`**, che è quello
+che prescrive la doc del servizio — il suo esempio si apre con
+`{ storeID: window.storeId, langId: window.langId }`.
 
-| store | mercato | valuta | badge sullo stesso prodotto |
-| --- | --- | --- | --- |
-| `10152` | `/us` | USD | `30% off` |
-| `10154` | `/ca-en` | CAD | `-30%` |
-| `11352` | `/uk` | GBP | `50% off` |
-| `11351` | `/au` | AUD | `50% off` |
-| `11353` | — | ZAR | rotto: risponde con una error view e `Price pending` |
+**Aggiungere un mercato = aggiungere la lingua nel JSON per copy e UPC. Punto.**
 
-⚠️ **Non trovati**: `/ca-fr` e tutti i mercati europei (`fr`, `es`, `de`, `nl`).
-Sullo store canadese 10154 rispondono solo `langId` −1 e −24 e **entrambi danno
-`/ca-en`**, e una scansione di 82 id attorno a quelli noti non ha prodotto altro
-— gli store id SGH sono sparsi, non contigui. Vanno chiesti a chi gestisce lo
-storefront, oppure letti una volta da `window.ct_data.storeId` sulla pagina viva
-di quel mercato. Finché mancano, quelle lingue rendono la copy autorata senza
-packshot, prezzo e CTA.
+Verificati su tutti e dieci i mercati, in produzione e su stage:
+
+| mercato | `/us` | `/ca-en` | `/ca-fr` | `/uk` | `/au` | `/de` | `/fr` | `/es` | `/mx` | `/nl` |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `storeId` | 10152 | 10154 | 10154 | 11352 | 11351 | 14351 | 13801 | 13251 | 16001 | 19001 |
+| `langId` | −1 | −25 | −28 | −24 | −26 | −3 | −2 | −5 | −29 | −44 |
+
+⚠️ **Il `langId` non si deriva dalla lingua**: nomina il catalogo del mercato,
+non la lingua. Il solo inglese ha quattro id (−1 US, −25 CA, −24 UK, −26 AU). Il
+Canada è l'unico mercato dove il `langId` è l'unica cosa che cambia: lo store
+10154 serve sia `/ca-en` sia `/ca-fr`, ed è il `langId` a far girare la CTA.
+
+Come degrada, entrambi i casi misurati:
+
+- **niente `storeId`** → nessuna chiamata, ogni colonna tiene la copy autorata.
+  È il caso di localhost, dove lo storefront non c'è. Per provare i prezzi in
+  locale basta impostare le due globali a mano in console.
+- **`storeId` sì, `langId` no** → la chiamata parte **senza il parametro** e lo
+  store risponde nella sua lingua di default. Mandarlo valorizzato a `undefined`
+  darebbe `CWXFR0230E` senza prodotti, e un `langId` sbagliato dà `CMN0409E`
+  sempre senza prodotti: in entrambi i casi **tutte** le colonne perderebbero il
+  prezzo. Solo `/ca-fr` ci rimette qualcosa nell'omissione: si legge come
+  `/ca-en`, stessa valuta e stessi prezzi.
+
+La vecchia nota diceva che `/ca-fr` e i mercati europei erano introvabili, e che
+lo store 11353 (ZAR) era rotto. Erano conclusioni di una scansione a forza bruta
+di id: sbagliate. Gli id si leggono dalla pagina di ogni mercato, e questa
+domanda non si ripresenta più.
 
 ### 5.2 Quale prezzo — ora è quello ovvio
 
@@ -319,10 +338,7 @@ restituisca. Vedi §6.3.
 
 ### In attesa di una decisione, non di codice
 
-2. **Niente badge sconto.** L'endpoint documentato non porta nessuna stringa
-   tipo "30% off", quindi una promo rende offerta + listino barrato e basta.
-   Riaverlo vuol dire trovare un altro servizio che lo restituisca.
-3. **Il numero di colori è autorato.** `products[].meta` ("3 Colors") è scritto
+2. **Il numero di colori è autorato.** `products[].meta` ("3 Colors") è scritto
    a mano perché il servizio prodotto SGH torna `frameColor` / `lensColor` della
    singola variante e nessun conteggio dei sibling. Renderlo dinamico vuol dire
    una seconda chiamata a un altro servizio: un `availableColors` esiste su
@@ -338,6 +354,13 @@ restituisca. Vedi §6.3.
   `sshacs@luxottica-media.sftp.upload.akamai.com/756788/sunglasshut/table-comparison-component/`.
   I due workflow in `.github/workflows/` restano lì inutilizzati: se un giorno
   qualcuno li lancia, prima vanno verificati secret e variabili.
+- **Il badge sconto c'è.** Sembrava assente solo perché `saleBadgeValue` e
+  `saleBadgeColor` compaiono **unicamente** su un prodotto davvero in promo, e i
+  due Ray-Ban Meta di prova sono a prezzo pieno. Verificato su quattro prodotti
+  vivi: Tiffany, Jimmy Choo e Giorgio Armani lo portano.
+- **Gli store id dei mercati mancanti.** Domanda chiusa e non più riproponibile:
+  non si cercano, si leggono da `window.storeId` / `window.langId` sulla pagina
+  di ogni mercato (§5.2 bis).
 - **Store id di produzione, slug del `pdpURL`, endpoint su stage, nome del
   placement analytics, colore dello switch da spento**: tutti confermati, vedi
   §5 e §7.
@@ -394,9 +417,9 @@ importato, e i tre `.woff2` non sono morti — `_local.scss` li carica dentro
    `en-us` → `en`, quindi un mercato senza chiave propria rende inglese, non
    bianco. L'unico divieto resta la **stringa vuota**: i primi tre passi
    matchano la chiave, non il contenuto, quindi un `fr-ca` vuoto rende bianco
-   invece di cadere su `fr`. `comparison.api.store` è l'eccezione voluta: non
-   ricade mai sull'inglese, perché uno store id sbagliato è peggio di uno store
-   id assente.
+   invece di cadere su `fr`. Lo **store** è l'eccezione voluta: non ricade mai
+   sull'inglese, perché uno store id sbagliato è peggio di uno store id assente
+   — e infatti non si autora affatto, si legge dalla pagina (§5.2 bis).
 
    Ogni locale è trascritto da **due** frame suoi: il comparatore e l'intro
    (titolo + sottotitolo). Gli id sono in `_meta.translationStatus`.
@@ -463,9 +486,10 @@ Le non ovvie, quelle che senza contesto verrebbero "corrette" per sbaglio.
 9. **Le celle accettano una stringa o un array di righe.** L'array è il caso
    comune: ogni riga diventa un `<p>`, così il testo va a capo dove è stato
    scritto e non dove finisce la colonna.
-10. **`ct_data` si legge solo per `storeId`/`langID`, mai per la lingua.** Per
-    la lingua vale `<html lang>`, che è server-rendered. `ct_data` arriva
-    secondi dopo su cold load.
+10. **`ct_data` non si legge più.** Per la lingua vale `<html lang>`, che è
+    server-rendered; per lo store valgono `window.storeId` / `window.langId`,
+    che sono le due variabili che la doc del servizio prescrive. `ct_data`
+    porta gli stessi valori, ma è deprecato: non c'è motivo di passare di lì.
 11. **Il prefisso analytics non è quello del boilerplate.**
     `X_@projectName@Placement` risolve nel nome della repo: avrebbe messo
     `table-comparison-component` — trattini, e la parola "component" — in ogni
@@ -634,7 +658,22 @@ Aggiunto nella terza sessione:
   prodotto senza `upc`, UPC sconosciuto) che tornano tutti `{}` lasciando la
   tabella sul contenuto autorato.
 - **Store id di produzione confermato**: `10152` su `www.sunglasshut.com`
-  risponde con prezzi `USD` e URL `/us/`. Non serve più leggerlo da `ct_data`.
+  risponde con prezzi `USD` e URL `/us/`.
+- **Store e lingua letti dalla pagina, su dieci mercati** (21 settembre 2026).
+  `window.storeId` / `window.langId` letti con un browser vero in produzione
+  (`/de` → `14351` / `-3`, `/mx` → `16001` / `-29`) e dal markup servito per
+  tutti e dieci i mercati su stage; `wcs_config` e `ct_data` portano gli stessi
+  valori, quindi nessuna fonte contraddice le altre. Poi il modulo reale,
+  pilotato **solo** da quelle due globali, contro l'endpoint reale: dieci
+  mercati, ognuno con la sua valuta e il suo path di mercato nel PDP, `/ca-fr`
+  compreso. Più i tre gradini di degrado (entrambe → esatto; solo `storeId` →
+  chiamata senza `langId`; nessuna → nessuna chiamata).
+- **Prezzi in due notazioni**: `listPrice` torna formattato per mercato
+  (`"300,00"` su `/de`, `"1.150,00"` su `/nl`, `"1,550.00"` su `/us`) mentre
+  `offerPrice` è sempre grezzo. `Number("300,00")` è `NaN`, e questo faceva
+  sparire prezzo barrato e badge in sei mercati su dieci — e in US su qualsiasi
+  prodotto sopra i mille. Corretto con `parseAmount`, provato su 19 casi limite
+  e su un Jimmy Choo scontato al 50% in tutti e dieci i mercati.
 - **Colonne e tendine con 3 e 4 prodotti** verificate simulando
   `comparisonState` sui file di prova: conteggio colonne, opzioni offerte,
   toggle assente, e il rifiuto di selezionare un prodotto già in colonna.
@@ -707,7 +746,7 @@ Aggiunto sulla verifica dei valori:
 
 ## 11. Dove siamo arrivati
 
-Alla fine della quarta sessione il modulo è completo e verificato. Quello che
+Alla fine della quinta sessione il modulo è completo e verificato. Quello che
 resta non è codice.
 
 | | Stato |
@@ -715,6 +754,8 @@ resta non è codice.
 | Codice | niente in sospeso |
 | Copy | otto lingue, tutte trascritte dai frame per locale, valori verificati contro l'originale |
 | Chiamata prodotto | sul servizio documentato, verificata su produzione e stage |
+| Store e lingua | letti dalla pagina (`window.storeId` / `window.langId`), dieci mercati verificati; niente da autorare |
+| Prezzi | `parseAmount` gestisce le due notazioni; sconto e badge reggono in tutti e dieci i mercati |
 | Build | verde, `release/SGH/0.0.1/` |
 | Branch | `develop`, allineato al remote |
 

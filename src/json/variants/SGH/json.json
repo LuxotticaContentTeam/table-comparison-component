@@ -77,28 +77,9 @@
     },
     "selectorIcon": "SGH/chevron-down.svg",
     "api": {
-      "_store": "Store ids per market, used to call /wcs/resources/store/{storeId}/productInfo. The store is what decides currency, price and discount, so it never falls back to English the way the copy and the UPCs do: a market that is not listed here makes NO call, and its columns keep the authored content. That is deliberate — a wrong store id is worse than an absent one. All four below were verified against www.sunglasshut.com by asking each store for the same UPC and reading back the market and the currency: 10152 -> /us USD, 10154 -> /ca-en CAD, 11352 -> /uk GBP, 11351 -> /au AUD.",
-      "_devOrigin": "Development only, ignored in a production build: the storefront the CORS proxy (npm run proxy) is pointed at, so prices are real on localhost. In production every call is relative and same-origin. NOTE: on localhost there is no ct_data, so only the locales listed under `store` make live calls in dev — build with LANGUAGE=en-us to see them.",
+      "_devOrigin": "Development only, ignored in a production build: the storefront the CORS proxy (npm run proxy) is pointed at, so a live call from localhost reaches real data — and so a dev build can be aimed at stage rather than production. NOTE: on localhost there is no storefront, so window.storeId and window.langId do not exist and NO product call is made at all — the table renders its authored copy without packshot, price or CTA. To exercise the live path from localhost, set both by hand in the console (window.storeId = '14351'; window.langId = '-3') and reload the module; everything downstream, proxy included, works unchanged.",
       "devOrigin": "https://stage.sunglasshut.com",
-      "store": {
-        "en-us": {
-          "storeId": "10152",
-          "langId": "-1"
-        },
-        "en-ca": {
-          "storeId": "10154",
-          "langId": "-1"
-        },
-        "en-gb": {
-          "storeId": "11352",
-          "langId": "-1"
-        },
-        "en-au": {
-          "storeId": "11351",
-          "langId": "-1"
-        }
-      },
-      "_storeMissing": "NOT FOUND from the outside, and needed before those markets can show live data: /ca-fr and every European market (fr, es, de, nl). Store 10154 answers only langId -1 and -24 and returns /ca-en for both, and a sweep of 82 ids around the known ones turned up nothing else — SGH store ids are sparse, not contiguous. Ask the storefront team, or read window.ct_data.storeId once on each market's live page. Until then those locales render their authored copy without packshot, price or CTA.",
+      "_upcMissing": "The store comes from the page, so every market makes a call — but not every market carries every article. The two Ray-Ban Meta UPCs below are absent from the Mexican (16001) and Dutch (19001) catalogs, and /au returns only 8056597988391 of the two — the endpoint simply omits a UPC it does not know, so those columns keep their authored copy and log a warning. Fixing that is authoring, not code: give products[].upc a key for those markets with the article they actually sell. Verified 2026-09-21 on production.",
       "_upc": "products[].upc may be a plain string — one article in every market — or an object keyed by locale. The object is resolved by getTrad, exactly like the copy: exact country, then language, then any key starting with it, then en-us, then en. So a market with no key of its own shows the English article rather than an empty column. This is the opposite of the store rule above, and on purpose: an empty column is worse than a neighbouring market's product, while a wrong store is worse than no store."
     },
     "rows": [
