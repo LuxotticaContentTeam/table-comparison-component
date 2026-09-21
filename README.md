@@ -103,8 +103,8 @@ renders comes from here, except price, PDP link and packshot — see
     // Shared strings. They live at this level on purpose: they are the same
     // for every product, so repeating them per product would be N chances to
     // let the copy drift.
-    "title":                { "en-us": "Tech highlights" },
-    "subtitle":             { "en-us": "See what’s been added and enhanced…" },
+    // No title or subtitle. The heading above the table is authored by the
+    // editor in CoreMedia, as its own row above this one — see The heading.
     "onlyDifferencesLabel": { "en-us": "Only show differences" },
     "shopNowLabel":         { "en-us": "Shop now" },
     "priceLabel":           { "en-us": "Starting from" },
@@ -172,6 +172,25 @@ definition the same question asked of every product, so the answer to "does
 this row disappear when the filter is on" is one answer. Repeating it per
 product would allow two products to disagree about their shared row, and
 something would then have to arbitrate.
+
+### The heading
+
+**The module renders no title and no subtitle.** It starts at the table.
+
+The heading above the comparison — "Tech highlights" and the line under it — is
+authored by the editor in CoreMedia, as an ordinary row placed above this one.
+That is why `comparison.title` and `comparison.subtitle` no longer exist in the
+json, why the skeleton in `fragment.html` starts at `.ct_comparison__table`, and
+why `contents.js` builds no `<h2>`.
+
+The consequence worth knowing: **the heading is now the editor's to change, in
+eight languages, without a release.** It also means this module no longer owns
+the vertical rhythm above itself — `.ct_comparison` keeps its own
+`padding: 40px 0`, and whatever spacing sits between the CoreMedia heading and
+the table is the page's business, not this stylesheet's.
+
+If it ever has to come back, the per-locale Figma intro frames are still
+recorded in `_meta.translationStatus`.
 
 ### The "only show differences" toggle
 
@@ -250,6 +269,16 @@ Two degradations, both deliberate and both measured:
   answers `CMN0409E` with no products, so every column would lose its price.
   Only `/ca-fr` loses anything by the omission: it reads as `/ca-en`, same
   currency, same prices.
+
+⚠️ **The session has a say too, so test a market on its own page.** The call
+carries `credentials: "same-origin"`, and the storefront session pins the
+currency: asking store `11352` or `10154` *from a `/us` session* answers `USD`
+rather than GBP or CAD, and asking `14351` / `13801` / `13251` from there
+answers `CMN0409E` outright. Cookie-less, every one of those stores answers
+correctly. This is never a problem in production, because the module only ever
+runs on the page of the market whose store it is asking — but it does mean a
+cross-market probe run from one market's page proves nothing. Open that market's
+own page instead.
 
 What the module takes from the response:
 
@@ -419,9 +448,10 @@ register of each language (`fr`/`fr-ca` vouvoiement, `de` *du*, `es` *tú*, `nl`
 locale. A market with no key of its own, `it-IT` say, still renders the English
 copy rather than nothing.
 
-Every locale is transcribed from its own Figma frame — a comparator frame and
-an intro frame each — except `es-mx`, which has none and reuses the `es` copy.
-The node ids are in `_meta.translationStatus`.
+Every locale is transcribed from its own Figma comparator frame, except `es-mx`,
+which has none and reuses the `es` copy. The node ids are in
+`_meta.translationStatus`. Each locale also had an intro frame; those are noted
+there too, but nothing reads them any more — see [The heading](#the-heading).
 
 **The two product columns are kept in step.** Any line that reads the same for
 Gen 3 and Gen 2 in `en-us` reads the same in every other locale. The frames did
@@ -663,9 +693,23 @@ A json value that is already an absolute url is left alone instead
 points at campaign folders. Either style works; relative plus `productionImage`
 is what this module ships.
 
-**5. Check the five urls answer 200** in a browser before going further. A 404
-on one of the three release files is the usual cause of a blank module; a 404 on
-an icon costs only the icon.
+**5. Check the five urls answer 200 — and check *when* each was uploaded.** A
+404 on one of the three release files is one cause of a blank module; a 404 on
+an icon costs only the icon. But 200 is not proof: a file the upload silently
+skipped answers 200 all day with last week's contents, which is the failure this
+module has actually hit. Read the three timestamps together:
+
+```bash
+for f in json__0.0.1.json main__0.0.1.min.js main__0.0.1.min.css; do
+  printf '%s  ' "$f"
+  curl -sI "https://media.sunglasshut.com/table-comparison-component/$f" \
+    | grep -i last-modified
+done
+```
+
+They should all be from the upload you just did. If one lags, that file did not
+go up — see [Three things that bite](#three-things-that-bite) for why a stale js
+against a fresh json fails the way it does.
 
 **6. Paste `dist/fragment.html`** — the whole file, from `<style>` to
 `</script>` — into the CoreMedia row. Nothing else goes in the row.
@@ -673,7 +717,7 @@ an icon costs only the icon.
 **7. Open the page and confirm** the table fills in. If it does not, the console
 carries a `[table-comparison-component]` message saying what failed.
 
-#### Two things that bite
+#### Three things that bite
 
 The json is fetched **cross-origin**: the page is on `www.<brand>.com`, the
 asset on `media.<brand>.com`. The asset host must send
@@ -684,6 +728,33 @@ json. The product API is same-origin and is not affected either.
 **One instance per page.** The module keys off the element id
 `#ct_cm--table-comparison-component`, so pasting the fragment twice into the
 same page fills only the first copy.
+
+**Upload all three, and do not trust your own browser afterwards.** The asset
+host answers the js and the css with
+`cache-control: public, max-age=1209000, immutable`, and the filename does not
+change between builds — `main__0.0.1.min.js` is `main__0.0.1.min.js` whatever is
+inside it. So a browser that has already loaded the module keeps the old script
+for **fourteen days** and never revalidates. Two consequences:
+
+- **After a deploy, verify in a browser that has never seen the module**, or
+  force the cache entry with `fetch(url, { cache: "reload" })` from the console
+  before reloading. Otherwise "it still does not work" and "it works now" are
+  both untrustworthy.
+- **Uploading only some of the three files is the failure mode to look for
+  first.** A fresh json against a stale js is not a graceful degradation: the
+  json's per-market `upc` object reaches a script old enough to do
+  `String(product.upc)`, which asks the storefront for `[object Object]` and
+  returns nothing. Checking is quick — compare `last-modified` on all three:
+
+  ```bash
+  for f in json__0.0.1.json main__0.0.1.min.js main__0.0.1.min.css; do
+    curl -sI "https://media.sunglasshut.com/table-comparison-component/$f" \
+      | grep -i last-modified
+  done
+  ```
+
+  Bumping the version in the filename on every deploy would close both holes at
+  once; until then, the three timestamps have to be read by hand.
 
 ### Changing the content later
 
@@ -696,7 +767,14 @@ is built at runtime.
 The exception is `scss/critical.scss`: it is **inlined into `fragment.html`**,
 so a stale copy in CoreMedia keeps overriding the stylesheet you upload
 afterwards. Re-paste the fragment whenever the critical css changes —
-re-uploading the three asset files is not enough.
+re-uploading the three asset files is not enough. The same applies to the
+skeleton itself, `views/main/main.pug`.
+
+⚠️ **Both changed when the heading was removed**, so that release is one of the
+rare ones where the fragment has to be re-pasted: a CoreMedia copy from before
+it still ships the old skeleton, which reserves space for a title and a subtitle
+that the module will never fill — two grey placeholder bars that sit there
+forever above the table.
 
 ## Design
 
@@ -848,6 +926,29 @@ Re-verified on 21 September 2026, when the store stopped being authored:
   narrow no-break spaces, and `""` → `NaN` rather than `0`;
 - `npm run build` is green and the string `"store"` appears nowhere in
   `dist/json/`.
+
+And on the deployed module, on the stage preview page (`/us/sunglasses/ray-ban-meta`):
+
+- the script served from `media.sunglasshut.com` is **byte-identical** to
+  `release/SGH/0.0.1/main__0.0.1.min.js`;
+- the product call it makes carries `/store/10152/` and `langId=-1` — the values
+  the page itself publishes, not anything authored — resolves both per-market
+  `upc` objects to their real UPCs, and asks for both in **one** request;
+- desktop renders two columns and ten rows, `$224.00` and `$247.00` off the API,
+  CTAs on the canonical `/us/ray-ban/rw4006-…` paths the endpoint returns, and
+  packshots at 1920x960 from `assets2.sunglasshut.com` carrying the API's alt
+  text;
+- at 390px, measured in an iframe because that is the only way to move the
+  viewport reliably: `getDeviceType` reports `mob`, the columns are 169px, the
+  prices are still live, there is no packshot — which the compact design does
+  not have — and no horizontal scroll.
+
+**Not yet verified:** the module running in-page on a market other than `/us`,
+because that is the only page it is published on. The evidence for the others is
+that each market's page publishes the right two globals, and that the module's
+own code against the live endpoint returns each market's currency and PDP path
+(see the store table above). Re-run the desktop and mobile pass on the first
+non-English market the module is published to.
 
 ## Open items
 

@@ -25,37 +25,9 @@
   }
 }
 
-// --- intro -----------------------------------------------------------------
-
-.ct_comparison__intro {
-  padding: 0 $section-padding-right-desk 16px;
-  text-align: center;
-
-  @media (max-width: $tab-max) {
-    padding: 0 $section-padding-inline-mob 16px;
-  }
-}
-
-.ct_comparison__title {
-  margin: 0;
-  font-family: $font-display;
-  font-weight: $font-weight-regular;
-  font-size: $font-size-title-desk;
-  line-height: $line-height-title;
-  color: $color-text-strong;
-  text-transform: $title-transform;
-
-  @media (max-width: $tab-max) {
-    font-size: $font-size-title-mob;
-  }
-}
-
-.ct_comparison__subtitle {
-  margin: 16px 0 0;
-  font-size: $font-size-body;
-  line-height: $line-height-body;
-  color: $color-text-strong;
-}
+// The title and subtitle that used to sit here are gone: the editor authors
+// them in CoreMedia as rows above this one, so the module owns the comparison
+// and nothing above it.
 
 // --- the only-differences switch -------------------------------------------
 //

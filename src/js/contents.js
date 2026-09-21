@@ -106,17 +106,18 @@ export class Contents {
   // --- shell -----------------------------------------------------------
 
   /**
-   * The parts that never change: intro, the filter, and the two regions the
-   * table is rendered into. Built once; `render()` only touches the regions.
+   * The parts that never change: the filter, and the two regions the table is
+   * rendered into. Built once; `render()` only touches the regions.
+   *
+   * There is deliberately no heading here. The title and the subtitle above the
+   * table are authored by the editor in CoreMedia, as ordinary rows above this
+   * one, so the module renders the comparison and nothing else.
    */
   buildShell() {
     this.container.textContent = "";
 
     const section = document.createElement("section");
     section.className = BLOCK;
-
-    const intro = this.buildIntro();
-    if (intro) section.appendChild(intro);
 
     this.table = document.createElement("div");
     this.table.className = `${BLOCK}__table`;
@@ -144,31 +145,6 @@ export class Contents {
     this.container.appendChild(section);
 
     this.section = section;
-  }
-
-  buildIntro() {
-    const title = this.trad(this.data.title);
-    const subtitle = this.trad(this.data.subtitle);
-    if (!title && !subtitle) return null;
-
-    const intro = document.createElement("div");
-    intro.className = `${BLOCK}__intro`;
-
-    if (title) {
-      const heading = document.createElement("h2");
-      heading.className = `${BLOCK}__title`;
-      heading.textContent = title;
-      intro.appendChild(heading);
-    }
-
-    if (subtitle) {
-      const text = document.createElement("p");
-      text.className = `${BLOCK}__subtitle`;
-      text.textContent = subtitle;
-      intro.appendChild(text);
-    }
-
-    return intro;
   }
 
   /**

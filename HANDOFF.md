@@ -5,7 +5,7 @@ schema JSON, deploy passo passo): questo file è complementare e contiene quello
 che il README non dice — le decisioni prese in conversazione, cosa è stato
 provato e scartato, e le trappole già pagate una volta.
 
-Ultimo aggiornamento: 21 settembre 2026 (quinta sessione).
+Ultimo aggiornamento: 21 settembre 2026 (quinta sessione, con il deploy su stage e il passaggio dell'intestazione a CoreMedia).
 
 ---
 
@@ -16,7 +16,7 @@ Ultimo aggiornamento: 21 settembre 2026 (quinta sessione).
 | Nome | `table-comparison-component` — il typo `tabel` è stato corretto ovunque, repo GitHub compresa |
 | Branch | `develop`, pushato. Su `master` c'è solo l'Initial commit |
 | Commit | tre: il build iniziale, le otto lingue, il passaggio al servizio prodotto documentato |
-| Build | verde. `VARIANT=SGH npm run build` produce `dist/fragment.html` (~8 KB) |
+| Build | verde. `VARIANT=SGH npm run build` produce `dist/fragment.html` (~7 KB) |
 | Versione | `0.0.1` |
 | Brand | solo `SGH` in `projectConfig.json` |
 | Asset | `https://media.sunglasshut.com/table-comparison-component/` — icone in `img/SGH/` |
@@ -80,7 +80,7 @@ same-origin, il proxy non c'entra nulla.
 
 | File | Cosa fa |
 | --- | --- |
-| `src/js/contents.js` | Orchestratore. Svuota lo skeleton e costruisce intro, header prodotti, toggle, righe. Applica i dati prodotto quando arrivano. |
+| `src/js/contents.js` | Orchestratore. Svuota lo skeleton e costruisce header prodotti, toggle, righe. Applica i dati prodotto quando arrivano. Nessuna intestazione: quella è di CoreMedia (§7.14). |
 | `src/js/modules/comparisonState.js` | Stato: quali prodotti sono a schermo, filtro attivo, device. Espone `columns`, `visibleRows`, `available`, `select()`, `toggleOnlyDifferences()`, `setDevice()`. Non conosce il DOM. |
 | `src/js/modules/productApi.js` | Prezzo, link PDP, packshot dal negozio. Contiene la regola sul prezzo (§5.2) e il fallback UPC→productId. |
 | `src/js/modules/productSelector.js` | Il selettore compatto: listbox custom con trigger (eyebrow + nome + chevron), tastiera, click esterno. |
@@ -88,7 +88,7 @@ same-origin, il proxy non c'entra nulla.
 | `src/scss/variants/SGH/_variables.scss` | **Tutti** i token di design SGH. Un altro brand = una copia di questo file. |
 | `src/scss/critical.scss` | Solo geometria, finisce inlined dentro `fragment.html`. |
 | `src/views/main/main.pug` | Skeleton generico (2 colonne × 5 righe). |
-| `src/json/variants/SGH/json.json` | Contenuti: titoli, righe, prodotti, celle. |
+| `src/json/variants/SGH/json.json` | Contenuti: label, righe, prodotti, celle. |
 | `src/static/images/SGH/badge-photo.svg` | Icona del badge "CAMERA + AUDIO", esportata da Figma. |
 | `src/static/images/SGH/chevron-down.svg` | Chevron del selettore, esportata da Figma. |
 | `src/views/main/SGH/live/live.html` | Tag script della pagina di preview. Scritto con i token `@assetPath@` / `@buildVersion@`, non a mano. |
@@ -421,12 +421,14 @@ importato, e i tre `.woff2` non sono morti — `_local.scss` li carica dentro
    sull'inglese, perché uno store id sbagliato è peggio di uno store id assente
    — e infatti non si autora affatto, si legge dalla pagina (§5.2 bis).
 
-   Ogni locale è trascritto da **due** frame suoi: il comparatore e l'intro
-   (titolo + sottotitolo). Gli id sono in `_meta.translationStatus`.
+   Ogni locale è trascritto dal proprio frame comparatore; gli id sono in
+   `_meta.translationStatus`. C'era anche un frame intro per locale, ma
+   **titolo e sottotitolo non fanno più parte del modulo** (§7.14): li autora
+   l'editor in CoreMedia.
 
    ⚠️ **Una sola chiave non ha un frame**: `comparison.selectLabel`, la label
-   sopra il picker prodotto su mobile — i frame coprono intro e tabella, e
-   quel controllo non sta in nessuno dei due. Lo stesso per
+   sopra il picker prodotto su mobile — i frame coprono la tabella, e quel
+   controllo non ci sta dentro. Lo stesso per
    `products[].family` e `products[].shortName`, che alimentano solo quella
    tendina. Restano provvisori.
 
@@ -512,6 +514,24 @@ Le non ovvie, quelle che senza contesto verrebbero "corrette" per sbaglio.
     (`isSelfContainedUrl`), che è come `4-card-section-module` punta alle
     cartelle di campagna.
 
+14. **Titolo e sottotitolo non li fa il modulo.** Li autora l'editor in
+    CoreMedia, come riga a sé sopra questa. Quindi `comparison.title` e
+    `comparison.subtitle` non esistono più nel JSON, lo skeleton parte da
+    `.ct_comparison__table` e `contents.js` non costruisce nessun `<h2>`.
+
+    Il guadagno è che l'intestazione diventa modificabile in otto lingue senza
+    una release. Il prezzo è che il modulo non governa più lo spazio sopra di
+    sé: `.ct_comparison` tiene il suo `padding: 40px 0`, e quanto stacco ci sia
+    fra l'intestazione CoreMedia e la tabella lo decide la pagina.
+
+    ⚠️ **Questa modifica cambia `fragment.html`**, quindi è una delle rare
+    volte in cui va ri-incollato in CoreMedia: una copia vecchia continua a
+    spedire lo skeleton con i due placeholder grigi del titolo, che il modulo
+    non riempirà mai più.
+
+    Se dovesse tornare, i frame Figma intro per locale sono ancora annotati in
+    `_meta.translationStatus`.
+
 ---
 
 ## 8. Trappole già pagate
@@ -533,6 +553,10 @@ Costano tempo se le si ricalpesta.
 | Ricaricare la pagina di dev dopo aver cambiato `projectName` | Chrome serve la copia in cache e il vecchio id continua ad apparire | Navigare con un query param nuovo (`?cb=1`); `curl` sul dev server dice cosa viene servito davvero |
 | Un `gulp serve` rimasto aperto da una sessione precedente | Il nuovo dev server prende la porta successiva (348, 349, 350…), ma `inject-css-js` inietta gli asset con prefisso **hardcoded** `http://localhost:347`: la pagina si apre e resta sullo skeleton per sempre, senza un solo errore in console | `lsof -i -sTCP:LISTEN -n -P \| grep node`, poi `pkill -9 -f "gulp serve"`. `kill` semplice non basta, gulp non muore. Il sintomo si riconosce dal `<script src>` nell'html che punta a una porta diversa da quella su cui si sta navigando |
 | Verificare il modulo in una tab Chrome non in primo piano | `visibilityState: "hidden"`, l'IntersectionObserver non scatta e il modulo resta sullo skeleton | È il lazy loading, non un bug. Portare la tab in primo piano, oppure lanciare l'evento a mano: `window.dispatchEvent(new CustomEvent("#ct_cm--table-comparison-component__loadData"))` |
+| Ricaricare la pagina dopo aver messo online un JS nuovo | Il browser continua a eseguire **quello vecchio**: gli asset escono con `cache-control: immutable, max-age=1209000` e il nome del file non cambia mai fra build. Vale per 14 giorni, e vale anche per chi ha già visitato la pagina | Verificare in un browser che il modulo non l'ha mai visto, oppure forzare la voce di cache dalla console: `await fetch(url, {cache:"reload"})` sui tre file, poi ricaricare. La soluzione strutturale è bumpare la versione nel nome del file a ogni deploy |
+| Caricare solo il json e non il js | Non degrada: il json nuovo ha `upc` come oggetto per mercato, e un js vecchio fa `String(upc)` → chiede `[object Object]` e non torna niente | Confrontare `last-modified` di **tutti e tre** i file su `media.sunglasshut.com` prima di dare la colpa al codice. È il primo controllo da fare, non l'ultimo |
+| Sondare gli store di altri mercati dalla pagina di un mercato | La sessione fissa la valuta: da `/us` gli store UK e CA rispondono `USD`, e DE/FR/ES rispondono `CMN0409E`. Senza cookie rispondono tutti correttamente | Non prova nulla. Un mercato si testa sulla **sua** pagina |
+| Sovrascrivere `window.storeId` e richiamare `Contents.init()` per simulare un altro mercato | `init()` **non rifà** il fetch prodotti: restano a schermo i prezzi della prima chiamata e il test sembra verde per qualunque store | Test invalido. Usare l'harness node su `src/js/modules/productApi.js`, che pilota il modulo reale contro l'endpoint reale |
 
 ### Procedura per provare con 3+ prodotti
 
@@ -674,6 +698,21 @@ Aggiunto nella terza sessione:
   sparire prezzo barrato e badge in sei mercati su dieci — e in US su qualsiasi
   prodotto sopra i mille. Corretto con `parseAmount`, provato su 19 casi limite
   e su un Jimmy Choo scontato al 50% in tutti e dieci i mercati.
+- **Il modulo deployato, sulla pagina di preview di stage** (`/us/sunglasses/
+  ray-ban-meta`, 21 settembre 2026). Lo script servito da `media.sunglasshut.com`
+  è **byte-identico** a `release/SGH/0.0.1/main__0.0.1.min.js`. La chiamata che
+  fa porta `/store/10152/` e `langId=-1`, cioè i valori che pubblica la pagina e
+  non qualcosa di autorato, risolve entrambi gli `upc` per mercato ai loro UPC
+  reali e li chiede in **una sola** richiesta. Desktop: due colonne, dieci
+  righe, `$224.00` e `$247.00` dall'API, CTA sui path canonici che torna
+  l'endpoint, packshot 1920x960 da `assets2` con l'alt dell'API. A 390px,
+  misurato in un iframe: `getDeviceType` dice `mob`, colonne da 169px, prezzi
+  ancora live, nessun packshot (il compatto non ce l'ha) e nessuno scroll
+  orizzontale.
+
+  ⚠️ **Non verificato**: il modulo in pagina su un mercato diverso da `/us`,
+  perché è l'unica pagina su cui è pubblicato. Rifare lì il giro desktop +
+  mobile appena esce sul primo mercato non anglofono.
 - **Colonne e tendine con 3 e 4 prodotti** verificate simulando
   `comparisonState` sui file di prova: conteggio colonne, opzioni offerte,
   toggle assente, e il rifiuto di selezionare un prodotto già in colonna.
@@ -715,6 +754,10 @@ Aggiunto nella quarta tornata, sulla copy:
   provvisori: `de` "Technische Details" e non "Technische Highlights", `nl`
   "Technologische hoogtepunten", `es` "Características técnicas destacadas",
   `fr` "Caractéristiques techniques".
+
+  **Superato**: quel lavoro non è più nel modulo, titolo e sottotitolo sono
+  passati a CoreMedia (§7.14). I node id restano annotati in
+  `_meta.translationStatus` nel caso servissero di nuovo.
 - **`Dom` → `Sol`** in `es` e `es-mx`: il frame spagnolo aveva tradotto così il
   tipo di lente "Sun". `Lunettes de soleil` in francese e `Sonnenbrillen` in
   tedesco **restano**, per decisione presa.
@@ -757,6 +800,9 @@ resta non è codice.
 | Store e lingua | letti dalla pagina (`window.storeId` / `window.langId`), dieci mercati verificati; niente da autorare |
 | Prezzi | `parseAmount` gestisce le due notazioni; sconto e badge reggono in tutti e dieci i mercati |
 | Build | verde, `release/SGH/0.0.1/` |
+| Online su stage | js, css e json caricati e verificati; il bundle servito è byte-identico al release |
+| In pagina | desktop e mobile verificati sulla preview `/us`; **su altri mercati non ancora**, il modulo è pubblicato solo lì |
+| Intestazione | rimossa dal modulo, passa a CoreMedia (§7.14) — **il fragment va ri-incollato** |
 | Branch | `develop`, allineato al remote |
 
 **Aperto: uno.** I due UPC veri (§6.1).
@@ -778,9 +824,11 @@ Aggiunto nella quinta sessione:
   da `getTrad` come i testi. Verificato sul codice vero: `en-us` prende la sua
   chiave, `fr-fr` cade su `fr`, `de-at` su `de`, `it-it` e `en-ca` sull'inglese,
   e una stringa semplice continua a funzionare ovunque.
-- **Store id per mercato** autorati per `en-us`, `en-ca`, `en-gb`, `en-au`.
-  Verificato che il modulo chiami lo store giusto per ciascuno e che un mercato
-  non elencato (`fr-ca`, `de-de`) non faccia nessuna chiamata.
+- **Store e lingua letti dalla pagina.** Gli store id erano stati autorati per
+  `en-us`, `en-ca`, `en-gb`, `en-au` e poi tolti nella stessa tornata: ora
+  arrivano da `window.storeId` / `window.langId`, che è quello che prescrive la
+  doc del servizio. Dieci mercati verificati (§5.2 bis). Nel json non resta
+  nessuno store.
 - **Badge sconto** reso accanto al listino barrato, stringa e colori dall'API.
   Provato in pagina con due prodotti realmente in promo: `30% off` su sfondo
   nero, testo bianco, peso 500, tutto da `saleBadgeColor`. Un badge senza colori
@@ -792,3 +840,15 @@ Aggiunto nella quinta sessione:
 - Un difetto trovato e corretto subito: `align-self: center` centrava il badge
   anche nel compatto, dove il prezzo è allineato a sinistra. Ora è scopato al
   solo desktop.
+- **`parseAmount`.** `listPrice` torna formattato per mercato e `offerPrice` no:
+  senza questo, prezzo barrato e badge sparivano in sei mercati su dieci (§10).
+
+Poi il modulo è stato messo online su stage e verificato in pagina. Una sola
+cosa è andata storta, e vale la pena ricordarla perché non sembrava quello che
+era: **su `media.sunglasshut.com` era stato caricato solo il json, non il js**.
+Il json nuovo autora `upc` come oggetto per mercato; il js vecchio faceva
+`String(upc)` e chiedeva allo storefront `[object Object]`. Il sintomo era "la
+chiamata prodotto non funziona", la causa era un file non caricato. Da lì le due
+righe nuove in §8: confrontare sempre i `last-modified` di tutti e tre i file, e
+non fidarsi del proprio browser, che con `cache-control: immutable` si tiene il
+js vecchio per quattordici giorni.

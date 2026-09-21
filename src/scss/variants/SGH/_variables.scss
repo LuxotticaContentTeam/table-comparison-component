@@ -44,12 +44,11 @@ $font-weight-regular: 400;
 $font-weight-medium: 500;
 $font-weight-bold: 700;
 
-// Heading 1 — Acta Headline Book
-$font-size-title-desk: 40px;
-$font-size-title-mob: 32px;
+// Heading 1 — Acta Headline Book. Only the line height is still used: the
+// section title moved to CoreMedia, so the module no longer sets its size.
 $line-height-title: 1.25;
 
-// Text-md/Regular — subtitle, cells, price, CTA
+// Text-md/Regular — cells, price, CTA
 $font-size-body: 14px;
 $line-height-body: 1.5;
 
@@ -123,4 +122,3 @@ $selector-chevron: 16px;
 // the shared component does not have to know which brand it is rendering.
 $product-align: flex-start;
 $product-text-align: left;
-$title-transform: none;

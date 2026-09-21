@@ -33,25 +33,6 @@
     background: #fff;
   }
 
-  .ct_comparison__intro {
-    padding: 0 64px 16px; // $section-padding-right-desk
-    text-align: center;
-
-    @media (max-width: $tab-max) {
-      padding: 0 16px 16px; // $section-padding-inline-mob
-    }
-  }
-
-  .ct_comparison__title {
-    margin: 0;
-    line-height: 1.25;
-  }
-
-  .ct_comparison__subtitle {
-    margin: 16px 0 0;
-    line-height: 1.5;
-  }
-
   // The grid the real table also uses: label column plus one track per
   // product, dropping to two equal tracks in the compact layout. --ct-columns
   // is written by contents.js; the skeleton ships with 2, which is also the
@@ -162,18 +143,6 @@
       background: rgba(0, 0, 0, 0.06);
       border-radius: 2px;
       min-height: 16px;
-    }
-
-    .ct_comparison__title {
-      max-width: 340px;
-      height: 40px;
-      margin-inline: auto;
-    }
-
-    .ct_comparison__subtitle {
-      max-width: 520px;
-      height: 21px;
-      margin-inline: auto;
     }
 
     .ct_comparison__product-image {
