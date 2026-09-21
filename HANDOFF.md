@@ -24,9 +24,10 @@ Ultimo aggiornamento: 21 settembre 2026 (quinta sessione, con il deploy su stage
 Il modulo è **funzionalmente e visivamente completo** e non ha più segnaposto di
 configurazione: dopo il build non sopravvive nessun `TODO_`, nessun `[PATH]`,
 nessun token non sostituito in `dist/` o `release/`. I codici prodotto
-segnaposto sono stati sostituiti con quelli reali, ma **quello del Gen 3 non
-esiste a catalogo su nessun mercato**: è il solo bloccante rimasto, e non è
-codice. Vedi [§6](#6-cosa-manca).
+segnaposto sono stati sostituiti con quelli reali; **il Gen 3 deve ancora
+andare live**, quindi il catalogo non lo conosce ancora e quella colonna resta
+incompleta fino al lancio. È l'unica cosa in sospeso, e non è codice né
+authoring. Vedi [§6](#6-cosa-manca).
 
 La regola del commit unico è decaduta dalla seconda sessione: ora si fa un
 commit per lavoro, e si pusha normalmente su `develop`.
@@ -282,9 +283,10 @@ Gen 2 torna: `0RW4012`, "Ray-Ban Meta (Gen 2) Wayfarer", `isOutOfStock: true`,
 $379.00 su `/us` — presente su `/us`, `/ca-en`, `/uk`, `/au`, `/de`, `/fr`, `/es`
 e assente su `/mx` e `/nl`, gli stessi due mercati che non avevano i segnaposto.
 Il Gen 3 `8056266261459` è **assente da tutti e nove**, e `/us/ray-ban-meta-gen-3`
-è 404: sembra non ancora pubblicato, più che sbagliato. Quella colonna resta
-senza packshot, prezzo e link finché non si autora un UPC che il catalogo
-conosce (§6).
+è 404. **L'UPC è giusto: il prodotto non è ancora andato live**, confermato da
+Tommaso. Quindi non c'è nessun codice da ricercare — il catalogo inizierà a
+rispondere da solo al lancio, e quella colonna fino a lì resta senza packshot,
+prezzo e link (§6).
 
 Gli sconti degli ultimi tre erano misurati sul vecchio endpoint e sulle sue
 price list: **da riverificare** su `productInfo` prima di usarli come casi di
@@ -331,17 +333,19 @@ restituisca. Vedi §6.3.
 
 ### Bloccante — uno solo
 
-1. **L'UPC del Gen 3 non esiste a catalogo.** I codici segnaposto sono stati
-   sostituiti con quelli reali — Gen 3 `8056266261459`, Gen 2 `8056262721339`,
-   al posto dei Ray-Ban Meta **Gen 1** Wayfarer `8056597988377` e Headliner
-   `8056597988391` — e il Gen 2 è buono: `0RW4012`, presente su sette mercati
-   su nove. Il **Gen 3 non risolve su nessuno dei nove** (§5.3), quindi quella
-   colonna esce senza packshot, senza prezzo e senza link. È la degradazione
-   prevista, non un bug, ma così non si pubblica.
+1. **Il Gen 3 non è ancora live, e il catalogo infatti non lo conosce.** I
+   codici segnaposto sono stati sostituiti con quelli reali — Gen 3
+   `8056266261459`, Gen 2 `8056262721339`, al posto dei Ray-Ban Meta **Gen 1**
+   Wayfarer `8056597988377` e Headliner `8056597988391` — e il Gen 2 è buono:
+   `0RW4012`, presente su sette mercati su nove. Il **Gen 3 non risolve su
+   nessuno dei nove** (§5.3), quindi quella colonna esce senza packshot, senza
+   prezzo e senza link.
 
-   Serve l'UPC giusto dal team prodotto, o l'attesa che l'articolo venga
-   pubblicato a catalogo. Nient'altro da toccare nel modulo: si autora `upc` e
-   basta.
+   ⚠️ **Non è un codice sbagliato e non c'è niente da cercare**: l'UPC è
+   quello giusto, il prodotto deve ancora andare live. Al lancio il catalogo
+   inizia a rispondere da sé e la colonna si completa senza toccare nulla. La
+   cosa da fare è **riverificare al go-live** — su quali mercati risolve, e se
+   `/mx` e `/nl` lo vendono, visto che il Gen 2 lì non c'è (punto 2).
 
    Rifare il confronto numerico di `_meta.valuesMatchSource` **non** serve: i
    valori sono copy, non prodotto.
@@ -819,10 +823,11 @@ resta non è codice.
 | Intestazione | rimossa dal modulo, passa a CoreMedia (§7.14) — **il fragment va ri-incollato** |
 | Branch | `develop`, allineato al remote |
 
-**Aperto: uno, e nuovo.** Gli UPC segnaposto sono stati sostituiti con quelli
-reali, ma quello del **Gen 3 non esiste a catalogo su nessun mercato** (§6.1):
-finché non arriva quello giusto, la colonna Gen 3 esce senza packshot, prezzo e
-link. Il Gen 2 invece risolve su sette mercati su nove (§6.2 per `/mx` e `/nl`).
+**Aperto: uno, e non è lavoro.** Gli UPC segnaposto sono stati sostituiti con
+quelli reali, ma il **Gen 3 deve ancora andare live**, quindi il catalogo non lo
+conosce su nessun mercato e quella colonna esce senza packshot, prezzo e link
+(§6.1). Si sblocca da sé al lancio: la cosa da fare è riverificare allora. Il
+Gen 2 risolve su sette mercati su nove (§6.2 per `/mx` e `/nl`).
 
 **In attesa di una decisione: due.** Badge sconto e numero di colori (§6.2,
 §6.3). Entrambi dipendono da cosa restituisce il servizio prodotto, non da come

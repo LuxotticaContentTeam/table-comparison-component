@@ -970,10 +970,11 @@ non-English market the module is published to.
   against production on 2026-09-21 it answers on `/us`, `/ca-en`, `/uk`,
   `/au`, `/de`, `/fr` and `/es` as `0RW4012` "Ray-Ban Meta (Gen 2) Wayfarer",
   $379.00 and `isOutOfStock`. **The Gen 3 one answers on none of the nine
-  stores checked**, and `/us/ray-ban-meta-gen-3` is a 404, so the article looks
-  unpublished rather than mistyped. Until a UPC the catalog knows is authored,
-  that column renders its copy with no packshot, no price and no link — which
-  is the designed degradation, but it is not shippable.
+  stores checked**, and `/us/ray-ban-meta-gen-3` is a 404 — because the product
+  has not gone live yet. The UPC is right and there is no code to chase: the
+  catalog starts answering at launch and the column completes itself. Until
+  then it renders its copy with no packshot, no price and no link, which is the
+  designed degradation. **Re-check at go-live** which markets carry it.
 
 Also worth closing before it goes live: the Gen 2 is missing from `/mx` and
 `/nl` — the same two markets that were missing the placeholders — so those two
