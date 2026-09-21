@@ -264,9 +264,10 @@ export class Contents {
     const cta = document.createElement("a");
     cta.className = `${BLOCK}__cta`;
     cta.textContent = this.trad(this.data.shopNowLabel);
-    // Authored as a fallback; the storefront replaces it with the canonical
-    // PDP url once the product request lands.
-    if (product.pdpUrl) cta.href = product.pdpUrl;
+    // No href until the product request lands: the canonical PDP url is the
+    // one the storefront returns for the authored UPC. It cannot be built from
+    // the UPC alone — the slug is {brand}/{model}-{upc} and the model is not in
+    // the UPC — so authoring one by hand only ever went stale.
     cta.dataset.trackingId = `ShopNow_${product.id}`;
     cta.dataset.trackingDescription = name;
     cell.appendChild(cta);

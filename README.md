@@ -134,8 +134,6 @@ renders comes from here, except price, PDP link and packshot — see
         // with no key of its own falls back to the English product.
         "upc": { "en-us": "8056597988377", "fr-ca": "8056597988391" },
 
-        "productId": "3074457345618661050",                  // cross-reference, read by nothing
-        "pdpUrl": "/us/ray-ban/rw4006-8056597988377",        // cross-reference, read by nothing
         "name": { "en-us": "Ray-Ban | Meta Gen 3" },
         "meta": { "en-us": "3 Colors" },                     // the small line above the name
         "family": { "en-us": "Ray-Ban Meta" },               // eyebrow in the compact switcher
@@ -296,6 +294,17 @@ returned `/us/ray-ban-meta/rw4006-…`. The storefront **redirects automatically
 between the two — confirmed in a browser — so the CTA lands on the right page
 either way and the shorter slug is used as-is. Worth knowing before someone
 "fixes" it.
+
+**The CTA has no href until that response lands, and that is deliberate.** The
+link cannot be built from the UPC: the slug is `/{market}/{brand}/{model}-{upc}`
+and the model is nowhere in the UPC. Only the brand segment is forgiving —
+`/us/ray-ban/rw4006-8056597988377` redirects to
+`/us/ray-ban-meta-gen-1/rw4006-8056597988377` — while the `{model}-{upc}` tail
+is required: `/us/ray-ban/8056266261459`, the UPC on its own, is a **404**
+(checked in a browser, 2026-09-21). So the PDP link is the storefront's
+`pdpURL` or nothing, exactly like the price and the packshot. A `pdpUrl`
+authored in the json was tried and removed — it could only ever go stale, and
+did.
 
 The response also carries `frameColor`, `lensColor`, `localizedColorLabel`,
 `moco`, `category`, `isOutOfStock` and `active`. Those are **not** read: the
@@ -954,21 +963,22 @@ non-English market the module is published to.
 
 ### Before it can go live
 
-Nothing blocking. **The product codes have been swapped for the real
-articles**: `upc` on both objects in `comparison.products` now holds Gen 3
-(`8056266261459`) and Gen 2 (`8056262721339`), in place of the Gen 1 Wayfarer /
-Headliner placeholders (`8056597988377` / `8056597988391`) the module launched
-with. `productId` and `pdpUrl` were left as they were — cross-references read
-by nothing — so their values, including the old UPC inside the `pdpUrl` slug,
-still describe the Gen 1 placeholders; update them by hand once the real
-`pdpURL` the storefront returns is confirmed.
+- **The Gen 3 UPC resolves nowhere.** `upc` on both products now holds the
+  real articles — Gen 3 `8056266261459`, Gen 2 `8056262721339` — in place of
+  the Gen 1 Wayfarer / Headliner placeholders (`8056597988377` /
+  `8056597988391`) the module launched with. The Gen 2 one is good: checked
+  against production on 2026-09-21 it answers on `/us`, `/ca-en`, `/uk`,
+  `/au`, `/de`, `/fr` and `/es` as `0RW4012` "Ray-Ban Meta (Gen 2) Wayfarer",
+  $379.00 and `isOutOfStock`. **The Gen 3 one answers on none of the nine
+  stores checked**, and `/us/ray-ban-meta-gen-3` is a 404, so the article looks
+  unpublished rather than mistyped. Until a UPC the catalog knows is authored,
+  that column renders its copy with no packshot, no price and no link — which
+  is the designed degradation, but it is not shippable.
 
-Not yet re-verified against the new articles: whether both sell in every
-market authored here (the Gen 1 placeholders were missing from `/mx` and
-`/nl`, and only one of the two from `/au` — see `_meta.api._upcMissing`), and
-whether real pricing/discount differs from the flat, no-discount figures seen
-on the Gen 1 test placeholders. Re-open the two CTAs on stage after the next
-deploy to close this out.
+Also worth closing before it goes live: the Gen 2 is missing from `/mx` and
+`/nl` — the same two markets that were missing the placeholders — so those two
+need either their own `upc` key or the knowledge that the column degrades
+there. See `_meta.api._upcMissing`.
 
 ### Waiting on a decision, not on code
 

@@ -274,7 +274,6 @@ const productName = (product) => {
  */
 const reduceProduct = (product) => ({
   upc: product.upc ? String(product.upc) : null,
-  productId: product.catentryId ? String(product.catentryId) : null,
   brand: product.brand || "",
   model: product.model || "",
   name: productName(product),

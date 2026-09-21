@@ -23,9 +23,10 @@ Ultimo aggiornamento: 21 settembre 2026 (quinta sessione, con il deploy su stage
 
 Il modulo è **funzionalmente e visivamente completo** e non ha più segnaposto di
 configurazione: dopo il build non sopravvive nessun `TODO_`, nessun `[PATH]`,
-nessun token non sostituito in `dist/` o `release/`. Il dato che mancava — i
-codici prodotto veri — è stato sostituito in questa sessione; resta da
-riverificare la copertura sui mercati e le due CTA. Vedi [§6](#6-cosa-manca).
+nessun token non sostituito in `dist/` o `release/`. I codici prodotto
+segnaposto sono stati sostituiti con quelli reali, ma **quello del Gen 3 non
+esiste a catalogo su nessun mercato**: è il solo bloccante rimasto, e non è
+codice. Vedi [§6](#6-cosa-manca).
 
 La regola del commit unico è decaduta dalla seconda sessione: ora si fa un
 commit per lavoro, e si pusha normalmente su `develop`.
@@ -267,20 +268,23 @@ nel JSON come riferimento incrociato e non lo legge nessuno.
 
 | Nome | UPC | Note |
 | --- | --- | --- |
-| Ray-Ban Meta **Gen 3** | `8056266261459` | ora autorato in json, sostituisce il segnaposto Gen 1 Wayfarer (`8056597988377`) |
-| Ray-Ban Meta **Gen 2** | `8056262721339` | ora autorato in json, sostituisce il segnaposto Gen 1 Headliner (`8056597988391`) |
+| Ray-Ban Meta **Gen 3** | `8056266261459` | autorato in json, ma ⚠️ **non risolve su nessun mercato** (verificato su nove store) |
+| Ray-Ban Meta **Gen 2** Wayfarer | `8056262721339` | autorato in json, `0RW4012`, risolve su sette mercati su nove, `isOutOfStock` |
 | Ray-Ban Hexagonal | `8053672689679` | |
 | Tiffany TF4214U | `8056597916660` | aveva uno sconto |
 | Jimmy Choo JC4011 | `8056262230008` | aveva uno sconto |
 | Giorgio Armani AR8146 | `8056597415514` | aveva uno sconto |
 
-⚠️ I due UPC nel JSON sono ora quelli reali di Ray-Ban Meta **Gen 3** e
-**Gen 2**, sostituiti in questa sessione al posto dei due Gen 1 Wayfarer /
-Headliner usati come segnaposto — quelli sì `isOutOfStock: true`, il motivo per
-cui il prezzo usciva piatto (224/224 e 247/247) e senza nessun barrato. Con i
-due articoli reali il comportamento non è stato ancora riverificato: se sono
-`isOutOfStock`, se il prezzo è piatto o scontato, e su quali mercati risolvono
-(§6, bloccante chiuso ma con verifica pendente).
+⚠️ **Il Gen 3 non risolve da nessuna parte.** I due UPC nel JSON sono ora
+quelli reali, al posto dei Gen 1 Wayfarer / Headliner usati come segnaposto, ma
+interrogando `productInfo` su nove store (21 settembre 2026, produzione) solo il
+Gen 2 torna: `0RW4012`, "Ray-Ban Meta (Gen 2) Wayfarer", `isOutOfStock: true`,
+$379.00 su `/us` — presente su `/us`, `/ca-en`, `/uk`, `/au`, `/de`, `/fr`, `/es`
+e assente su `/mx` e `/nl`, gli stessi due mercati che non avevano i segnaposto.
+Il Gen 3 `8056266261459` è **assente da tutti e nove**, e `/us/ray-ban-meta-gen-3`
+è 404: sembra non ancora pubblicato, più che sbagliato. Quella colonna resta
+senza packshot, prezzo e link finché non si autora un UPC che il catalogo
+conosce (§6).
 
 Gli sconti degli ultimi tre erano misurati sul vecchio endpoint e sulle sue
 price list: **da riverificare** su `productInfo` prima di usarli come casi di
@@ -325,27 +329,30 @@ restituisca. Vedi §6.3.
 
 ## 6. Cosa manca
 
-### Bloccante — nessuno
+### Bloccante — uno solo
 
-1. ~~**Codici prodotto veri.**~~ **Risolto in questa sessione.** `upc` su
-   entrambi gli oggetti in `comparison.products` autora ora gli articoli reali:
-   Gen 3 `8056266261459`, Gen 2 `8056262721339`, al posto dei due Ray-Ban Meta
-   **Gen 1** (Wayfarer `8056597988377`, Headliner `8056597988391`) tenuti come
-   segnaposto. `productId` e `pdpUrl` non sono stati toccati — restano
-   riferimenti letti da nessuno — quindi il loro valore, slug compreso, porta
-   ancora l'UPC vecchio: da aggiornare a mano quando si conferma il `pdpURL`
-   reale restituito dallo storefront.
+1. **L'UPC del Gen 3 non esiste a catalogo.** I codici segnaposto sono stati
+   sostituiti con quelli reali — Gen 3 `8056266261459`, Gen 2 `8056262721339`,
+   al posto dei Ray-Ban Meta **Gen 1** Wayfarer `8056597988377` e Headliner
+   `8056597988391` — e il Gen 2 è buono: `0RW4012`, presente su sette mercati
+   su nove. Il **Gen 3 non risolve su nessuno dei nove** (§5.3), quindi quella
+   colonna esce senza packshot, senza prezzo e senza link. È la degradazione
+   prevista, non un bug, ma così non si pubblica.
 
-   Rifare il confronto numerico di `_meta.valuesMatchSource` **non** serve (i
-   valori sono copy, non prodotto), ma restano da riverificare in pagina: le
-   due CTA sulla PDP giusta, la disponibilità sugli otto mercati (i due Gen 1
-   mancavano su `/mx` e `/nl`, e `/au` ne risolveva uno solo — vedi
-   `_meta.api._upcMissing`), e se il prezzo/sconto reale differisce dal piatto
-   224/224 e 247/247 visto sui Gen 1.
+   Serve l'UPC giusto dal team prodotto, o l'attesa che l'articolo venga
+   pubblicato a catalogo. Nient'altro da toccare nel modulo: si autora `upc` e
+   basta.
+
+   Rifare il confronto numerico di `_meta.valuesMatchSource` **non** serve: i
+   valori sono copy, non prodotto.
+
+2. **`/mx` e `/nl` non vendono nemmeno il Gen 2.** Sono gli stessi due mercati
+   che non avevano i segnaposto. O si dà loro una chiave `upc` propria con
+   l'articolo che vendono davvero, o si accetta che lì la colonna degradi.
 
 ### In attesa di una decisione, non di codice
 
-2. **Il numero di colori è autorato.** `products[].meta` ("3 Colors") è scritto
+3. **Il numero di colori è autorato.** `products[].meta` ("3 Colors") è scritto
    a mano perché il servizio prodotto SGH torna `frameColor` / `lensColor` della
    singola variante e nessun conteggio dei sibling. Renderlo dinamico vuol dire
    una seconda chiamata a un altro servizio: un `availableColors` esiste su
@@ -812,9 +819,10 @@ resta non è codice.
 | Intestazione | rimossa dal modulo, passa a CoreMedia (§7.14) — **il fragment va ri-incollato** |
 | Branch | `develop`, allineato al remote |
 
-**Aperto: nessuno.** I due UPC veri sono stati sostituiti con gli articoli
-reali (§6.1) — resta da riverificare la copertura sui mercati e le due CTA in
-pagina, non da autorare altro.
+**Aperto: uno, e nuovo.** Gli UPC segnaposto sono stati sostituiti con quelli
+reali, ma quello del **Gen 3 non esiste a catalogo su nessun mercato** (§6.1):
+finché non arriva quello giusto, la colonna Gen 3 esce senza packshot, prezzo e
+link. Il Gen 2 invece risolve su sette mercati su nove (§6.2 per `/mx` e `/nl`).
 
 **In attesa di una decisione: due.** Badge sconto e numero di colori (§6.2,
 §6.3). Entrambi dipendono da cosa restituisce il servizio prodotto, non da come
@@ -829,9 +837,16 @@ due regole da rispettare quando si tocca la copy.
 
 Aggiunto nella quinta sessione:
 
-- **I due UPC veri.** `comparison.products[].upc` autora ora Gen 3
-  (`8056266261459`) e Gen 2 (`8056262721339`) al posto dei due Gen 1 tenuti
-  come segnaposto da lancio. `productId` e `pdpUrl` non toccati (§6.1).
+- **I due UPC veri**, al posto dei Gen 1 tenuti come segnaposto da lancio. Il
+  Gen 2 risolve, il Gen 3 no (§6.1).
+- **`productId` e `pdpUrl` tolti dal json.** Il catentryId lo rimanda già la
+  risposta, e il link PDP **non è costruibile dall'UPC**: lo slug è
+  `/{mercato}/{brand}/{model}-{upc}` e il model nell'UPC non c'è. Provato in
+  browser: `/us/ray-ban/8056266261459` è 404, mentre il segmento brand è
+  tollerante e viene redirezionato. Quindi l'href del CTA arriva solo dal
+  `pdpURL` dello storefront, come prezzo e packshot — prima della risposta il
+  CTA non è un link. Un `pdpUrl` scritto a mano poteva solo invecchiare, ed era
+  già invecchiato.
 - **UPC per mercato.** `products[].upc` accetta un oggetto per locale, risolto
   da `getTrad` come i testi. Verificato sul codice vero: `en-us` prende la sua
   chiave, `fr-fr` cade su `fr`, `de-at` su `de`, `it-it` e `en-ca` sull'inglese,
