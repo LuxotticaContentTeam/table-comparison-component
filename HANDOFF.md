@@ -1025,20 +1025,28 @@ brand condividessero l'host e che bastasse una sottocartella. Non lo
 condividono. Ora `projectConfig.json > assetPaths` sovrascrive host e path per
 intero, per variante.
 
-### Lo stato del CDN al momento del controllo
+### Com'è finita
 
-| File | Stato |
-| --- | --- |
-| `main__0.0.1.min.js` | presente ma **della build sbagliata** — da ricaricare |
-| `main__0.0.1.min.css` | presente e **identico** alla build nuova |
-| `json__0.0.1.json` | presente e **identico** alla build nuova |
-| `img/LC/chevron-down.svg` | **mancante** |
-| `img/LC/badge-photo.svg` | **mancante** |
+Ricostruito con l'override, ricaricati js e icone: **verificato verde** il 22
+settembre 2026. Tutti e cinque i file rispondono e sono byte per byte quelli
+della build. Iniettando il bundle dal CDN in una PDP `lenscrafters.com` vera —
+l'unico modo di provarlo, vedi sotto — il modulo rende tre colonne, nove righe,
+celle `#f6f6f6`, pillola NEW su Blayzer, packshot da `assets2.lenscrafters.com`,
+icone 16×16, prezzi **veri** $379 / $479 / $499 e CTA sulle tre PDP canoniche.
 
-⚠️ **Questo CDN risponde ai 404 con un PNG segnaposto da 4018 byte.** Quindi un
-`<img>` che punta a un'icona inesistente fa `onload` e sembra a posto: le icone
-vanno controllate leggendo lo **status**, non l'evento di caricamento. Ci sono
-cascato per un giro.
+⚠️ **La cartella delle icone è `img/LC/`, in quest'ordine.** `img/` viene da
+`productionImage`, `LC/` dal valore autorato nel json — come su SGH, dove fa
+`img/SGH/`. Invertirle (`LC/img/`) è stato il primo tentativo e non risolve.
+
+⚠️ **Questo CDN risponde ai 404 con un PNG segnaposto da 4018 byte**, largo
+224px. Quindi un `<img>` che punta a un'icona inesistente fa `onload` e sembra a
+posto: le icone vanno controllate leggendo lo **status**, o almeno il
+`naturalWidth` (16 se è l'svg vero, 224 se è il segnaposto). Ci sono cascato per
+un giro.
+
+⚠️ Le immagini del modulo sono `loading="lazy"`: appena iniettate valgono
+`naturalWidth: 0` anche quando l'url è giusto. Vanno portate in vista e
+rimisurate prima di dichiararle rotte. Ci sono cascato una seconda volta.
 
 ### Quello che invece è a posto
 
@@ -1049,3 +1057,21 @@ cascato per un giro.
   provare da un server locale: quel test va fatto da una pagina del brand.
 - **SGH intatto.** `json`, `js` e `img/SGH/chevron-down.svg` rispondono 200 al
   loro indirizzo di sempre, e la sua build non è cambiata.
+
+### Rimasto da decidere: la terza colonna sta più in alto
+
+Blayzer non ha né `meta` (il "3 Colors" sopra il nome) né `badge`
+("CAMERA + AUDIO"), quindi la sua colonna perde due righe e si disallinea dalle
+altre: misurato in pagina, il nome sta **25px più in alto** e il CTA **50px**.
+
+Le due assenze hanno cause diverse. Il `badge` è **voluto**: il frame lo dà anche
+a quella colonna, ma è la colonna che in ogni riga dice di non avere fotocamera,
+e l'istanza era rimasta al default (§_meta.figmaDeviations). Il `meta` invece
+manca solo perché il frame lì porta il segnaposto `$999.99` e il numero di colori
+vero non ce l'ha nessuno.
+
+Quindi: autorare `meta` su Blayzer recupera 25px dei 50. Per gli altri 25 le
+strade sono due — dargli un badge suo ("Audio", che sarebbe vero) oppure allineare
+le colonne dal CSS, che il design non ha mai dovuto affrontare perché nel frame
+tutte e tre le colonne hanno tutte le righe. È una scelta di contenuto, non un
+difetto del modulo.
