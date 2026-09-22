@@ -81,8 +81,13 @@ $line-height-name-badge: 16px; // typography/body/xs/line-height
 $line-height-cta: 14px;
 
 // --- geometry -------------------------------------------------------------
-$section-padding-block: 64px; // measured: the frame breathes more than SGH's 40
-// Both sides now, not just the right: the table is full-bleed and keeps this
+// 0, deliberately: the module does not own its vertical spacing. The rows
+// CoreMedia authors above and below it do, the same way they own the title
+// (§7.14) — so the section contributes only its side gutters and lets the page
+// set the rhythm. The 64px the LC frame breathes above and below the table is
+// still there, it is just not ours to add a second time.
+$section-padding-block: 0;
+// Both sides, not just the right: the table is full-bleed and keeps this
 // distance from the screen, the way the page's own fluid rows do.
 $section-padding-inline-desk: 64px;
 $section-padding-inline-mob: 16px;

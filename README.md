@@ -919,7 +919,7 @@ the difference is not cosmetic —
 | cell background / radius | `#f7f7f7` / 2px | `#f2f2f2` / 16px |
 | product column | left aligned | centred |
 | row gap | 8px | 24px |
-| section padding | 40px | 64px |
+| section padding | 40px | 64px in the frame, **0 in the build** — see below |
 
 The markup is one grid and one set of class names, and every value above is a
 token in `scss/variants/<BRAND>/_variables.scss`. So an LC variant, when one is
@@ -927,6 +927,13 @@ wanted, is a token file rather than a second stylesheet — but it is not what
 this release builds.
 
 ### The layout
+
+**On LC the section has no vertical padding at all** — `$section-padding-block`
+is `0`. The 64px the frame breathes above and below the table is real, but it is
+the page's to give: the rows CoreMedia authors around this one set the vertical
+rhythm, the same way they own the title. The module contributes its side gutters
+and nothing else, so the spacing is not added twice. SGH still carries its own
+40px, its rows being a different page's business.
 
 **The module is full bleed and lays its own gutters against the screen.** It is
 dropped into whatever container the page wraps it in — on LC, CoreMedia's

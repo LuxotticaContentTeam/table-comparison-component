@@ -1122,6 +1122,12 @@ file, e il js ha la stessa vita lunga.
 
 ## 13. La larghezza: il modulo esce dal container di CoreMedia
 
+> Padding verticale: su LC `$section-padding-block` è **0**. La regola compilata
+> è `padding: 0 64px` (e `0 16px` sul compatto). I 64px che il frame respira
+> sopra e sotto la tabella li mette la pagina, con le righe CoreMedia intorno,
+> come già fa col titolo — il modulo mette solo i fianchi e non li somma una
+> seconda volta. SGH tiene i suoi 40px.
+
 Il modulo rendeva più stretto di tutto quello che gli sta intorno, e in modo
 asimmetrico. Misurato in pagina a viewport 1721px: wrapper a 201px da entrambi i
 bordi, tabella con 0 di padding a sinistra e 64 a destra — quindi 201px di vuoto
