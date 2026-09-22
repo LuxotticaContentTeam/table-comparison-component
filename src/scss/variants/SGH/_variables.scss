@@ -84,7 +84,9 @@ $line-height-cta: 20px;
 
 // --- geometry -------------------------------------------------------------
 $section-padding-block: 40px;
-$section-padding-right-desk: 64px; // the header and every row stop 64px short
+// The header and every row stop 64px short — on both sides, which is what the
+// table now does too.
+$section-padding-inline-desk: 64px;
 $section-padding-inline-mob: 16px;
 
 $label-column-width: 200px;

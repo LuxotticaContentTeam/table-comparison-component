@@ -21,6 +21,7 @@ Ultimo aggiornamento: 22 settembre 2026 — la sessione in cui il modulo è dive
 | Asset SGH | `https://media.sunglasshut.com/table-comparison-component/` — icone in `img/SGH/` |
 | Asset LC | `https://media.lenscrafters.com/2026/Calendar/Week_39_September/RBM_APEROL/table_component/` — icone in `img/LC/` |
 | Online | SGH su stage SGH; LC su `stg.lenscrafters.com` (WCS), verificato in pagina |
+| ⚠️ Da mettere online | La larghezza full bleed (§13) è nel codice ma **non ancora in pagina**: tocca `_critical.scss`, quindi oltre ai tre asset va **ri-incollato il fragment** in CoreMedia |
 
 Il modulo è **funzionalmente e visivamente completo su entrambi i brand** e non
 ha più segnaposto di configurazione: dopo il build non sopravvive nessun
@@ -569,6 +570,7 @@ Costano tempo se le si ricalpesta.
 | Caricare `get_metadata` sull'intera pagina Figma | Supera il limite di token e finisce su file | Chiedere metadata di un nodo specifico, o processare il file con `jq`/python |
 | Build due volte con la stessa `version` | La seconda sovrascrive `release/SGH/0.0.1/` | Bumpare `package.json > version` prima di una release che deve sopravvivere |
 | Modificare `critical.scss` e ricaricare solo gli asset | Il fragment già in CoreMedia continua a vincere | Il critical CSS è **inlined**: va ri-incollato il fragment |
+| Cambiare una regola solo in `_comparison-table.scss` quando la stessa regola sta anche in `_critical.scss` | In pagina **non cambia niente**, e in locale invece funziona. Il `<style>` critico è inline in un div del `<body>`, il `<link>` del CDN sta in `<head>`: stessa specificità (`#id .classe`), quindi vince chi viene **dopo nel documento**, cioè il critical | Toccare **entrambi** i file, e ri-incollare il fragment. Verificato in pagina: `link.compareDocumentPosition(style)` dice che lo style segue il link |
 | Scrivere i nomi dei token (`@assetPath@`, `@buildVersion@`) nei commenti di `live/live.html` | La sostituzione è un replace di stringa: riscrive anche la prosa, e il commento finisce nella pagina di preview con dentro l'URL | Nel commento parlarne a parole, senza scriverli |
 | Controllare `naturalWidth` delle immagini a pagina appena caricata in una tab in background | Zero su tutte, sembrano rotte: sono `loading="lazy"` dentro un container `content-visibility: auto` e non partono proprio | Verificare il path con `fetch()` (status 200) e la decodifica con un `new Image()` fuori dalla pagina |
 | Ricaricare la pagina di dev dopo aver cambiato `projectName` | Chrome serve la copia in cache e il vecchio id continua ad apparire | Navigare con un query param nuovo (`?cb=1`); `curl` sul dev server dice cosa viene servito davvero |
@@ -1115,3 +1117,79 @@ file, e il js ha la stessa vita lunga.
    preso dal frame aperto e confrontare il node id: se coincide è staleness, se
    non coincide si stava leggendo un altro frame. Finché non è chiarito, la copy
    autorata viene da quello che vede la campagna, non da quello che leggo io.
+
+## 13. La larghezza: il modulo esce dal container di CoreMedia
+
+Il modulo rendeva più stretto di tutto quello che gli sta intorno, e in modo
+asimmetrico. Misurato in pagina a viewport 1721px: wrapper a 201px da entrambi i
+bordi, tabella con 0 di padding a sinistra e 64 a destra — quindi 201px di vuoto
+da una parte e 265 dall'altra.
+
+**La causa non era nel modulo.** CoreMedia lo avvolge in un `.cb_container`, che
+è il container di Bootstrap 5 tale e quale: `max-width` a scalini
+340 / 720 / 960 / 1140 / **1320**, centrato. Sopra i 1400px di viewport il
+container si ferma a 1320 e il margine cresce con lo schermo. A 1440px — la
+larghezza a cui è disegnato il Figma — dà 60px di margine, che è in pratica i 64
+del disegno: per questo fino a lì non si era visto niente.
+
+**Il riferimento in pagina esiste e non è la cromatura del sito.** La riga
+"ASK META AI", subito sopra la tabella, è `cb_container-fluid` con una utility
+`cb_px-lg-16`: 64px tenuti fissi contro il bordo dello schermo, senza tetto. È
+quello che il modulo fa adesso.
+
+⚠️ **I 64px non si possono scrivere in css.** `calc(50vw - 50%)` è il trucco
+solito e sbaglia due volte: `vw` conta la scrollbar, quindi la sezione esce più
+larga del viewport e si porta dietro **tutta la pagina** in scroll orizzontale;
+e dà per scontato che il container sia centrato, che è una scelta della pagina e
+non nostra. Le due distanze le misura `contents.js > measureBleed` e le scrive
+come `--ct-bleed-left` / `--ct-bleed-right`.
+
+⚠️ **Si misura il container, mai la sezione.** La sezione è l'elemento che i
+margini spostano: leggerla significherebbe rimetterle in pancia il proprio
+spostamento. Il container è un blocco normale la cui larghezza la decide il
+padre, e i margini negativi di un figlio non lo toccano.
+
+Il default di entrambe le proprietà è `0`, cioè nessuna fuoriuscita: se il
+javascript non gira la tabella resta dentro il container, dov'è sempre stata —
+stretta, mai rotta e mai in overflow. Il critical css tiene quel default apposta,
+perché lo scheletro viaggia prima che esista un javascript che possa misurare.
+
+### Verificato
+
+In pagina su staging, iniettando le regole compilate dopo il `<link>` e il
+critical, e richiamando `measureBleed` a mano: sezione da 0 a 1721, tabella a
+**64 da sinistra e 64 da destra**, ultima cella che chiude a 64 dal bordo.
+
+Le altre larghezze dentro un iframe, che è l'unico modo di avere viewport veri su
+questa macchina (vedi §8, `resize_window` non funziona):
+
+| viewport | tabella | colonne (3 prodotti) | overflow |
+| --- | --- | --- | --- |
+| 375px | L=16 R=16 | compatto, 2 tracce | 0 |
+| 390px | L=16 R=16 | compatto, 2 tracce | 0 |
+| 768px | L=16 R=16 | compatto, 2 tracce | 0 |
+| 1025px | L=64 R=64 | 208px | 0 |
+| 1440px | L=64 R=64 | 347px | 0 |
+| 1721px | L=64 R=64 | 440px | 0 |
+| 2560px | L=64 R=64 | 720px | 0 |
+
+Lo scroll orizzontale di 16px che si vede sulla pagina di staging **non è
+nostro**: c'è identico con e senza la modifica, e viene dal carosello `slick`
+dell'header.
+
+### Due cose da sapere
+
+1. **A 1440px le colonne scendono da 368 a 347px.** Nel Figma la colonna delle
+   label parte da `x=0`, cioè sborda nel margine sinistro: il disegno tiene i 64
+   solo a destra. Mettendoli anche a sinistra si mangiano 64px di griglia. Sopra
+   i 1440 le colonne sono comunque più larghe di quelle disegnate.
+
+2. **Non c'è un tetto.** A 2560px le colonne vengono 720px l'una. La riga di
+   riferimento (`cb_px-lg-16`) non ne ha nemmeno lei, quindi il modulo si
+   comporta come la pagina. Se un giorno si volesse, è un `max-width` più
+   `margin-inline: auto` sul `.ct_comparison__table`, non sulla sezione.
+
+⚠️ **Va ri-incollato il fragment in CoreMedia**, perché la modifica tocca anche
+`_critical.scss`. Ricaricare i tre asset non basta, e il motivo per cui non basta
+è nella tabella di §8: a parità di specificità il critical inline vince sul css
+del CDN.

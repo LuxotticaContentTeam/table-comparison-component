@@ -83,6 +83,7 @@ export class Contents {
     this.state.subscribe((reason) => this.render(reason));
 
     this.buildShell();
+    this.measureBleed();
     this.render("init");
     this.observeResize();
 
@@ -538,9 +539,45 @@ export class Contents {
   // --- viewport --------------------------------------------------------
 
   /**
+   * How far the module's container sits from each edge of the screen.
+   *
+   * The section spends those two numbers as negative margins (see
+   * components/_comparison-table.scss) to climb out of whatever container the
+   * page wrapped it in — on LC, CoreMedia's Bootstrap `.cb_container`, which
+   * caps at 1320px — and then lays its own 64px gutters against the screen,
+   * like the page's own fluid rows.
+   *
+   * Measured rather than written in css because css cannot express it:
+   * `calc(50vw - 50%)` counts the scrollbar, which would make the section wider
+   * than the viewport and put the WHOLE PAGE into horizontal scroll, and it
+   * assumes a centred container, which is the page's business and not ours.
+   *
+   * ⚠️ Measured on `this.container`, never on the section. The section is the
+   * element the margins move, so measuring it would feed its own displacement
+   * back in. The container is a plain block whose width its parent decides, and
+   * a child's negative margins do not touch it — so it stays still and the
+   * reading is stable.
+   */
+  measureBleed() {
+    const box = this.container.getBoundingClientRect();
+
+    // clientWidth, not innerWidth: innerWidth includes the scrollbar, and the
+    // bleed has to stop at the edge of what can actually be painted.
+    const viewport = document.documentElement.clientWidth;
+
+    this.section.style.setProperty("--ct-bleed-left", `${box.left}px`);
+    this.section.style.setProperty("--ct-bleed-right", `${viewport - box.right}px`);
+  }
+
+  /**
    * Only a crossing of the compact breakpoint matters — it is the only thing
    * that changes the column count — and the state drops everything else, so a
    * drag-resize does not re-render on every frame.
+   *
+   * The bleed is the exception: it changes with every pixel of width, not just
+   * at the breakpoint, so it is re-measured on each settled frame. It is two
+   * reads and two writes on one element, inside the rAF the listener already
+   * throttles with.
    */
   observeResize() {
     let frame;
@@ -548,6 +585,7 @@ export class Contents {
     window.addEventListener("resize", () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
+        this.measureBleed();
         this.state.setDevice(getDeviceType(this.stateManger.breakpoints));
       });
     });

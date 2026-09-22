@@ -26,10 +26,20 @@
   width: 100%;
   position: relative;
 
+  // The gutters are symmetric here, matching the real table, but the skeleton
+  // does NOT bleed out of its container: the bleed is a measurement and there is
+  // no javascript yet to take it. So the placeholder holds container-width space
+  // and the first render widens it — a horizontal shift on top of the vertical
+  // one the skeleton already accepts, and one nobody sees, the module sitting
+  // ~10.000px down the page.
   .ct_comparison {
     box-sizing: border-box;
-    padding: $section-padding-block 0;
+    padding: $section-padding-block $section-padding-inline-desk;
     background: $color-surface;
+
+    @media (max-width: $tab-max) {
+      padding-inline: $section-padding-inline-mob;
+    }
   }
 
   // The grid the real table also uses: label column plus one track per
@@ -43,13 +53,11 @@
     column-gap: $gap-column-desk;
     row-gap: $gap-row-desk;
     align-items: stretch;
-    padding-right: $section-padding-right-desk;
 
     @media (max-width: $tab-max) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       column-gap: $gap-column-mob;
       row-gap: $gap-row-mob;
-      padding: 0 $section-padding-inline-mob;
     }
   }
 

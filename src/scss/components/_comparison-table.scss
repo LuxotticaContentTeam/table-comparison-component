@@ -15,10 +15,43 @@
 
 .ct_comparison {
   box-sizing: border-box;
-  padding: $section-padding-block 0;
+
+  // Full bleed, then its own gutters.
+  //
+  // The module is dropped into whatever container the page gives it. On LC that
+  // is CoreMedia's Bootstrap `.cb_container`, whose max-width steps up to
+  // 1320px and stops: on a screen wider than that the table is pinned to a box
+  // narrower than everything around it, and the gutter grows with the screen
+  // instead of staying put. The design wants the opposite, and so do the page's
+  // own fluid rows — `.cb_container-fluid` with a `cb_px-lg-16` utility, which
+  // is 64px held fixed against the screen edge however wide the screen gets.
+  //
+  // So the section cancels its container's gutters with negative margins and
+  // re-applies $section-padding-inline-desk of its own.
+  //
+  // ⚠️ The distance CANNOT be written here. `calc(50vw - 50%)` is the usual
+  // trick and it is wrong twice: `vw` counts the scrollbar, so the section ends
+  // up wider than the viewport and drags the WHOLE PAGE into horizontal scroll,
+  // and it assumes the container is centred, which is the page's choice and not
+  // ours. contents.js > measureBleed measures both distances off the module's
+  // own container and writes them here.
+  //
+  // 0 is therefore the right default: no bleed leaves the table inside its
+  // container, which is where it has always been. If the javascript never runs,
+  // the table is merely narrow — never broken, never overflowing.
+  --ct-bleed-left: 0px;
+  --ct-bleed-right: 0px;
+  margin-left: calc(-1 * var(--ct-bleed-left));
+  margin-right: calc(-1 * var(--ct-bleed-right));
+
+  padding: $section-padding-block $section-padding-inline-desk;
   background: $color-surface;
   color: $color-text;
   font-family: $font-primary;
+
+  @media (max-width: $tab-max) {
+    padding-inline: $section-padding-inline-mob;
+  }
 
   * {
     box-sizing: border-box;
@@ -135,7 +168,9 @@
   column-gap: $gap-column-desk;
   row-gap: $gap-row-desk;
   align-items: stretch;
-  padding-right: $section-padding-right-desk;
+
+  // No padding of its own: the gutters belong to .ct_comparison, which is the
+  // element that knows where the screen edge is.
 
   // Compact: the label moves above its cells and spans the full width, so the
   // label column disappears and the two products split the row.
@@ -143,7 +178,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: $gap-column-mob;
     row-gap: $gap-row-mob;
-    padding: 0 $section-padding-inline-mob;
   }
 }
 

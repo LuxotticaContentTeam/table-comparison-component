@@ -82,7 +82,9 @@ $line-height-cta: 14px;
 
 // --- geometry -------------------------------------------------------------
 $section-padding-block: 64px; // measured: the frame breathes more than SGH's 40
-$section-padding-right-desk: 64px;
+// Both sides now, not just the right: the table is full-bleed and keeps this
+// distance from the screen, the way the page's own fluid rows do.
+$section-padding-inline-desk: 64px;
 $section-padding-inline-mob: 16px;
 
 $label-column-width: 200px;

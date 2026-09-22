@@ -928,6 +928,34 @@ this release builds.
 
 ### The layout
 
+**The module is full bleed and lays its own gutters against the screen.** It is
+dropped into whatever container the page wraps it in — on LC, CoreMedia's
+Bootstrap `.cb_container`, whose max-width climbs in steps to 1320px and stops.
+Inside that container the table is pinned to a box narrower than the screen and
+its gutter grows as the screen does, which is the opposite of the design: the
+page's own fluid rows (`.cb_container-fluid` with a `cb_px-lg-16` utility, the
+"ASK META AI" row right above the table) hold a fixed 64px against the screen
+edge however wide the screen gets. So `.ct_comparison` cancels its container's
+gutters with negative margins and re-applies `$section-padding-inline-desk`
+(64px, 16px compact) of its own.
+
+The two distances are **measured**, by `contents.js > measureBleed`, and written
+as `--ct-bleed-left` / `--ct-bleed-right`. They cannot be written in css:
+`calc(50vw - 50%)` is the usual trick and it is wrong twice — `vw` counts the
+scrollbar, so the section comes out wider than the viewport and drags the whole
+page into horizontal scroll, and it assumes the container is centred, which is
+the page's choice and not ours. The measurement is taken on the module's own
+container, never on the section: the section is the element the margins move, so
+reading it would feed its own displacement back in, while the container is a
+plain block whose width its parent decides and a child's negative margins do not
+touch.
+
+Both custom properties default to `0`, which is no bleed at all — the table
+simply stays inside its container, the way it did before. A failed or absent
+javascript therefore leaves it narrow, never broken and never overflowing. The
+critical css keeps that default on purpose: the skeleton ships before any
+javascript exists to take the measurement.
+
 One CSS grid governs the whole table: `200px` for the row labels, then one
 track per product. The head, the body and each row are `display: contents`, so
 they carry the table semantics (`role="row"`, `role="rowgroup"`) without
