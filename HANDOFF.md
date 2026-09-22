@@ -903,19 +903,32 @@ Aggiunto nella quinta sessione:
 - **Tre cose che si rompevano con due brand**, tutte sistemate qui:
 
   1. **URL di produzione identici.** `bootstrap.js` costruisce gli url da
-     `@assetPath@` senza segmento di variante, e `productionAsset` era uno solo:
-     LC e SGH avrebbero pubblicato `main__0.0.1.min.css`, `main__0.0.1.min.js` e
+     `@assetPath@`, e `productionAsset` era uno solo: LC e SGH avrebbero
+     pubblicato `main__0.0.1.min.css`, `main__0.0.1.min.js` e
      `json__0.0.1.json` allo stesso indirizzo, col secondo upload a cancellare
      il primo. **In sviluppo non si vede**, perché lì il json è già per-variante
-     — è la ragione per cui era sopravvissuto fin qui. Ora
-     `projectConfig.json > assetSubfolder` dà a LC una cartella sua; SGH resta
-     alla radice di proposito, perché è già online lì e spostarlo vorrebbe dire
-     ricaricare i file e ri-incollare il fragment per nulla.
-     `_config.js > assetPath` è diventata una **funzione**: era una costante
-     calcolata al require, cioè prima che `prompt.task.js` sappia quale variante
-     si sta costruendo.
-     ⚠️ La sottocartella vale **solo in produzione**: applicandola anche in dev
-     l'url diventa `./LC/json/LC/json.json` e fa 404. Pagata sul posto.
+     — è la ragione per cui era sopravvissuto fin qui.
+
+     Ora `projectConfig.json > assetPaths` sovrascrive **per intero** i due path
+     di produzione per variante, e `_config.js > assetPath`/`imagePath` sono
+     diventate **funzioni**: erano costanti calcolate al require, cioè prima che
+     `prompt.task.js` sappia quale variante si sta costruendo. SGH non ha voce e
+     usa quelli di `package.json`, che è dov'è già online.
+
+     ⚠️ Prima l'avevo risolta con una *sottocartella* dell'host SGH. Sbagliato:
+     i brand non condividono l'host. SGH è su `media.sunglasshut.com`, LC su
+     `media.lenscrafters.com` sotto un path di calendario campagna. È servito un
+     upload vero per scoprirlo.
+
+     ⚠️ L'override vale **solo in produzione**: applicandolo anche in dev l'url
+     diventa `./LC/json/LC/json.json` e fa 404. Pagata sul posto.
+
+     ⚠️ **Gli indirizzi sono cotti dentro il bundle in fase di build.** Il js sul
+     CDN non può scoprire il proprio indirizzo: cerca css e json dove gli hanno
+     detto quando è stato costruito. Se i file si spostano, quel brand va
+     **ricostruito, ricaricato e il fragment ri-incollato** — caricare il bundle
+     vecchio in una cartella nuova dà un modulo che parte, non trova il json e
+     si rimuove da solo. È successo: vedi §12.
   2. **Il critical css era uno solo, con i valori SGH cablati.** Viene inlinato
      nel fragment, quindi la pagina LC apriva con celle e raggi SGH finché non
      arrivava il css vero. Ora il corpo sta in `components/_critical.scss` e usa
@@ -987,3 +1000,52 @@ chiamata prodotto non funziona", la causa era un file non caricato. Da lì le du
 righe nuove in §8: confrontare sempre i `last-modified` di tutti e tre i file, e
 non fidarsi del proprio browser, che con `cache-control: immutable` si tiene il
 js vecchio per quattordici giorni.
+
+---
+
+## 12. Il primo upload di LC, e cosa ha rivelato
+
+22 settembre 2026. I file di release di LC sono stati caricati via FileZilla in
+
+```
+https://media.lenscrafters.com/2026/Calendar/Week_39_September/RBM_APEROL/table_component/
+```
+
+e la verifica dice: **così non funzionava**. Non per come erano stati caricati,
+ma per come erano stati costruiti.
+
+Il bundle caricato era cotto con `media.sunglasshut.com/table-comparison-component/LC/`
+dentro — la sottocartella che avevo previsto io, che non è dove i file sono
+finiti. In pagina sarebbe successo questo: il js si carica, poi chiede il foglio
+di stile e il json a quell'indirizzo, prende **404** su entrambi, e senza json
+**il modulo si rimuove da solo**. Nessun rendering, e in console una riga sola.
+
+Il difetto era nel meccanismo, non nell'upload: avevo dato per scontato che i
+brand condividessero l'host e che bastasse una sottocartella. Non lo
+condividono. Ora `projectConfig.json > assetPaths` sovrascrive host e path per
+intero, per variante.
+
+### Lo stato del CDN al momento del controllo
+
+| File | Stato |
+| --- | --- |
+| `main__0.0.1.min.js` | presente ma **della build sbagliata** — da ricaricare |
+| `main__0.0.1.min.css` | presente e **identico** alla build nuova |
+| `json__0.0.1.json` | presente e **identico** alla build nuova |
+| `img/LC/chevron-down.svg` | **mancante** |
+| `img/LC/badge-photo.svg` | **mancante** |
+
+⚠️ **Questo CDN risponde ai 404 con un PNG segnaposto da 4018 byte.** Quindi un
+`<img>` che punta a un'icona inesistente fa `onload` e sembra a posto: le icone
+vanno controllate leggendo lo **status**, non l'evento di caricamento. Ci sono
+cascato per un giro.
+
+### Quello che invece è a posto
+
+- **CORS.** `media.lenscrafters.com` riflette l'origine richiedente, quindi la
+  fetch del json passa sia da `www.lenscrafters.com` sia da `www.lenscrafters.ca`.
+  Verificato dall'origine vera: json 200 con i tre prodotti, css caricato.
+  ⚠️ Non riflette `localhost`, quindi il bundle di produzione **non** si può
+  provare da un server locale: quel test va fatto da una pagina del brand.
+- **SGH intatto.** `json`, `js` e `img/SGH/chevron-down.svg` rispondono 200 al
+  loro indirizzo di sempre, e la sua build non è cambiata.

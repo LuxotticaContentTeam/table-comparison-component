@@ -37,32 +37,41 @@ module.exports = {
    */
   conf: conf,
   isProd: process.env.NODE_ENV === "production",
-  imagePath: process.env.NODE_ENV === "production" ? conf.paths.productionImage : conf.paths.developmentImage,
   /**
-   * Base URL the built css/js/json are served from once uploaded. Every runtime
-   * asset URL is derived from it — see src/js/modules/bootstrap.js.
+   * Where the built files are served from once uploaded, and where a relative
+   * image value in the json resolves. Every runtime URL is derived from these
+   * two — see src/js/modules/bootstrap.js and contents.js.
    *
-   * It is a FUNCTION, not a value, and it has to be: the variant is chosen by
-   * tasks/prompt.task.js at run time, long after gulpfile.js has required every
-   * task module, so a constant captured here would always be the unqualified
-   * path.
+   * They are FUNCTIONS, not values, and they have to be: the variant is chosen
+   * by tasks/prompt.task.js at run time, long after gulpfile.js has required
+   * every task module, so a constant captured here would always be the default
+   * brand's.
    *
-   * Two variants would otherwise publish the same three filenames to the same
-   * folder and overwrite each other — invisible in development, where the json
-   * is already per-variant, and fatal in production. projectConfig.json >
-   * assetSubfolder gives a variant a folder of its own. SGH deliberately has no
-   * entry: it is already deployed at the unqualified path, and moving it would
-   * mean re-uploading it and re-pasting the CoreMedia fragment for nothing.
+   * **Each brand uploads to its own place.** Not a subfolder of one host — a
+   * different host entirely: SGH is on media.sunglasshut.com, LC on
+   * media.lenscrafters.com under a campaign-calendar path. Two brands publishing
+   * the same three filenames to one folder would also overwrite each other,
+   * which is invisible in development, where dist/ is already per-variant.
+   *
+   * So projectConfig.json > assetPaths holds a full override per variant. A
+   * brand with no entry — SGH — uses the package.json values, which is what it
+   * is already deployed at.
+   *
+   * ⚠️ These are baked into the bundle at build time. Move a brand's files and
+   * that brand has to be rebuilt and re-uploaded; the js on the CDN cannot
+   * discover its own new address.
    */
+  imagePath: () => {
+    if (process.env.NODE_ENV !== "production") return conf.paths.developmentImage;
+
+    const override = (projectConfigurations.assetPaths || {})[global.selectedVariant] || {};
+    return override.productionImage || conf.paths.productionImage;
+  },
   assetPath: () => {
     if (process.env.NODE_ENV !== "production") return conf.paths.developmentAsset;
 
-    // Production only: in development dist/ is already per-variant and the json
-    // url carries @currentVariant@ of its own, so appending the folder here
-    // would ask for ./LC/json/LC/json.json and 404.
-    const subfolder = (projectConfigurations.assetSubfolder || {})[global.selectedVariant] || "";
-
-    return `${conf.paths.productionAsset}${subfolder}`;
+    const override = (projectConfigurations.assetPaths || {})[global.selectedVariant] || {};
+    return override.productionAsset || conf.paths.productionAsset;
   },
   proxyPath: process.env.NODE_ENV === "production" ? "" : conf.paths.proxy,
   now: Date.now(),

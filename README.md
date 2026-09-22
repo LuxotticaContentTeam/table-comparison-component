@@ -593,11 +593,14 @@ Sass compiles happily.
 
 Four more things the scaffolding cannot know, all learned adding LC:
 
-1. **Give the brand its own `assetSubfolder`** in `projectConfig.json` unless it
-   is the one already deployed at the root. Without it two brands publish
-   `main__<version>.min.css`, `main__<version>.min.js` and
-   `json__<version>.json` to the same url and overwrite each other. It does not
-   show up in development, where `dist/` is already per-variant.
+1. **Give the brand its own `assetPaths` entry** in `projectConfig.json` unless
+   it uploads to the default host. Every brand has its own media host, and two
+   brands sharing one would publish `main__<version>.min.css`,
+   `main__<version>.min.js` and `json__<version>.json` to the same url and
+   overwrite each other. It does not show up in development, where `dist/` is
+   already per-variant. Get this wrong and the module loads but removes itself:
+   it fetches its json from wherever it was **built** to look, not from where
+   it was uploaded.
 2. **Copy the icons into `src/static/images/<BRAND>/`** even when they are
    identical to another brand's, and point the json at the new folder.
    `tasks/staticAsset.task.js` strips the other brands' folders out of a build,
@@ -617,15 +620,22 @@ Four more things the scaffolding cannot know, all learned adding LC:
 | --- | --- | --- |
 | `projectName` | `table-comparison-component` | Drives the container id `#ct_cm--table-comparison-component`, the config object `ct_cm__tableComparisonComponentConfig` and the `data-ct-css` marker on the injected stylesheet. Brand-neutral on purpose: every variant shares them. |
 | `variants` | `SGH`, `LC` | Brand code is the part before the first `_`, and must exist in `BRANDS` in `tasks/_config.js`. |
-| `assetSubfolder` | `{ "LC": "LC/" }` | Appended to `productionAsset` for that variant, so two brands do not publish the same three filenames to the same url. **Production only** — in a dev build `dist/` is already per-variant and the json url carries `@currentVariant@` of its own. SGH has no entry on purpose: it is already deployed at the unqualified path, and moving it would mean re-uploading it and re-pasting the CoreMedia fragment to no benefit. |
+| `assetPaths` | `{ "LC": { productionAsset, productionImage } }` | A **full** override of the two production paths, per variant — brands do not share a host: SGH is on `media.sunglasshut.com`, LC on `media.lenscrafters.com` under a campaign-calendar path. A variant with no entry uses the `package.json` values, which is what SGH is already deployed at. **Production only**: a dev build serves from `dist/`, which is already per-variant. |
+
+⚠️ **These are baked into the bundle at build time.** The js on the CDN cannot
+discover its own address: it derives the stylesheet and the content json from
+whatever `productionAsset` said when it was built. Move a brand's files and that
+brand must be **rebuilt and re-uploaded**, and its fragment re-pasted — uploading
+the old bundle to a new folder gives a module that loads, fetches its json from
+the old address, gets a 404 and removes itself.
 
 Asset paths live in `package.json` > `projectConfigurations.paths`, and both
 production values are set:
 
 | Key | Value | Notes |
 | --- | --- | --- |
-| `productionAsset` | `https://media.sunglasshut.com/table-comparison-component/` | The one that matters for a live fragment. Every runtime url — stylesheet, json, script — is derived from it, substituted into the bundle as `@assetPath@`, with `assetSubfolder` appended for the variants that have one. Trailing slash included, always. |
-| `productionImage` | `https://media.sunglasshut.com/table-comparison-component/img/` | Where a relative image value in the json resolves, as `@imagePath@`. Shared by every brand — `assetSubfolder` does not apply here. The brand folder is part of the json value, so the chevron lands at `…/img/SGH/chevron-down.svg` or `…/img/LC/chevron-down.svg`. |
+| `productionAsset` | `https://media.sunglasshut.com/table-comparison-component/` | The one that matters for a live fragment. Every runtime url — stylesheet, json, script — is derived from it, substituted into the bundle as `@assetPath@`. It is the **default**; a variant listed in `projectConfig.json > assetPaths` uses its own instead. Trailing slash included, always. |
+| `productionImage` | `https://media.sunglasshut.com/table-comparison-component/img/` | Where a relative image value in the json resolves, as `@imagePath@`. Overridable per variant the same way. The brand folder is part of the json value, so the chevron lands at `…/img/SGH/chevron-down.svg` on SGH and `…/img/LC/chevron-down.svg` on LC. |
 | `developmentAsset` / `developmentImage` | `./` and `./static/images/` | The same two tokens in a dev build, served by BrowserSync out of `dist/`. |
 
 There is no `productionConf`. The boilerplate declared one and substituted it as

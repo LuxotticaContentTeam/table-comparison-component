@@ -119,7 +119,7 @@ const js = (done) => {
           .pipe($.if(!isProd, $.sourcemaps.write("./maps")))
           .pipe(replace("@env@", isProd ? "production" : "development"))
           .pipe(replace("@buildVersion@", buildVersion))
-          .pipe(replace("@imagePath@", imagePath))
+          .pipe(replace("@imagePath@", imagePath()))
           .pipe(replace("@assetPath@", assetPath()))
           .pipe(replace("@language@", global.projLanguage ? global.projLanguage : ""))
           .pipe(replace("@proxyPath@", proxyPath))

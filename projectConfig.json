@@ -2,7 +2,10 @@
   "projectName": "table-comparison-component",
   "serveInNewTab": false,
   "variants": ["SGH", "LC"],
-  "assetSubfolder": {
-    "LC": "LC/"
+  "assetPaths": {
+    "LC": {
+      "productionAsset": "https://media.lenscrafters.com/2026/Calendar/Week_39_September/RBM_APEROL/table_component/",
+      "productionImage": "https://media.lenscrafters.com/2026/Calendar/Week_39_September/RBM_APEROL/table_component/img/"
+    }
   }
 }
