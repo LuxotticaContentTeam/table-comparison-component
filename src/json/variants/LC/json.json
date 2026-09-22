@@ -1,13 +1,14 @@
 {
   "_meta": {
-    "locales": "Four locales: en-us, en-ca, es-mx, fr-ca — the markets LC ships. ⚠️ ONLY en-us AND en-ca ARE REAL: es-mx and fr-ca carry the English copy verbatim as placeholders, so the keys exist for the copy team to fill and the table is never blank. Until they are translated those two markets read English, which is what getTrad's fallback would have done anyway — the difference is that a present key wins over the fallback, so these have to be overwritten rather than added. The one rule is never to leave a key as an empty string: the country key is matched before the fallback runs, so an empty fr-ca renders blank instead of falling through.",
-    "source": "Figma \"LC_RBM Aperol - Luna\": desktop 5720:35673, compact 5720:35891. Row copy and cell copy are transcribed from the desktop frame's three product columns, left to right: Gen 2, Gen 3, Blayzer. Design tokens are in src/scss/variants/LC/_variables.scss; this file carries only content.",
-    "figmaDeviations": "Two deliberate departures from the frame, both slips rather than choices. (1) The frame's meta-ai line for the third column reads \"MMAl AI not available (no camera)\" — capital i for a lowercase L, and the acronym doubled. Set to \"MMAI not available (no camera)\". (2) The frame gives all THREE columns the \"CAMERA + AUDIO\" badge, including the one whose every row says it has no camera: the instance was left at its default. The badge is omitted on Blayzer rather than authored as a contradiction.",
-    "products": "THREE products, as the frame has them. Above two products the compact switcher appears instead of the \"only differences\" toggle, so family and shortName are populated on all three — they are what the switcher shows.",
-    "productCodes": "products[].upc is the ONLY product field authored here: name fallback, packshot, price and the PDP link all come from the product service keyed by that UPC. VERIFIED 2026-09-21 against production on www.lenscrafters.com (store 10851) and www.lenscrafters.ca (store 10852): all three resolve on both. US: Gen 2 0RW4012 $379 (unavailable), Gen 3 0RW4011 $479, Blayzer 0RW7001 $499. Canada: Gen 2 CAD 519, Gen 3 CAD 599.",
+    "locales": "Four locales: en-us, en-ca, es-mx, fr-ca — the markets LC ships. ⚠️ ONLY en-us AND en-ca ARE REAL: es-mx and fr-ca carry the English copy verbatim as placeholders, so the keys exist for the copy team to fill and the table is never blank. A present key WINS over the fallback, so these have to be overwritten rather than added. Never leave a key as an empty string: the country key is matched before the fallback runs, so an empty fr-ca renders blank instead of falling through.",
+    "source": "Figma \"LC_RBM Aperol - Luna\": desktop 5720:35673, compact 5720:35891. Design tokens are in src/scss/variants/LC/_variables.scss; this file carries only content.",
+    "products": "THREE products, in the order the campaign asked for: Gen 2, Gen 2 Optics, Gen 3. Above two products the compact switcher appears instead of the \"only differences\" toggle, so family and shortName are populated on all three — they are what the switcher shows.",
+    "productCopy": "Gen 2 and Gen 2 Optics carry the SAME specification, deliberately: an Optics is the same device with a prescription-ready lens, and the frame's first two columns show the same camera block. Gen 3 is the column with the 36% smaller camera, the 6-mic array, 9 hours and 50 additional. ⚠️ If the Optics differs anywhere — the Lenses row is the likely one — that row is the one to edit, and only on rbm-gen-2-optics.",
+    "productCodes": "products[].upc is the ONLY product field authored here: name fallback, packshot, price and the PDP link all come from the product service keyed by that UPC. VERIFIED 2026-09-22 against production on www.lenscrafters.com (store 10851): Gen 2 8056262721384 = 0RW4012 Clear/Grey $459, Gen 2 Optics 8056262944561 = 0RW7001 Demo Lens $499, Gen 3 8056266259852 = 0RW4016 Clear/Green Gradient $529. All three in stock.",
     "productService": "LC is NOT on the service SGH uses — that path answers 404 here. It is on /AjaxPartNumberView, which needs a catalogId, nests its products at products.products.product[], returns listPrice as the literal \"$ 0\" and carries no ISO currency code. See src/js/variants/LC/product_service.js. Two consequences for authoring: there is never a struck-through price or a discount badge on this brand, and the currency is read from the page rather than the response.",
-    "nameBadge": "products[].nameBadge is the pill beside the product name, and it is OPTIONAL. Populated it renders, omitted it emits no markup at all. It is a locale map like every other authored string, so it is per market too. It is NOT products[].badge, which is the line under the name with its icon. In the frame it sits on Blayzer, the new model. Authored in natural case, because the pill is uppercased in CSS.",
-    "icons": "Icon values resolve against package.json > projectConfigurations.paths.productionImage, so the brand subfolder is part of the value — LC/, not SGH/. The svg files are byte-identical copies of the SGH ones, and they have to be copies: tasks/staticAsset.task.js excludes the other brands' folders from a build, so an LC json pointing at SGH/ would ship a broken icon.",
+    "nameBadge": "products[].nameBadge is the pill beside the product name, and it is OPTIONAL. Populated it renders, omitted it emits no markup at all. It is a locale map like every other authored string, so it is per market too. It is NOT products[].badge, which is the line under the name with its icon. It sits on Gen 3, the newest of the three. Authored in natural case, because the pill is uppercased in CSS.",
+    "colorCount": "products[].meta — the \"3 Colors\" line above the name — is NOT authored on this brand: nobody has LC's counts, and inventing them would be worse than omitting them. Omitting it on all three also keeps the columns level, since the line is what pushes the name down.",
+    "icons": "Icon values resolve against package.json > projectConfigurations.paths.productionImage, so the brand subfolder is part of the value — LC/, not SGH/. On the CDN they live at <productionImage>/LC/, i.e. img/LC/, in that order: img/ comes from the path, LC/ from the value here. The svg files are byte-identical copies of the SGH ones, and they have to be copies: tasks/staticAsset.task.js excludes the other brands' folders from a build.",
     "devOrigin": "comparison.api.devOrigin is development only and ignored in a production build: it is the storefront the CORS proxy (npm run proxy) is aimed at. Set to www.lenscrafters.com, which is verified answering. Point it at www.lenscrafters.ca to exercise the Canadian store and its CAD prices — note Canada is a separate DOMAIN on this brand, not a path."
   },
   "comparison": {
@@ -135,7 +136,7 @@
       {
         "id": "rbm-gen-2",
         "upc": {
-          "en-us": "8056262721339"
+          "en-us": "8056262721384"
         },
         "name": {
           "en-us": "Ray-Ban | Meta Gen 2",
@@ -155,11 +156,292 @@
           "es-mx": "Gen 2",
           "fr-ca": "Gen 2"
         },
-        "meta": {
-          "en-us": "4 Colors",
-          "en-ca": "4 Colors",
-          "es-mx": "4 Colors",
-          "fr-ca": "4 Colors"
+        "badge": {
+          "label": {
+            "en-us": "Camera + Audio",
+            "en-ca": "Camera + Audio",
+            "es-mx": "Camera + Audio",
+            "fr-ca": "Camera + Audio"
+          },
+          "icon": "LC/badge-photo.svg"
+        },
+        "cells": {
+          "camera": {
+            "value": {
+              "en-us": [
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ],
+              "en-ca": [
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ],
+              "es-mx": [
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ],
+              "fr-ca": [
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ]
+            }
+          },
+          "audio": {
+            "value": {
+              "en-us": [
+                "5-mic array with immersive audio recording",
+                "Up to 5 hours continuous audio",
+                "5.5 hours continuous phone calls"
+              ],
+              "en-ca": [
+                "5-mic array with immersive audio recording",
+                "Up to 5 hours continuous audio",
+                "5.5 hours continuous phone calls"
+              ],
+              "es-mx": [
+                "5-mic array with immersive audio recording",
+                "Up to 5 hours continuous audio",
+                "5.5 hours continuous phone calls"
+              ],
+              "fr-ca": [
+                "5-mic array with immersive audio recording",
+                "Up to 5 hours continuous audio",
+                "5.5 hours continuous phone calls"
+              ]
+            }
+          },
+          "meta-ai": {
+            "value": {
+              "en-us": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ],
+              "en-ca": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ],
+              "es-mx": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ],
+              "fr-ca": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ]
+            }
+          },
+          "lenses": {
+            "value": {
+              "en-us": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ],
+              "en-ca": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ],
+              "es-mx": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ],
+              "fr-ca": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ]
+            }
+          },
+          "case": {
+            "value": {
+              "en-us": [
+                "133 gr",
+                "Up to 8 hours of use on a single charge",
+                "Up to 48 additional hours with fully charged case"
+              ],
+              "en-ca": [
+                "133 gr",
+                "Up to 8 hours of use on a single charge",
+                "Up to 48 additional hours with fully charged case"
+              ],
+              "es-mx": [
+                "133 gr",
+                "Up to 8 hours of use on a single charge",
+                "Up to 48 additional hours with fully charged case"
+              ],
+              "fr-ca": [
+                "133 gr",
+                "Up to 8 hours of use on a single charge",
+                "Up to 48 additional hours with fully charged case"
+              ]
+            }
+          },
+          "memory": {
+            "value": {
+              "en-us": [
+                "32GB flash storage",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ],
+              "en-ca": [
+                "32GB flash storage",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ],
+              "es-mx": [
+                "32GB flash storage",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ],
+              "fr-ca": [
+                "32GB flash storage",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ]
+            }
+          },
+          "connectivity": {
+            "value": {
+              "en-us": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "en-ca": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "es-mx": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "fr-ca": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ]
+            }
+          },
+          "water-resistance": {
+            "value": {
+              "en-us": [
+                "Water resistance IPX4"
+              ],
+              "en-ca": [
+                "Water resistance IPX4"
+              ],
+              "es-mx": [
+                "Water resistance IPX4"
+              ],
+              "fr-ca": [
+                "Water resistance IPX4"
+              ]
+            }
+          },
+          "compatible-apps": {
+            "value": {
+              "en-us": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "en-ca": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "es-mx": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "fr-ca": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "rbm-gen-2-optics",
+        "upc": {
+          "en-us": "8056262944561"
+        },
+        "name": {
+          "en-us": "Ray-Ban | Meta Gen 2 Optics",
+          "en-ca": "Ray-Ban | Meta Gen 2 Optics",
+          "es-mx": "Ray-Ban | Meta Gen 2 Optics",
+          "fr-ca": "Ray-Ban | Meta Gen 2 Optics"
+        },
+        "family": {
+          "en-us": "Ray-Ban Meta",
+          "en-ca": "Ray-Ban Meta",
+          "es-mx": "Ray-Ban Meta",
+          "fr-ca": "Ray-Ban Meta"
+        },
+        "shortName": {
+          "en-us": "Gen 2 Optics",
+          "en-ca": "Gen 2 Optics",
+          "es-mx": "Gen 2 Optics",
+          "fr-ca": "Gen 2 Optics"
         },
         "badge": {
           "label": {
@@ -428,7 +710,13 @@
       {
         "id": "rbm-gen-3",
         "upc": {
-          "en-us": "8056266261459"
+          "en-us": "8056266259852"
+        },
+        "nameBadge": {
+          "en-us": "New",
+          "en-ca": "New",
+          "es-mx": "New",
+          "fr-ca": "New"
         },
         "name": {
           "en-us": "Ray-Ban | Meta Gen 3",
@@ -447,12 +735,6 @@
           "en-ca": "Gen 3",
           "es-mx": "Gen 3",
           "fr-ca": "Gen 3"
-        },
-        "meta": {
-          "en-us": "3 Colors",
-          "en-ca": "3 Colors",
-          "es-mx": "3 Colors",
-          "fr-ca": "3 Colors"
         },
         "badge": {
           "label": {
@@ -709,246 +991,6 @@
                 "Amazon Music",
                 "Shazam",
                 "Be My Eyes"
-              ]
-            }
-          }
-        }
-      },
-      {
-        "id": "rbm-blayzer",
-        "upc": {
-          "en-us": "8056262944561"
-        },
-        "nameBadge": {
-          "en-us": "New",
-          "en-ca": "New",
-          "es-mx": "New",
-          "fr-ca": "New"
-        },
-        "name": {
-          "en-us": "Ray-Ban | Meta Blayzer",
-          "en-ca": "Ray-Ban | Meta Blayzer",
-          "es-mx": "Ray-Ban | Meta Blayzer",
-          "fr-ca": "Ray-Ban | Meta Blayzer"
-        },
-        "family": {
-          "en-us": "Ray-Ban Meta",
-          "en-ca": "Ray-Ban Meta",
-          "es-mx": "Ray-Ban Meta",
-          "fr-ca": "Ray-Ban Meta"
-        },
-        "shortName": {
-          "en-us": "Blayzer",
-          "en-ca": "Blayzer",
-          "es-mx": "Blayzer",
-          "fr-ca": "Blayzer"
-        },
-        "cells": {
-          "camera": {
-            "value": {
-              "en-us": [
-                "No camera"
-              ],
-              "en-ca": [
-                "No camera"
-              ],
-              "es-mx": [
-                "No camera"
-              ],
-              "fr-ca": [
-                "No camera"
-              ]
-            }
-          },
-          "audio": {
-            "value": {
-              "en-us": [
-                "6-mic array with immersive audio recording and advanced wind noise reduction"
-              ],
-              "en-ca": [
-                "6-mic array with immersive audio recording and advanced wind noise reduction"
-              ],
-              "es-mx": [
-                "6-mic array with immersive audio recording and advanced wind noise reduction"
-              ],
-              "fr-ca": [
-                "6-mic array with immersive audio recording and advanced wind noise reduction"
-              ]
-            }
-          },
-          "meta-ai": {
-            "value": {
-              "en-us": [
-                "AI Chatbot",
-                "Text translation",
-                "Live translation",
-                "MMAI not available (no camera)",
-                "Live AI not available (no camera)"
-              ],
-              "en-ca": [
-                "AI Chatbot",
-                "Text translation",
-                "Live translation",
-                "MMAI not available (no camera)",
-                "Live AI not available (no camera)"
-              ],
-              "es-mx": [
-                "AI Chatbot",
-                "Text translation",
-                "Live translation",
-                "MMAI not available (no camera)",
-                "Live AI not available (no camera)"
-              ],
-              "fr-ca": [
-                "AI Chatbot",
-                "Text translation",
-                "Live translation",
-                "MMAI not available (no camera)",
-                "Live AI not available (no camera)"
-              ]
-            }
-          },
-          "lenses": {
-            "value": {
-              "en-us": [
-                "Sun",
-                "Transitions®",
-                "Clear"
-              ],
-              "en-ca": [
-                "Sun",
-                "Transitions®",
-                "Clear"
-              ],
-              "es-mx": [
-                "Sun",
-                "Transitions®",
-                "Clear"
-              ],
-              "fr-ca": [
-                "Sun",
-                "Transitions®",
-                "Clear"
-              ]
-            }
-          },
-          "case": {
-            "value": {
-              "en-us": [
-                "133 gr",
-                "Up to 12 hours of use on a single charge",
-                "Up to 48 additional hours with fully charged case"
-              ],
-              "en-ca": [
-                "133 gr",
-                "Up to 12 hours of use on a single charge",
-                "Up to 48 additional hours with fully charged case"
-              ],
-              "es-mx": [
-                "133 gr",
-                "Up to 12 hours of use on a single charge",
-                "Up to 48 additional hours with fully charged case"
-              ],
-              "fr-ca": [
-                "133 gr",
-                "Up to 12 hours of use on a single charge",
-                "Up to 48 additional hours with fully charged case"
-              ]
-            }
-          },
-          "memory": {
-            "value": {
-              "en-us": [
-                "Not applicable (no camera)"
-              ],
-              "en-ca": [
-                "Not applicable (no camera)"
-              ],
-              "es-mx": [
-                "Not applicable (no camera)"
-              ],
-              "fr-ca": [
-                "Not applicable (no camera)"
-              ]
-            }
-          },
-          "connectivity": {
-            "value": {
-              "en-us": [
-                "Bluetooth 5.3"
-              ],
-              "en-ca": [
-                "Bluetooth 5.3"
-              ],
-              "es-mx": [
-                "Bluetooth 5.3"
-              ],
-              "fr-ca": [
-                "Bluetooth 5.3"
-              ]
-            }
-          },
-          "water-resistance": {
-            "value": {
-              "en-us": [
-                "Water resistance IPX4"
-              ],
-              "en-ca": [
-                "Water resistance IPX4"
-              ],
-              "es-mx": [
-                "Water resistance IPX4"
-              ],
-              "fr-ca": [
-                "Water resistance IPX4"
-              ]
-            }
-          },
-          "compatible-apps": {
-            "value": {
-              "en-us": [
-                "Meta AI",
-                "Facebook",
-                "Instagram",
-                "Whatsapp",
-                "Messenger",
-                "Spotify",
-                "Apple Music",
-                "Amazon Music",
-                "Shazam"
-              ],
-              "en-ca": [
-                "Meta AI",
-                "Facebook",
-                "Instagram",
-                "Whatsapp",
-                "Messenger",
-                "Spotify",
-                "Apple Music",
-                "Amazon Music",
-                "Shazam"
-              ],
-              "es-mx": [
-                "Meta AI",
-                "Facebook",
-                "Instagram",
-                "Whatsapp",
-                "Messenger",
-                "Spotify",
-                "Apple Music",
-                "Amazon Music",
-                "Shazam"
-              ],
-              "fr-ca": [
-                "Meta AI",
-                "Facebook",
-                "Instagram",
-                "Whatsapp",
-                "Messenger",
-                "Spotify",
-                "Apple Music",
-                "Amazon Music",
-                "Shazam"
               ]
             }
           }
