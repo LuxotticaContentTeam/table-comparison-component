@@ -13,13 +13,12 @@ Built on `dev-boilerplate-modules`, with the build pipeline taken from
 [The build pipeline](#the-build-pipeline)). This repository is independent from
 both: no shared remote, no shared history.
 
-Design: Figma `SGH - RB META APEROL` — `1020-42173` desktop, `1020-47170`
-mobile, `1020-36519` the title (which the Figma files under mobile but which
-ships on desktop too). **The CSS is SGH's, at every product count.** Two frames
-in `LC_RBM Aperol - Luna` were read for structure the SGH file does not cover —
-`5720-35673` (three products on desktop) and `5720-35891` (the compact product
-switcher) — but that is a different brand's design system and none of its
-values ship here. See [Design](#design).
+Two brands ship today, each from its own design file and its own tokens:
+**SGH** from Figma `SGH - RB META APEROL` (`1020-42173` desktop, `1020-47170`
+mobile, `1020-36519` the title, which the Figma files under mobile but which
+ships on desktop too) and **LC** from `LC_RBM Aperol - Luna` (`5720-35673`
+desktop, `5720-35891` compact). Nothing of one brand's design reaches the
+other's build. See [Design](#design).
 
 **HANDOFF.md** sits next to this file and covers what this one does not: the
 decisions taken and why, what was tried and rejected, the storefront research
@@ -72,16 +71,18 @@ src/
   views/main/main.pug                        module container + table skeleton, shared
   views/main/<BRAND>/main.pug                brand-specific markup, if any
   views/main/<BRAND>/live/live.html          asset script tag for the release preview (build tokens, not hand-edited)
-  scss/critical.scss                         the only css that travels in the fragment
   scss/components/_comparison-table.scss     layout, toggle, dropdowns — shared
+  scss/components/_critical.scss             the only css that travels in the fragment — shared
   scss/variants/<BRAND>/_variables.scss      design tokens, per brand
   scss/variants/<BRAND>/main.scss            imports the shared component
+  scss/variants/<BRAND>/critical.scss        imports the shared critical css
   js/main.js                                 entry: css, json, info store, lazy init
   js/contents.js                             builds the table from the json
   js/modules/bootstrap.js                    injects the stylesheet, fetches the json
   js/modules/comparisonState.js              which products are on screen, filter state
-  js/modules/productApi.js                   live price, PDP link and packshot
+  js/modules/productApi.js                   orchestrates the product lookup — brand-agnostic
   js/variants/<BRAND>/info_store.js          locale detection, per brand
+  js/variants/<BRAND>/product_service.js     which storefront service to call, and how to read it
   json/variants/<BRAND>/json.json            copy, rows and products, per locale
   static/images/<BRAND>/                     images, namespaced per brand
   static/fonts/<BRAND>/                      dev-only webfonts
@@ -736,24 +737,33 @@ A build produces **two** deliverables, from the same sources, both in `dist/`.
 | Use it for | a self-contained paste, no hosting available | **a CoreMedia row** |
 
 `fragment.html` is the one to paste into CoreMedia. The only css it carries
-inline is `scss/critical.scss` — geometry only, so the empty skeleton occupies
-roughly the space the filled table will and the page does not jump.
+inline is the brand's critical css — geometry only, so the empty skeleton
+occupies roughly the space the filled table will and the page does not jump.
+It is built per variant, from `scss/variants/<BRAND>/critical.scss`, so each
+brand's skeleton comes up in its own geometry.
 
 ### Publishing it, step by step
 
-**1. The asset base url is already set** — this step is done, and is here so
-the mechanism is on record. `package.json` > `projectConfigurations.paths`:
+**1. The asset base url is already set, per brand** — this step is done, and is
+here so the mechanism is on record. The defaults live in `package.json` >
+`projectConfigurations.paths` and are SGH's; every other brand overrides them
+in `projectConfig.json` > `assetPaths`:
 
-```json
-"productionAsset": "https://media.sunglasshut.com/table-comparison-component/",
-"productionImage": "https://media.sunglasshut.com/table-comparison-component/img/"
+```
+SGH   https://media.sunglasshut.com/table-comparison-component/
+LC    https://media.lenscrafters.com/2026/Calendar/Week_39_September/RBM_APEROL/table_component/
 ```
 
-Every runtime url — stylesheet, json, script — is derived from the first value,
+Every runtime url — stylesheet, json, script — is derived from that value,
 substituted into the bundle at build time as `@assetPath@`; relative image
-values in the json resolve against the second, as `@imagePath@`. Nothing else
-hardcodes either. Both need the **trailing slash**: the module concatenates, it
-does not join paths.
+values in the json resolve against the matching image path, as `@imagePath@`.
+Nothing else hardcodes either. Both need the **trailing slash**: the module
+concatenates, it does not join paths.
+
+⚠️ They are baked in at build time. **Move a brand's files and that brand has to
+be rebuilt, re-uploaded and its fragment re-pasted** — the js on the CDN cannot
+discover its own new address, so it keeps asking the old one and, finding no
+json there, removes the module from the page.
 
 **2. Bump `package.json` > `version`** before cutting a release the previous one
 must outlive. Nothing increments it: build twice without touching it and the
@@ -812,6 +822,19 @@ They should all be from the upload you just did. If one lags, that file did not
 go up — see [Three things that bite](#three-things-that-bite) for why a stale js
 against a fresh json fails the way it does.
 
+⚠️ **Compare the file on the CDN with the one in `release/`, not what the page
+renders.** These files go out with `cache-control: max-age=604800` — seven days
+— so a correct upload can sit behind a stale copy in your browser and at the
+edge. A page still showing yesterday's products after a good upload is the cache,
+not the json; hard-reload with the cache emptied, and purge the path if it
+persists. This has already been mistaken for a broken deploy once.
+
+⚠️ **Check the icons by status code, not by looking at them.** The LC media host
+answers a 404 with a 4018-byte placeholder PNG, so a missing icon *loads*: an
+`<img>` fires `onload` and the table shows a squashed grey blob rather than a
+broken-image marker. `naturalWidth` gives it away — 16 for the real svg, 224 for
+the placeholder.
+
 **6. Paste `dist/fragment.html`** — the whole file, from `<style>` to
 `</script>` — into the CoreMedia row. Nothing else goes in the row.
 
@@ -865,7 +888,8 @@ already in CoreMedia does not have to be touched — including when you add or
 remove a product or a row, because the skeleton is generic and the real table
 is built at runtime.
 
-The exception is `scss/critical.scss`: it is **inlined into `fragment.html`**,
+The exception is the critical css (`scss/components/_critical.scss`, compiled
+per variant): it is **inlined into `fragment.html`**,
 so a stale copy in CoreMedia keeps overriding the stylesheet you upload
 afterwards. Re-paste the fragment whenever the critical css changes —
 re-uploading the three asset files is not enough. The same applies to the
@@ -1055,23 +1079,25 @@ non-English market the module is published to.
 
 ### Before it can go live
 
-- **The Gen 3 UPC resolves nowhere.** `upc` on both products now holds the
-  real articles — Gen 3 `8056266261459`, Gen 2 `8056262721339` — in place of
-  the Gen 1 Wayfarer / Headliner placeholders (`8056597988377` /
-  `8056597988391`) the module launched with. The Gen 2 one is good: checked
-  against production on 2026-09-21 it answers on `/us`, `/ca-en`, `/uk`,
-  `/au`, `/de`, `/fr` and `/es` as `0RW4012` "Ray-Ban Meta (Gen 2) Wayfarer",
-  $379.00 and `isOutOfStock`. **The Gen 3 one answers on none of the nine
-  stores checked**, and `/us/ray-ban-meta-gen-3` is a 404 — because the product
-  has not gone live yet. The UPC is right and there is no code to chase: the
-  catalog starts answering at launch and the column completes itself. Until
-  then it renders its copy with no packshot, no price and no link, which is the
-  designed degradation. **Re-check at go-live** which markets carry it.
+Both are **SGH only** — LC is authored with its three real products and
+verified in page.
 
-Also worth closing before it goes live: the Gen 2 is missing from `/mx` and
-`/nl` — the same two markets that were missing the placeholders — so those two
-need either their own `upc` key or the knowledge that the column degrades
-there. See `_meta.api._upcMissing`.
+- **SGH's Gen 3 UPC resolves nowhere.** `8056266261459` answers on none of the
+  nine stores checked on 2026-09-21, and `/us/ray-ban-meta-gen-3` is a 404,
+  because the product has not gone live on that brand yet. The UPC is right and
+  there is no code to chase: the catalog starts answering at launch and the
+  column completes itself. Until then it renders its copy with no packshot, no
+  price and no link, which is the designed degradation. **Re-check at go-live**
+  which markets carry it. Its Gen 2, `8056262721339`, is good — `0RW4012`,
+  $379.00, `isOutOfStock` — on `/us`, `/ca-en`, `/uk`, `/au`, `/de`, `/fr` and
+  `/es`.
+
+- **`/mx` and `/nl` do not carry SGH's Gen 2 either**, so those two need either
+  their own `upc` key or the knowledge that the column degrades there. See
+  `_meta.api._upcMissing`.
+
+⚠️ The two brands are different catalogs: LC's Gen 3 is `8056266259852` and
+resolves, SGH's is `8056266261459` and does not. They are not interchangeable.
 
 ### Waiting on a decision, not on code
 

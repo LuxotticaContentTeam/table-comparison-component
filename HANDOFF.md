@@ -5,7 +5,7 @@ schema JSON, deploy passo passo): questo file è complementare e contiene quello
 che il README non dice — le decisioni prese in conversazione, cosa è stato
 provato e scartato, e le trappole già pagate una volta.
 
-Ultimo aggiornamento: 21 settembre 2026 (quinta sessione, con il deploy su stage, il passaggio dell'intestazione a CoreMedia, e la sostituzione degli UPC placeholder con gli articoli reali).
+Ultimo aggiornamento: 22 settembre 2026 — la sessione in cui il modulo è diventato **multi-brand**: variante LensCrafters completa, adapter del servizio prodotto per brand, badge "New", e il primo deploy di LC verificato in pagina.
 
 ---
 
@@ -14,20 +14,23 @@ Ultimo aggiornamento: 21 settembre 2026 (quinta sessione, con il deploy su stage
 | | |
 | --- | --- |
 | Nome | `table-comparison-component` — il typo `tabel` è stato corretto ovunque, repo GitHub compresa |
-| Branch | `develop`, pushato. Su `master` c'è solo l'Initial commit |
-| Commit | tre: il build iniziale, le otto lingue, il passaggio al servizio prodotto documentato |
-| Build | verde. `VARIANT=SGH npm run build` produce `dist/fragment.html` (~7 KB) |
+| Branch | `develop`. Su `master` c'è solo l'Initial commit |
+| Build | verde su entrambe le varianti. `VARIANT=<brand> RELEASE=yes npm run build` |
 | Versione | `0.0.1` |
-| Brand | `SGH` e `LC` in `projectConfig.json`. LC pubblica in `…/table-comparison-component/LC/`, SGH alla radice |
-| Asset | `https://media.sunglasshut.com/table-comparison-component/` — icone in `img/SGH/` |
+| Brand | `SGH` e `LC` in `projectConfig.json` |
+| Asset SGH | `https://media.sunglasshut.com/table-comparison-component/` — icone in `img/SGH/` |
+| Asset LC | `https://media.lenscrafters.com/2026/Calendar/Week_39_September/RBM_APEROL/table_component/` — icone in `img/LC/` |
+| Online | SGH su stage SGH; LC su `stg.lenscrafters.com` (WCS), verificato in pagina |
 
-Il modulo è **funzionalmente e visivamente completo** e non ha più segnaposto di
-configurazione: dopo il build non sopravvive nessun `TODO_`, nessun `[PATH]`,
-nessun token non sostituito in `dist/` o `release/`. I codici prodotto
-segnaposto sono stati sostituiti con quelli reali; **il Gen 3 deve ancora
-andare live**, quindi il catalogo non lo conosce ancora e quella colonna resta
-incompleta fino al lancio. È l'unica cosa in sospeso, e non è codice né
-authoring. Vedi [§6](#6-cosa-manca).
+Il modulo è **funzionalmente e visivamente completo su entrambi i brand** e non
+ha più segnaposto di configurazione: dopo il build non sopravvive nessun
+`TODO_`, nessun `[PATH]`, nessun token non sostituito in `dist/` o `release/`.
+
+**LC** è autorata coi tre prodotti veri della campagna e verificata in pagina
+(§12). **SGH** ha una cosa in sospeso e non è codice: il suo Gen 3 non è ancora a
+catalogo, quindi quella colonna resta senza packshot, prezzo e link fino al
+lancio ([§6](#6-cosa-manca)). I due brand hanno cataloghi e UPC diversi: vedi
+§5.3 prima di spostare un codice dall'uno all'altro.
 
 La regola del commit unico è decaduta dalla seconda sessione: ora si fa un
 commit per lavoro, e si pusha normalmente su `develop`.
@@ -88,8 +91,9 @@ same-origin, il proxy non c'entra nulla.
 | `src/js/modules/productApi.js` | Prezzo, link PDP, packshot dal negozio. Contiene la regola sul prezzo (§5.2) e il fallback UPC→productId. |
 | `src/js/modules/productSelector.js` | Il selettore compatto: listbox custom con trigger (eyebrow + nome + chevron), tastiera, click esterno. |
 | `src/scss/components/_comparison-table.scss` | Layout e stile condivisi. Una sola griglia CSS. |
-| `src/scss/variants/SGH/_variables.scss` | **Tutti** i token di design SGH. Un altro brand = una copia di questo file. |
-| `src/scss/critical.scss` | Solo geometria, finisce inlined dentro `fragment.html`. |
+| `src/scss/variants/<BRAND>/_variables.scss` | **Tutti** i token di design del brand. Un altro brand = una copia di questo file. |
+| `src/scss/components/_critical.scss` | Solo geometria, finisce inlined dentro `fragment.html`. Compilato **per variante** da `variants/<BRAND>/critical.scss`. |
+| `src/js/variants/<BRAND>/product_service.js` | Quale servizio prodotto chiamare e come leggerlo. I due brand sono su endpoint diversi. |
 | `src/views/main/main.pug` | Skeleton generico (2 colonne × 5 righe). |
 | `src/json/variants/SGH/json.json` | Contenuti: label, righe, prodotti, celle. |
 | `src/static/images/SGH/badge-photo.svg` | Icona del badge "CAMERA + AUDIO", esportata da Figma. |
@@ -262,35 +266,36 @@ Tutta quella logica è stata cancellata, non disattivata. Se un giorno i prezzi
 non tornassero più con le PDP, il posto da guardare è `pickPrices()`, che ora è
 lungo dieci righe.
 
-### 5.3 Prodotti di test già risolti
+### 5.3 Gli UPC autorati, e cosa rispondono
 
-Il modulo ora cerca per **UPC**: è l'unico campo che serve. `productId` resta
-nel JSON come riferimento incrociato e non lo legge nessuno.
+Il modulo cerca per **UPC**: è l'unico campo prodotto che si autora. Ogni brand
+ha i suoi, e sono due cataloghi diversi.
 
-| Nome | UPC | Note |
+**LC** — i tre della campagna, nell'ordine in cui vanno le colonne. Verificati il
+22 settembre 2026 su produzione, store 10851, tutti e tre disponibili:
+
+| Colonna | UPC | Modello | Lente | Prezzo |
+| --- | --- | --- | --- | --- |
+| Ray-Ban \| Meta Gen 2 | `8056262721384` | `0RW4012` | Clear/Grey | $459 |
+| Ray-Ban \| Meta Gen 2 Optics | `8056262944561` | `0RW7001` | Demo Lens | $499 |
+| Ray-Ban \| Meta Gen 3 | `8056266259852` | `0RW4016` | Clear/Green Gradient | $529 |
+
+**SGH** — i due autorati lì, verificati su nove store il 21 settembre:
+
+| Colonna | UPC | Esito |
 | --- | --- | --- |
-| Ray-Ban Meta **Gen 3** | `8056266261459` | autorato in json, ma ⚠️ **non risolve su nessun mercato** (verificato su nove store) |
-| Ray-Ban Meta **Gen 2** Wayfarer | `8056262721339` | autorato in json, `0RW4012`, risolve su sette mercati su nove, `isOutOfStock` |
-| Ray-Ban Hexagonal | `8053672689679` | |
-| Tiffany TF4214U | `8056597916660` | aveva uno sconto |
-| Jimmy Choo JC4011 | `8056262230008` | aveva uno sconto |
-| Giorgio Armani AR8146 | `8056597415514` | aveva uno sconto |
+| Gen 2 | `8056262721339` | `0RW4012`, $379, `isOutOfStock`. Risolve su `/us`, `/ca-en`, `/uk`, `/au`, `/de`, `/fr`, `/es`; **assente su `/mx` e `/nl`** |
+| Gen 3 | `8056266261459` | ⚠️ **assente da tutti e nove** — vedi §6 |
 
-⚠️ **Il Gen 3 non risolve da nessuna parte.** I due UPC nel JSON sono ora
-quelli reali, al posto dei Gen 1 Wayfarer / Headliner usati come segnaposto, ma
-interrogando `productInfo` su nove store (21 settembre 2026, produzione) solo il
-Gen 2 torna: `0RW4012`, "Ray-Ban Meta (Gen 2) Wayfarer", `isOutOfStock: true`,
-$379.00 su `/us` — presente su `/us`, `/ca-en`, `/uk`, `/au`, `/de`, `/fr`, `/es`
-e assente su `/mx` e `/nl`, gli stessi due mercati che non avevano i segnaposto.
-Il Gen 3 `8056266261459` è **assente da tutti e nove**, e `/us/ray-ban-meta-gen-3`
-è 404. **L'UPC è giusto: il prodotto non è ancora andato live**, confermato da
-Tommaso. Quindi non c'è nessun codice da ricercare — il catalogo inizierà a
-rispondere da solo al lancio, e quella colonna fino a lì resta senza packshot,
-prezzo e link (§6).
+Altri prodotti usati come casi di prova sul servizio SGH: Ray-Ban Hexagonal
+`8053672689679`, Tiffany TF4214U `8056597916660`, Jimmy Choo JC4011
+`8056262230008`, Giorgio Armani AR8146 `8056597415514`. Gli ultimi tre avevano
+uno sconto, ma misurato sul **vecchio** endpoint: da riverificare su
+`productInfo` prima di usarli come casi di prova di un barrato.
 
-Gli sconti degli ultimi tre erano misurati sul vecchio endpoint e sulle sue
-price list: **da riverificare** su `productInfo` prima di usarli come casi di
-prova di un barrato.
+⚠️ I due brand non condividono i codici. Il Gen 3 di LC (`8056266259852`) risolve;
+quello di SGH (`8056266261459`) no, perché è un altro articolo su un altro
+catalogo. Non sono intercambiabili.
 
 ### 5.4 Repo di riferimento consultate
 
@@ -333,16 +338,14 @@ restituisca. Vedi §6.3.
 
 ### Bloccante — uno solo
 
-1. **Il Gen 3 non è ancora live, e il catalogo infatti non lo conosce.** I
-   codici segnaposto sono stati sostituiti con quelli reali — Gen 3
-   `8056266261459`, Gen 2 `8056262721339`, al posto dei Ray-Ban Meta **Gen 1**
-   Wayfarer `8056597988377` e Headliner `8056597988391` — e il Gen 2 è buono:
-   `0RW4012`, presente su sette mercati su nove. Il **Gen 3 non risolve su
-   nessuno dei nove** (§5.3), quindi quella colonna esce senza packshot, senza
-   prezzo e senza link.
+Riguardano **solo SGH**: LC è completa e verificata (§12).
 
-   ⚠️ **Non è un codice sbagliato e non c'è niente da cercare**: l'UPC è
-   quello giusto, il prodotto deve ancora andare live. Al lancio il catalogo
+1. **Il Gen 3 di SGH non è ancora live, e il catalogo infatti non lo conosce.**
+   `8056266261459` non risolve su nessuno dei nove store (§5.3), quindi quella
+   colonna esce senza packshot, senza prezzo e senza link.
+
+   ⚠️ **Non è un codice sbagliato e non c'è niente da cercare**: l'UPC è quello
+   giusto, il prodotto deve ancora andare live su SGH. Al lancio il catalogo
    inizia a rispondere da sé e la colonna si completa senza toccare nulla. La
    cosa da fare è **riverificare al go-live** — su quali mercati risolve, e se
    `/mx` e `/nl` lo vendono, visto che il Gen 2 lì non c'è (punto 2).
@@ -350,9 +353,9 @@ restituisca. Vedi §6.3.
    Rifare il confronto numerico di `_meta.valuesMatchSource` **non** serve: i
    valori sono copy, non prodotto.
 
-2. **`/mx` e `/nl` non vendono nemmeno il Gen 2.** Sono gli stessi due mercati
-   che non avevano i segnaposto. O si dà loro una chiave `upc` propria con
-   l'articolo che vendono davvero, o si accetta che lì la colonna degradi.
+2. **`/mx` e `/nl` non vendono nemmeno il Gen 2 di SGH.** O si dà loro una chiave
+   `upc` propria con l'articolo che vendono davvero, o si accetta che lì la
+   colonna degradi.
 
 ### In attesa di una decisione, non di codice
 
@@ -807,40 +810,44 @@ Aggiunto sulla verifica dei valori:
 
 ## 11. Dove siamo arrivati
 
-Alla fine della quinta sessione il modulo è completo e verificato. Quello che
-resta non è codice.
+Il modulo è **multi-brand, completo e verificato in pagina su entrambi**.
+Quello che resta non è codice.
 
-| | Stato |
+| | SGH | LC |
+| --- | --- | --- |
+| Copy | otto lingue, trascritte dai frame per locale e verificate numericamente | quattro locale, **inglese vero solo su `en-us` e `en-ca`** |
+| Prodotti | 2 — Gen 3, Gen 2 | 3 — Gen 2, Gen 2 Optics, Gen 3 |
+| Chiamata prodotto | `/wcs/.../productInfo`, dieci mercati verificati | `/AjaxPartNumberView`, US e Canada verificati |
+| Prezzi | barrato e badge sconto reggono su dieci mercati | **mai barrato né badge**: il servizio non li dà |
+| Design | Acta, celle `#f7f7f7` a 2px, colonne a sinistra | Sofia Pro, celle `#f6f6f6` a 4px, colonne centrate |
+| Build | verde, `release/SGH/0.0.1/` | verde, `release/LC/0.0.1/` |
+| Online | stage SGH, bundle byte-identico al release | `stg.lenscrafters.com` (WCS), verificato in pagina |
+| In pagina | desktop e mobile su `/us`; su altri mercati **non ancora** | desktop su `/lc-us`; **compatto non ancora** sulla pagina vera |
+
+| | |
 | --- | --- |
-| Codice | niente in sospeso |
-| Copy | otto lingue, tutte trascritte dai frame per locale, valori verificati contro l'originale |
-| Chiamata prodotto | sul servizio documentato, verificata su produzione e stage |
-| Store e lingua | letti dalla pagina (`window.storeId` / `window.langId`), dieci mercati verificati; niente da autorare |
-| Prezzi | `parseAmount` gestisce le due notazioni; sconto e badge reggono in tutti e dieci i mercati |
-| Build | verde, `release/SGH/0.0.1/` |
-| Online su stage | js, css e json caricati e verificati; il bundle servito è byte-identico al release |
-| In pagina | desktop e mobile verificati sulla preview `/us`; **su altri mercati non ancora**, il modulo è pubblicato solo lì |
 | Intestazione | rimossa dal modulo, passa a CoreMedia (§7.14) — **il fragment va ri-incollato** |
-| Branch | `develop`, allineato al remote |
+| Branch | `develop` |
 
-**Aperto: uno, e non è lavoro.** Gli UPC segnaposto sono stati sostituiti con
-quelli reali, ma il **Gen 3 deve ancora andare live**, quindi il catalogo non lo
-conosce su nessun mercato e quella colonna esce senza packshot, prezzo e link
-(§6.1). Si sblocca da sé al lancio: la cosa da fare è riverificare allora. Il
-Gen 2 risolve su sette mercati su nove (§6.2 per `/mx` e `/nl`).
+**Aperto: uno, e non è lavoro.** Il **Gen 3 di SGH** non è ancora a catalogo,
+quindi quella colonna esce senza packshot, prezzo e link (§6.1). Si sblocca da sé
+al lancio: la cosa da fare è riverificare allora. Su LC tutti e tre i prodotti
+risolvono. Restano due code su LC, nessuna bloccante, in fondo al §12.
 
 **In attesa di una decisione: due.** Badge sconto e numero di colori (§6.2,
 §6.3). Entrambi dipendono da cosa restituisce il servizio prodotto, non da come
 è scritto il modulo.
 
-Se riprendi da qui, i tre file da leggere in quest'ordine sono: questo per le
-decisioni e le trappole, il README per comandi e schema JSON, e
-`_meta` dentro `src/json/variants/SGH/json.json` per la provenienza di ogni
-stringa — `translationStatus` per i node id dei frame, `figmaDeviations` per le
-otto correzioni fatte a mano, `columnConsistency` e `valuesMatchSource` per le
-due regole da rispettare quando si tocca la copy.
+Se riprendi da qui, i file da leggere in quest'ordine sono: questo per le
+decisioni e le trappole, il README per comandi e schema JSON, e il blocco
+`_meta` dentro il json del brand che stai toccando — è lì che sta la provenienza
+di ogni stringa. Su SGH: `translationStatus` per i node id dei frame,
+`figmaDeviations` per le otto correzioni fatte a mano, `columnConsistency` e
+`valuesMatchSource` per le due regole da rispettare quando si tocca la copy. Su
+LC: `locales` per quali lingue sono vere, `productCopy` per perché Gen 2 e Gen 2
+Optics sono uguali, `productService` per cosa quel servizio non dà.
 
-Aggiunto nella quinta sessione:
+Fatto in questa sessione:
 
 - **LC ha un servizio prodotto tutto suo, e ora il modulo lo parla.** Era la
   cosa non verificata dell'ultimo giro, ed è saltata fuori peggiore del previsto:
@@ -884,22 +891,26 @@ Aggiunto nella quinta sessione:
   celle `#f6f6f6` a 4px invece di `#f7f7f7` a 2px, colonne prodotto **centrate**,
   righe a 24px invece di 8, sezione a 64px invece di 40.
 
-  Contenuti: **tre prodotti**, come il frame — Gen 2, Gen 3 e **Blayzer**
-  (`0RW7001`, quello senza fotocamera, che porta il badge NEW). Tutti e tre
-  risolvono a catalogo LC. Sopra i due prodotti compare lo switcher compatto e
-  sparisce il toggle, quindi `family` e `shortName` sono popolati su tutti e tre.
+  Contenuti: **tre prodotti**, nell'ordine chiesto dalla campagna — Gen 2,
+  Gen 2 Optics, Gen 3 (§5.3 per UPC e prezzi). Sopra i due prodotti compare lo
+  switcher compatto e sparisce il toggle, quindi `family` e `shortName` sono
+  popolati su tutti e tre.
+
+  ⚠️ **Gen 2 e Gen 2 Optics portano la stessa scheda, di proposito**: un Optics è
+  lo stesso device con lente da vista, ed è quello che mostra il frame, con le
+  prime due colonne identiche nel blocco camera. Se l'Optics differisce da
+  qualche parte — la riga Lenses è la candidata — si tocca quella cella e solo su
+  `rbm-gen-2-optics`.
+
+  `products[].meta` (il "3 Colors") **non è autorato su LC**: i conteggi colore
+  di questo brand non li ha nessuno, e inventarli è peggio che ometterli.
+  Effetto utile: le tre colonne restano allineate, perché è quella riga a
+  spingere giù il nome.
 
   Lingue: `en-us`, `en-ca`, `es-mx`, `fr-ca`. ⚠️ **Solo le due inglesi sono
   vere**: `es-mx` e `fr-ca` portano la copy inglese come segnaposto, così le
   chiavi esistono per il copy team. Attenzione che una chiave presente **batte**
   il fallback, quindi vanno sovrascritte, non aggiunte.
-
-  Due scostamenti dal frame, entrambi sviste del design e non scelte, segnati in
-  `_meta.figmaDeviations`: il frame scrive `MMAl AI not available` (i maiuscola
-  al posto della elle, e l'acronimo doppiato) ed è stato corretto in `MMAI`; e dà
-  il badge "CAMERA + AUDIO" **anche alla colonna senza fotocamera**, dove
-  l'istanza è rimasta al default — lì il badge è stato omesso invece che autorato
-  come contraddizione.
 - **Tre cose che si rompevano con due brand**, tutte sistemate qui:
 
   1. **URL di produzione identici.** `bootstrap.js` costruisce gli url da
@@ -955,11 +966,17 @@ Aggiunto nella quinta sessione:
   erano sbagliati sia di colore sia di forma.
 
   Il nome sta in un wrapper `__product-name-row` perché la colonna è un flex in
-  colonna: un fratello sarebbe finito sotto il nome, non accanto. Sotto il
-  breakpoint compatto il wrapper va a capo, quindi la pillola scende su riga
-  propria invece di stringere il nome — verificato a 390px in iframe.
-- **I due UPC veri**, al posto dei Gen 1 tenuti come segnaposto da lancio. Il
-  Gen 2 risolve, il Gen 3 no (§6.1).
+  colonna: un fratello sarebbe finito **sotto** il nome, non accanto.
+
+  ⚠️ Il wrapper era a sua volta un flex con `flex-wrap`, e così la pillola era
+  fratella dell'intero blocco nome: appena il nome andava a capo — su colonna
+  stretta, quasi sempre — la pillola finiva su una riga sua. Ora il wrapper è
+  **flusso di testo** (`display: block`) e la pillola una `inline-flex` con
+  margine sinistro, quindi segue l'ultima parola e va a capo con lei. Verificato
+  su LC desktop, su LC compatto dove il nome occupa due righe, e su SGH.
+- **Gli UPC veri di entrambi i brand** (§5.3). Su SGH i due reali al posto dei
+  Gen 1 da lancio: il Gen 2 risolve, il Gen 3 no (§6.1). Su LC i tre della
+  campagna, che risolvono tutti.
 - **`productId` e `pdpUrl` tolti dal json.** Il catentryId lo rimanda già la
   risposta, e il link PDP **non è costruibile dall'UPC**: lo slug è
   `/{mercato}/{brand}/{model}-{upc}` e il model nell'UPC non c'è. Provato in
@@ -1031,8 +1048,16 @@ Ricostruito con l'override, ricaricati js e icone: **verificato verde** il 22
 settembre 2026. Tutti e cinque i file rispondono e sono byte per byte quelli
 della build. Iniettando il bundle dal CDN in una PDP `lenscrafters.com` vera —
 l'unico modo di provarlo, vedi sotto — il modulo rende tre colonne, nove righe,
-celle `#f6f6f6`, pillola NEW su Blayzer, packshot da `assets2.lenscrafters.com`,
-icone 16×16, prezzi **veri** $379 / $479 / $499 e CTA sulle tre PDP canoniche.
+celle `#f6f6f6`, packshot da `assets2.lenscrafters.com`, icone 16×16, prezzi
+**veri** dal servizio e CTA sulle PDP canoniche.
+
+Il modulo è poi stato messo sulla pagina di staging
+`stg.lenscrafters.com/lc-us/discover-ray-ban-meta-smart-glasses?test=SeptMeta`,
+dove gira (LC sta su WCS). ⚠️ Lì il contenitore è a **circa 10.000px** dall'alto:
+in una scheda non in primo piano l'IntersectionObserver non scatta e si vede solo
+lo scheletro, che sembra un modulo rotto e non lo è. Per provarlo da automazione
+conviene chiamare `Contents.init()` a mano, che è esattamente quello che farebbe
+l'observer.
 
 ⚠️ **La cartella delle icone è `img/LC/`, in quest'ordine.** `img/` viene da
 `productionImage`, `LC/` dal valore autorato nel json — come su SGH, dove fa
@@ -1058,20 +1083,35 @@ rimisurate prima di dichiararle rotte. Ci sono cascato una seconda volta.
 - **SGH intatto.** `json`, `js` e `img/SGH/chevron-down.svg` rispondono 200 al
   loro indirizzo di sempre, e la sua build non è cambiata.
 
-### Rimasto da decidere: la terza colonna sta più in alto
+### La trappola che è costata più tempo: la cache del CDN
 
-Blayzer non ha né `meta` (il "3 Colors" sopra il nome) né `badge`
-("CAMERA + AUDIO"), quindi la sua colonna perde due righe e si disallinea dalle
-altre: misurato in pagina, il nome sta **25px più in alto** e il CTA **50px**.
+Il json sul CDN esce con `cache-control: max-age=604800` — **sette giorni**.
+Dopo averlo ricaricato, la pagina di staging continuava a mostrare gli UPC e le
+copy vecchie, e sembrava che il json fosse sbagliato. Non lo era: il file nuovo
+era già lì, con il `last-modified` giusto.
 
-Le due assenze hanno cause diverse. Il `badge` è **voluto**: il frame lo dà anche
-a quella colonna, ma è la colonna che in ogni riga dice di non avere fotocamera,
-e l'istanza era rimasta al default (§_meta.figmaDeviations). Il `meta` invece
-manca solo perché il frame lì porta il segnaposto `$999.99` e il numero di colori
-vero non ce l'ha nessuno.
+Quindi, dopo ogni upload: confrontare il file **sul CDN** con quello in
+`release/`, non fidarsi di cosa rende la pagina, e fare hard reload a cache
+svuotata — o una purge Akamai su quel path se persiste. Vale per tutti e tre i
+file, e il js ha la stessa vita lunga.
 
-Quindi: autorare `meta` su Blayzer recupera 25px dei 50. Per gli altri 25 le
-strade sono due — dargli un badge suo ("Audio", che sarebbe vero) oppure allineare
-le colonne dal CSS, che il design non ha mai dovuto affrontare perché nel frame
-tutte e tre le colonne hanno tutte le righe. È una scelta di contenuto, non un
-difetto del modulo.
+### Aperto su LC: due cose, nessuna bloccante
+
+1. **La riga Lenses del Gen 2 Optics.** Ha gli stessi valori del Gen 2
+   (`Sun / Transitions® / Clear`), perché l'Optics è lo stesso device. Essendo
+   però la versione da vista, è la riga che più probabilmente ha un valore suo.
+   Si tocca quella cella e solo su `rbm-gen-2-optics`.
+
+2. **Il frame Figma si legge in due versioni diverse.** Interrogando
+   `5720-35673` la terza colonna risponde ancora `No camera`,
+   `Not applicable (no camera)`, solo Bluetooth e nove app; chi apre il file
+   vede invece tre colonne con fotocamera e il "36% smaller" in terza posizione,
+   che è quello che la campagna ha confermato ed è quello che il json autora.
+
+   Riletto a distanza di ore, il nodo non è cambiato dal lato MCP, e
+   `get_design_context` sulla riga non restituisce i testi. Non è chiaro se sia
+   una cache dell'integrazione o un frame diverso con lo stesso id. **Prima di
+   ritrascrivere copy da quel nodo**, farsi passare un "Copy link to selection"
+   preso dal frame aperto e confrontare il node id: se coincide è staleness, se
+   non coincide si stava leggendo un altro frame. Finché non è chiarito, la copy
+   autorata viene da quello che vede la campagna, non da quello che leggo io.
