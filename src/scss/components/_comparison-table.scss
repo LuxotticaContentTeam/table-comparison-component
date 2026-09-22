@@ -205,14 +205,14 @@
   }
 }
 
-// The name and its optional "New" pill. Wrapping is what keeps a narrow column
-// readable: the pill drops to its own line instead of squeezing the name.
+// The name and its optional "New" pill.
+//
+// Text flow, NOT a flex row: the pill has to sit inline after the last word of
+// the name, the way it reads in the design. As a flex row it was a sibling of
+// the whole name block, so the moment the name wrapped — which on a narrow
+// column is most of the time — the pill dropped onto a line of its own.
 .ct_comparison__product-name-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: $product-align;
-  gap: $name-badge-gap;
+  display: block;
 }
 
 .ct_comparison__product-name {
@@ -231,6 +231,9 @@
 .ct_comparison__name-badge {
   display: inline-flex;
   align-items: center;
+  // Inline with the name's last word, not beside the name block.
+  vertical-align: middle;
+  margin-left: $name-badge-gap;
   padding: $name-badge-padding-block $name-badge-padding-inline;
   border-radius: $name-badge-radius;
   background: $color-name-badge-bg;
