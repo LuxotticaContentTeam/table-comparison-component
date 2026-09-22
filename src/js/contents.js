@@ -541,32 +541,42 @@ export class Contents {
   /**
    * How far the module's container sits from each edge of the screen.
    *
-   * The section spends those two numbers as negative margins (see
-   * components/_comparison-table.scss) to climb out of whatever container the
-   * page wrapped it in — on LC, CoreMedia's Bootstrap `.cb_container`, which
-   * caps at 1320px — and then lays its own 64px gutters against the screen,
+   * The container spends those two numbers as negative margins (see
+   * scss/main.scss) to climb out of whatever container the page wrapped it in —
+   * on LC, CoreMedia's Bootstrap `.cb_container`, which caps at 1320px — so
+   * that the section inside it can lay its 64px gutters against the screen,
    * like the page's own fluid rows.
    *
    * Measured rather than written in css because css cannot express it:
-   * `calc(50vw - 50%)` counts the scrollbar, which would make the section wider
+   * `calc(50vw - 50%)` counts the scrollbar, which would make the module wider
    * than the viewport and put the WHOLE PAGE into horizontal scroll, and it
    * assumes a centred container, which is the page's business and not ours.
    *
-   * ⚠️ Measured on `this.container`, never on the section. The section is the
-   * element the margins move, so measuring it would feed its own displacement
-   * back in. The container is a plain block whose width its parent decides, and
-   * a child's negative margins do not touch it — so it stays still and the
-   * reading is stable.
+   * ⚠️ The margins go on the container and NOT on the section, because the
+   * container carries `content-visibility: auto`, which implies
+   * `contain: paint`: a paint-contained box clips its descendants to its own
+   * bounds. A section that bled past it was laid out at full width and then
+   * painted only as wide as the container — last column sliced off, row labels
+   * gone. Worse, getBoundingClientRect reports the layout box and knows nothing
+   * about paint, so that version measured a perfect 64px on both sides while
+   * the screen showed it cut. It cost a deploy.
    */
   measureBleed() {
+    // Reset before reading. The container is the element the margins move, so
+    // measuring it with last frame's margins still applied would fold its own
+    // displacement back into the answer and creep wider on every resize.
+    // getBoundingClientRect below flushes this write before it measures.
+    this.container.style.setProperty("--ct-bleed-left", "0px");
+    this.container.style.setProperty("--ct-bleed-right", "0px");
+
     const box = this.container.getBoundingClientRect();
 
     // clientWidth, not innerWidth: innerWidth includes the scrollbar, and the
     // bleed has to stop at the edge of what can actually be painted.
     const viewport = document.documentElement.clientWidth;
 
-    this.section.style.setProperty("--ct-bleed-left", `${box.left}px`);
-    this.section.style.setProperty("--ct-bleed-right", `${viewport - box.right}px`);
+    this.container.style.setProperty("--ct-bleed-left", `${box.left}px`);
+    this.container.style.setProperty("--ct-bleed-right", `${viewport - box.right}px`);
   }
 
   /**

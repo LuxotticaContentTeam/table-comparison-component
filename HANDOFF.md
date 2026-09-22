@@ -21,7 +21,7 @@ Ultimo aggiornamento: 22 settembre 2026 — la sessione in cui il modulo è dive
 | Asset SGH | `https://media.sunglasshut.com/table-comparison-component/` — icone in `img/SGH/` |
 | Asset LC | `https://media.lenscrafters.com/2026/Calendar/Week_39_September/RBM_APEROL/table_component/` — icone in `img/LC/` |
 | Online | SGH su stage SGH; LC su `stg.lenscrafters.com` (WCS), verificato in pagina |
-| ⚠️ Da mettere online | La larghezza full bleed (§13) è nel codice ma **non ancora in pagina**: tocca `_critical.scss`, quindi oltre ai tre asset va **ri-incollato il fragment** in CoreMedia |
+| ⚠️ Da mettere online | La **correzione** del full bleed (§13): il primo giro è andato online ritagliato. Vanno ricaricati css **e js**, e va **ri-incollato il fragment** (cambia anche `_critical.scss`) |
 
 Il modulo è **funzionalmente e visivamente completo su entrambi i brand** e non
 ha più segnaposto di configurazione: dopo il build non sopravvive nessun
@@ -571,6 +571,8 @@ Costano tempo se le si ricalpesta.
 | Build due volte con la stessa `version` | La seconda sovrascrive `release/SGH/0.0.1/` | Bumpare `package.json > version` prima di una release che deve sopravvivere |
 | Modificare `critical.scss` e ricaricare solo gli asset | Il fragment già in CoreMedia continua a vincere | Il critical CSS è **inlined**: va ri-incollato il fragment |
 | Cambiare una regola solo in `_comparison-table.scss` quando la stessa regola sta anche in `_critical.scss` | In pagina **non cambia niente**, e in locale invece funziona. Il `<style>` critico è inline in un div del `<body>`, il `<link>` del CDN sta in `<head>`: stessa specificità (`#id .classe`), quindi vince chi viene **dopo nel documento**, cioè il critical | Toccare **entrambi** i file, e ri-incollare il fragment. Verificato in pagina: `link.compareDocumentPosition(style)` dice che lo style segue il link |
+| Far sbordare qualcosa fuori da `#ct_cm--...` | Viene **ritagliato**: il container ha `content-visibility: auto`, che implica `contain: paint`, e un box paint-contained taglia i discendenti al proprio bordo. Sintomo: ultima colonna tagliata, label sparite, modulo che sembra centrato con troppo spazio ai lati | I margini negativi vanno **sul container stesso**, non su un figlio: così si allarga anche il rettangolo di clip. E serve `width: auto`, perché con `width: 100%` i margini negativi spostano il box senza allargarlo |
+| Verificare un full bleed con `getBoundingClientRect()` | **Non prova niente.** Misura il box di layout e del paint non sa nulla: la versione ritagliata misurava 64px esatti su entrambi i lati mentre a schermo la colonna era tranciata. È costato un deploy | Guardarlo. Se la pagina non scrolla (vedi sopra), riprodurre la struttura in un **iframe** visibile con le regole compilate vere e fare uno screenshot |
 | Scrivere i nomi dei token (`@assetPath@`, `@buildVersion@`) nei commenti di `live/live.html` | La sostituzione è un replace di stringa: riscrive anche la prosa, e il commento finisce nella pagina di preview con dentro l'URL | Nel commento parlarne a parole, senza scriverli |
 | Controllare `naturalWidth` delle immagini a pagina appena caricata in una tab in background | Zero su tutte, sembrano rotte: sono `loading="lazy"` dentro un container `content-visibility: auto` e non partono proprio | Verificare il path con `fetch()` (status 200) e la decodifica con un `new Image()` fuori dalla pagina |
 | Ricaricare la pagina di dev dopo aver cambiato `projectName` | Chrome serve la copia in cache e il vecchio id continua ad apparire | Navigare con un query param nuovo (`?cb=1`); `curl` sul dev server dice cosa viene servito davvero |
@@ -1137,17 +1139,31 @@ del disegno: per questo fino a lì non si era visto niente.
 `cb_px-lg-16`: 64px tenuti fissi contro il bordo dello schermo, senza tetto. È
 quello che il modulo fa adesso.
 
+⚠️ **I margini negativi vanno sul container, non sulla sezione.** È la cosa che
+ho sbagliato al primo giro ed è finita online. `#ct_cm--...` ha
+`content-visibility: auto`, che implica `contain: paint`: un box paint-contained
+**ritaglia i discendenti al proprio bordo**. La sezione veniva disposta a tutta
+larghezza e poi dipinta larga quanto il container — ultima colonna tranciata,
+label di riga sparite, il modulo che sembrava centrato con troppo spazio ai
+lati. Allargando l'elemento contenitivo stesso si allarga anche il rettangolo di
+clip, e non resta più niente da tagliare. Per lo stesso motivo il container
+vuole `width: auto`: con `width: 100%` i margini negativi lo spostano di lato
+senza allargarlo.
+
+⚠️ **E `getBoundingClientRect()` non lo vede.** Misura il box di layout e del
+paint non sa nulla: la versione ritagliata misurava 64px precisi su entrambi i
+lati mentre a schermo la colonna era tagliata. Un full bleed si verifica
+**guardandolo**.
+
 ⚠️ **I 64px non si possono scrivere in css.** `calc(50vw - 50%)` è il trucco
-solito e sbaglia due volte: `vw` conta la scrollbar, quindi la sezione esce più
-larga del viewport e si porta dietro **tutta la pagina** in scroll orizzontale;
+solito e sbaglia due volte: `vw` conta la scrollbar, quindi il modulo esce più
+largo del viewport e si porta dietro **tutta la pagina** in scroll orizzontale;
 e dà per scontato che il container sia centrato, che è una scelta della pagina e
 non nostra. Le due distanze le misura `contents.js > measureBleed` e le scrive
-come `--ct-bleed-left` / `--ct-bleed-right`.
-
-⚠️ **Si misura il container, mai la sezione.** La sezione è l'elemento che i
-margini spostano: leggerla significherebbe rimetterle in pancia il proprio
-spostamento. Il container è un blocco normale la cui larghezza la decide il
-padre, e i margini negativi di un figlio non lo toccano.
+come `--ct-bleed-left` / `--ct-bleed-right`. Siccome il container è proprio
+l'elemento che i margini spostano, `measureBleed` lo azzera e lo rilegge nella
+stessa chiamata — `getBoundingClientRect` fa il flush della scrittura prima di
+misurare — invece di rimettersi in pancia lo spostamento del giro precedente.
 
 Il default di entrambe le proprietà è `0`, cioè nessuna fuoriuscita: se il
 javascript non gira la tabella resta dentro il container, dov'è sempre stata —
@@ -1156,9 +1172,16 @@ perché lo scheletro viaggia prima che esista un javascript che possa misurare.
 
 ### Verificato
 
-In pagina su staging, iniettando le regole compilate dopo il `<link>` e il
-critical, e richiamando `measureBleed` a mano: sezione da 0 a 1721, tabella a
-**64 da sinistra e 64 da destra**, ultima cella che chiude a 64 dal bordo.
+Sul modulo vero in pagina, con le regole compilate e `measureBleed` nuovo:
+container da 0 a 1721 — quindi il suo rettangolo di clip è tutto il viewport e
+non ritaglia più niente — tabella a **64 da sinistra e 64 da destra**, tre
+colonne da 440, ogni cella dentro il box del container, overflow 0.
+
+E **guardato**, non solo misurato: la struttura riprodotta in un iframe con le
+regole compilate vere, nell'ordine di cascata vero (main nel `<head>`, critical
+in fondo al `<body>`), affiancando la versione vecchia e la nuova. Nella vecchia
+si vede la terza colonna tranciata e la label sparita; nella nuova la fascia
+arriva a fondo pagina e non manca niente.
 
 Le altre larghezze dentro un iframe, che è l'unico modo di avere viewport veri su
 questa macchina (vedi §8, `resize_window` non funziona):

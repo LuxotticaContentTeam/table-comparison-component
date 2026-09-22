@@ -4,9 +4,33 @@
 $banner-id: $bannerName;
 
 #{$banner-id} {
-  width: 100%;
+  // ⚠️ `width: auto`, NOT `width: 100%`. With a percentage width the negative
+  // margins below only slide the box sideways; with `auto` they stretch it,
+  // which is the whole point.
+  width: auto;
   position: relative;
   content-visibility: auto;
   // overflow: hidden;
+
+  // Full bleed. The module escapes whatever container the page wrapped it in —
+  // on LC, CoreMedia's Bootstrap `.cb_container`, which caps at 1320px — so
+  // that .ct_comparison can lay its 64px against the SCREEN rather than against
+  // that box. contents.js > measureBleed writes both distances.
+  //
+  // ⚠️ The margins have to sit HERE, on the container, and not on the section
+  // inside it. `content-visibility: auto` above implies `contain: paint`, and a
+  // paint-contained box CLIPS its descendants to its own bounds: a section that
+  // bled out of this element was laid out at full width and then painted only
+  // as wide as the container — right-hand column sliced off, row labels gone,
+  // the whole thing looking centred in too much space. Moving the margins onto
+  // the contained element itself widens the clip rectangle with it, so there is
+  // nothing left to clip.
+  //
+  // ⚠️ And it is invisible to getBoundingClientRect, which reports the layout
+  // box and knows nothing about paint. Measuring will say 64px on both sides
+  // while the screen shows the column cut. Check this one by looking at it.
+  margin-left: calc(-1 * var(--ct-bleed-left, 0px));
+  margin-right: calc(-1 * var(--ct-bleed-right, 0px));
+
   @import "./layout/layout";
 }

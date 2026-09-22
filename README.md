@@ -935,20 +935,34 @@ Inside that container the table is pinned to a box narrower than the screen and
 its gutter grows as the screen does, which is the opposite of the design: the
 page's own fluid rows (`.cb_container-fluid` with a `cb_px-lg-16` utility, the
 "ASK META AI" row right above the table) hold a fixed 64px against the screen
-edge however wide the screen gets. So `.ct_comparison` cancels its container's
-gutters with negative margins and re-applies `$section-padding-inline-desk`
-(64px, 16px compact) of its own.
+edge however wide the screen gets. So the module's container cancels those
+gutters with negative margins, and `.ct_comparison` lays
+`$section-padding-inline-desk` (64px, 16px compact) against the screen.
+
+**The margins go on the container, never on the section inside it**, and that is
+not a matter of taste. The container carries `content-visibility: auto`, which
+implies `contain: paint`, and a paint-contained box clips its descendants to its
+own bounds. A section that bled past it was laid out at full width and then
+painted only as wide as the container: last column sliced off, row labels gone,
+the table looking centred in too much space. Widening the contained element
+itself widens the clip rectangle along with it, so there is nothing left to
+clip. It also means the container needs `width: auto` — a percentage width lets
+the negative margins slide the box sideways without stretching it.
 
 The two distances are **measured**, by `contents.js > measureBleed`, and written
 as `--ct-bleed-left` / `--ct-bleed-right`. They cannot be written in css:
 `calc(50vw - 50%)` is the usual trick and it is wrong twice — `vw` counts the
-scrollbar, so the section comes out wider than the viewport and drags the whole
+scrollbar, so the module comes out wider than the viewport and drags the whole
 page into horizontal scroll, and it assumes the container is centred, which is
-the page's choice and not ours. The measurement is taken on the module's own
-container, never on the section: the section is the element the margins move, so
-reading it would feed its own displacement back in, while the container is a
-plain block whose width its parent decides and a child's negative margins do not
-touch.
+the page's choice and not ours. Since the container is the element the margins
+move, the measurement resets it to a zero bleed and re-reads it in the same call
+— `getBoundingClientRect` flushes the reset before it measures — instead of
+folding the last frame's displacement back into the answer.
+
+⚠️ None of this is visible to `getBoundingClientRect`, which reports the layout
+box and knows nothing about paint. The clipped version measured a flawless 64px
+on both sides while the screen showed the column cut in half. This is checked by
+looking at it, not by measuring it.
 
 Both custom properties default to `0`, which is no bleed at all — the table
 simply stays inside its container, the way it did before. A failed or absent

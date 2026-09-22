@@ -23,7 +23,17 @@
 // ---------------------------------------------------------------------------
 
 #{$bannerName} {
-  width: 100%;
+  // ⚠️ `auto`, not `100%`, and this is not cosmetic. The stylesheet sets the
+  // same property on the same selector to let the module bleed to full width,
+  // and this block is INLINED in the body while that stylesheet is a <link> in
+  // the head — same specificity, later in the document, so THIS one wins. A
+  // `width: 100%` here silently pins the module back inside its container and
+  // the bleed stops working in page while it still works locally.
+  //
+  // The skeleton itself does not bleed: --ct-bleed-* default to 0 and there is
+  // no javascript yet to measure them. `auto` with no margins fills the parent
+  // exactly as `100%` did.
+  width: auto;
   position: relative;
 
   // The gutters are symmetric here, matching the real table, but the skeleton
