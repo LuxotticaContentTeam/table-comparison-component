@@ -92,7 +92,11 @@ $section-padding-block: 0;
 $section-padding-inline-desk: 64px;
 $section-padding-inline-mob: 16px;
 
-$label-column-width: 200px;
+// 100, not the 200 the frame draws: LC gives the row labels a narrow track and
+// the width it frees goes to the product columns. SGH keeps 200.
+// It also moves the toolbar, which indents by this plus the column gap to line
+// up with the first product column.
+$label-column-width: 100px;
 $label-padding-left: 40px;
 
 $gap-column-desk: 24px;

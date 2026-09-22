@@ -977,8 +977,19 @@ javascript therefore leaves it narrow, never broken and never overflowing. The
 critical css keeps that default on purpose: the skeleton ships before any
 javascript exists to take the measurement.
 
-One CSS grid governs the whole table: `200px` for the row labels, then one
-track per product. The head, the body and each row are `display: contents`, so
+One CSS grid governs the whole table: `$label-column-width` for the row labels
+— 100px on LC, 200px on SGH — then one track per product. The toolbar reads the
+same token, indenting by it plus the column gap so the switch keeps lining up
+with the first product column whatever the label track is worth.
+
+⚠️ On LC the label track is narrower than `$label-padding-left` leaves room for:
+100px of column minus a 40px indent is 60px of text, and three of the nine row
+labels are wider than that. CONNECTIVITY is a single unbreakable word at 83.6px
+and hangs 27px past the indent; WATER RESISTANCE and COMPATIBLE APPS wrap onto
+two lines. Nothing is clipped and nothing reaches the first product column —
+every label stays right-aligned against the end of its track — but the 40px
+indent no longer does what it was for. Dropping `$label-padding-left` to 0 on LC
+would give the text the whole 100px and put CONNECTIVITY back on one line. The head, the body and each row are `display: contents`, so
 they carry the table semantics (`role="row"`, `role="rowgroup"`) without
 contributing a box — their cells participate in the table's own tracks, which
 is what keeps a long label in one row aligned with the columns of the next.

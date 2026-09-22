@@ -1122,6 +1122,14 @@ file, e il js ha la stessa vita lunga.
 
 ## 13. La larghezza: il modulo esce dal container di CoreMedia
 
+> Colonna label: su LC `$label-column-width` è **100px** invece di 200 — la
+> griglia compila `100px repeat(var(--ct-columns),minmax(0,1fr))` e il toolbar
+> segue da solo a 124px. ⚠️ Restano 60px di testo dopo i 40 di
+> `$label-padding-left`, e tre label su nove sono più larghe: CONNECTIVITY
+> (83,6px, parola unica) sborda di 27px oltre l'indentazione, WATER RESISTANCE e
+> COMPATIBLE APPS vanno su due righe. Niente viene tagliato e niente tocca la
+> prima colonna. Azzerare `$label-padding-left` su LC rimetterebbe tutto dentro.
+>
 > Padding verticale: su LC `$section-padding-block` è **0**. La regola compilata
 > è `padding: 0 64px` (e `0 16px` sul compatto). I 64px che il frame respira
 > sopra e sotto la tabella li mette la pagina, con le righe CoreMedia intorno,
