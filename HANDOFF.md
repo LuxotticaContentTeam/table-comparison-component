@@ -21,6 +21,7 @@ Ultimo aggiornamento: 22 settembre 2026 — la sessione in cui il modulo è dive
 | Asset SGH | `https://media.sunglasshut.com/table-comparison-component/` — icone in `img/SGH/` |
 | Asset LC | `https://media.lenscrafters.com/2026/Calendar/Week_39_September/RBM_APEROL/table_component/` — icone in `img/LC/` |
 | Online | SGH su stage SGH; LC su `stg.lenscrafters.com` (WCS), verificato in pagina |
+| Traduzioni | es-mx e fr-ca **reali** dal 23 settembre 2026 (§14). Restano in inglese solo `onlyDifferencesLabel` e `selectLabel`, che i frame tradotti non rendono |
 | ⚠️ Da mettere online | La **correzione** del full bleed (§13): il primo giro è andato online ritagliato. Vanno ricaricati css **e js**, e va **ri-incollato il fragment** (cambia anche `_critical.scss`) |
 
 Il modulo è **funzionalmente e visivamente completo su entrambi i brand** e non
@@ -1230,3 +1231,53 @@ dell'header.
 `_critical.scss`. Ricaricare i tre asset non basta, e il motivo per cui non basta
 è nella tabella di §8: a parità di specificità il critical inline vince sul css
 del CDN.
+
+## 14. Spagnolo e francese
+
+Inserite il 23 settembre 2026 da Figma `6167:23402` (ES) e `6167:23985` (FR).
+Prima erano segnaposto con l'inglese verbatim; ora sono reali. 136 stringhe per
+lingua, su 56 voci localizzabili.
+
+I nomi dei layer Figma **appiattiscono gli a-capo in spazi**, quindi ogni cella
+arriva come una riga sola e va rispezzata nell'array che l'inglese già definisce.
+Lo script di inserimento fallisce se un array tradotto non ha lo stesso numero di
+righe dell'inglese — è l'unico controllo che impedisce di sfasare una cella.
+
+Prezzo e CTA **non stanno nei nomi dei layer**: i testi sono dentro istanze di
+componente. Si leggono con `get_design_context` sul nodo del testo, che torna il
+contenuto vero (`Desde $9.999,99`, `À partir de $ 9 999,99`) e il rendering del
+bottone (`COMPRAR AHORA`, `VOIR`). `get_metadata` da solo non basta.
+
+### Cosa NON è stato tradotto, e perché
+
+- `onlyDifferencesLabel` e `selectLabel`: nessuno dei due frame li rende — il
+  primo perché con tre prodotti compare lo switcher al posto del toggle, il
+  secondo perché vive nel frame compatto, che non è fra i due consegnati.
+  Restano in inglese. **Inventarli sarebbe stato peggio.**
+- `name`, `family`, `shortName`: nomi prodotto, uguali in tutte le lingue. E
+  `name` è comunque solo un fallback, il nome vero lo dà il product service.
+
+### Le quattro cose da chiarire con chi ha tradotto
+
+Tutte annotate anche in `_meta.translationOpenPoints`.
+
+1. **La colonna Gen 2 Optics.** In **entrambi** i frame tradotti la seconda
+   colonna dà all'Optics valori suoi su audio, lenses e memory (6 microfoni,
+   niente Sol/Dim sulla riga lenti, "32GB" senza flash) dove l'inglese gli dà
+   quelli del Gen 2, per scelta esplicita. Ma quella stessa colonna portava i
+   valori del **Gen 3** nel vecchio frame inglese, prima che la campagna
+   correggesse l'ordine — e infatti il frame tradotto la riga camera ce l'ha
+   corretta e le altre no. Sembra un residuo. Applicate tenendo la struttura
+   inglese: **Optics = Gen 2 in tutte le lingue**. Se invece l'Optics differisce
+   davvero, il file da correggere per primo è l'inglese.
+2. **La CTA francese è `Voir`**, non una traduzione di "Shop now" — lo spagnolo
+   dice `Comprar ahora`.
+3. **Incoerenze interne al francese**, lasciate come consegnate: apostrofi dritti
+   e tipografici mescolati anche dentro la stessa cella; `MMAl` con la elle
+   minuscola sul Gen 2 dove le altre colonne scrivono `MMAI`; `IA Meta` nella
+   lista app dove lo spagnolo tiene `Meta AI`; `Dim` dove lo spagnolo usa `Sol`;
+   e la label riga `Résistant à l'eau` (aggettivo) contro la cella
+   `Résistance à l'eau` (sostantivo).
+4. **`upc` è autorato solo `en-us`**, quindi es-mx e fr-ca risolvono al codice
+   americano. Se il Messico o il Canada francese hanno codici loro, vanno
+   aggiunti — e il Canada su questo brand è un **dominio** separato.
