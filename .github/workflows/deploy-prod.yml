@@ -2,33 +2,50 @@ name: Deploy to Akamai PROD
 
 on:
   workflow_dispatch:
+    inputs:
+      variant:
+        description: "Brand variant to build — must exist in projectConfig.json > variants"
+        required: true
+        default: "SGH"
+        type: string
+      release:
+        description: "Also produce release/<VARIANT>/<version>/"
+        required: false
+        default: false
+        type: boolean
 
 jobs:   
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20.0.0'
 
       - name: Get node version
         id: node
         run: |
-          echo "::set-output name=version::$(node -v)"
+          echo "version=$(node -v)" >> "$GITHUB_OUTPUT"
       
       - name: Get node_modules cache
-        uses: actions/cache@v3.0.2
+        uses: actions/cache@v4
         id: node_modules
         with:
           path: |
             **/node_modules
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}-${{ steps.node.outputs.version }}
 
-      - run: npm install
-      - run: npm run build --akamai_env="PROD"
+      - run: npm ci
+      # The build is non-interactive only when VARIANT is set: without it the
+      # prompt task waits for a TTY that CI does not have, and gulp exits 0
+      # having produced nothing. LANGUAGE defaults to projectConfig.json > langs[0].
+      - run: npm run build
+        env:
+          VARIANT: ${{ inputs.variant }}
+          RELEASE: ${{ inputs.release }}
 
       - name: Save generated files
         run: |
@@ -36,7 +53,7 @@ jobs:
           find dist -type f -exec echo "\"{}\"," \; | sed "s#dist/#${{ vars.PROD_URL }}#g" > generated_files.json
 
       - name: Upload generated files
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: generated-files
           path: generated_files.json
@@ -50,6 +67,12 @@ jobs:
             luxottica-media.sftp.upload.akamai.com ${{ secrets.ID_RSA_PUB }}
           if_key_exists: replace
       
+      # NOTE — one brand per run. The build now namespaces its output per variant
+      # (release/<VARIANT>/<version>/), but SOURCE_FOLDER / DEST_FOLDER_PROD are
+      # org-level variables pointing at a single path. Before fanning this job out
+      # into a matrix over every variant, confirm with the Akamai owners how the
+      # per-brand destination folders are laid out, otherwise parallel jobs would
+      # overwrite each other at the same destination.
       - name: Deploy on Akamai
         run: | 
           cat /home/runner/.ssh/known_hosts 
@@ -65,12 +88,12 @@ jobs:
       CACHE_BASE_URI: ${{ secrets.CACHE_BASE_URI }}
     steps:
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18.15.0'
 
       - name: Download generated files
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: generated-files
           path: .
@@ -82,12 +105,11 @@ jobs:
           echo "Path being cleaned:"
           echo "${GENERATED_FILES}"
 
-          touch .env
           echo CACHE_CLIENT_TOKEN=$CACHE_CLIENT_TOKEN > .env
-          echo CACHE_CLIENT_SECRET=$CACHE_CLIENT_SECRET > .env
-          echo CACHE_ACCESS_TOKEN=$CACHE_ACCESS_TOKEN > .env
-          echo CACHE_BASE_URI=$CACHE_BASE_URI > .env
-          echo PATH_FILES_TO_CLEAN=$(cat generated_files.json) > .env
+          echo CACHE_CLIENT_SECRET=$CACHE_CLIENT_SECRET >> .env
+          echo CACHE_ACCESS_TOKEN=$CACHE_ACCESS_TOKEN >> .env
+          echo CACHE_BASE_URI=$CACHE_BASE_URI >> .env
+          echo PATH_FILES_TO_CLEAN=$(cat generated_files.json) >> .env
           # cat .env
 
           npm install akamai-edgegrid   

@@ -1,75 +1,11 @@
+// Styles that exist ONLY in the local dev environment.
+// In production the module is injected into the live page, which already
+// provides the fonts and the page-level resets.
 @if ($env == "development") {
   body {
     margin: 0;
-    img.env-example {
-      width: 250px;
-      height: 250px;
-    }
-    .env-example {
-      display: block;
-      margin: 24px;
-      padding: 24px;
-      border: 1px dotted red;
-    }
   }
 
-  @if ($brand == "RB") {
-    @font-face {
-      font-family: "Oswald";
-      src: url(../static/fonts/RB/oswald-v34-vietnamese_latin-ext_latin_cyrillic-ext_cyrillic-regular.woff2) format("woff");
-      font-weight: normal;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: "Oswald";
-      src: url(../static/fonts/RB/oswald-v34-vietnamese_latin-ext_latin_cyrillic-ext_cyrillic-500.woff2) format("woff");
-      font-weight: 500;
-      font-style: normal;
-    }
-
-    @font-face {
-      font-family: "Lato";
-      src: url(../static/fonts/RB/lato-v16-latin-regular.woff2) format("woff");
-      font-weight: normal;
-      font-style: normal;
-    }
-
-    * {
-      font-family: "Lato", sans-serif;
-    }
-    header {
-      position: fixed;
-      left: 0;
-      top: -48px;
-      width: 100%;
-
-      z-index: 1000;
-      [data-element-id="X_X_MainNav_Info"] {
-        height: 48px;
-        width: 100%;
-        background-color: rgb(194, 191, 191);
-        display: block;
-      }
-      .rb-header__navigation {
-        height: 64px;
-        width: 100%;
-        display: block;
-        background-color: #fff;
-        @media (max-width: 1149px) {
-          opacity: 0;
-        }
-      }
-      .promo-stripe {
-        width: 100%;
-        display: block;
-        background-color: red;
-        height: 48px;
-        @media (max-width: 1149px) {
-          opacity: 0;
-        }
-      }
-    }
-  }
   @if ($brand == "SGH") {
     @font-face {
       font-family: "Acta Headline";
@@ -83,7 +19,6 @@
       font-weight: 400;
       font-style: normal;
     }
-
     @font-face {
       font-family: "Acta Headline";
       src: url(../static/fonts/SGH/ActaHeadlineBold_normal_normal.woff2) format("woff");
@@ -94,125 +29,14 @@
     * {
       font-family: "Helvetica Neue", sans-serif;
     }
-  }
-  @if ($brand == "OO") {
-    @font-face {
-      font-family: "AvenirNext";
-      src: url(../static/fonts/OO/AvenirNext-Regular.woff2) format("woff");
-      font-weight: 100;
-    }
-    @font-face {
-      font-family: "AvenirNext";
-      src: url(../static/fonts/OO/AvenirNext-Medium.woff2) format("woff");
-      font-weight: 400;
-    }
-    @font-face {
-      font-family: "AvenirNext";
-      src: url(../static/fonts/OO/AvenirNext-Bold.woff2) format("woff");
-      font-weight: 700;
-    }
-
-    @font-face {
-      font-family: "AvenirNext";
-      src: url(../static/fonts/OO/AvenirNext-Heavy.woff2) format("woff");
-      font-weight: 900;
-    }
-
+  } @else if ($brand == "LC") {
+    // No @font-face here: LC runs on Sofia Pro and the woff2 files are not in
+    // this repo, so the local preview falls back to the stack's next entry. In
+    // production the storefront serves the font, which is why this whole block
+    // is development-only — but it does mean the dev preview is not the place
+    // to judge LC's typography.
     * {
-      font-family: "AvenirNext", sans-serif;
-    }
-  }
-  @if ($brand == "OP") {
-    @font-face {
-      font-family: "FuturaStd";
-      src: url(../static/fonts/OP/FuturaStd-Medium.woff) format("woff");
-      font-weight: 400;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: "FuturaStd";
-      src: url(../static/fonts/OP/FuturaStd-Medium.woff) format("woff");
-      font-weight: 500;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: "BerlingStdRoman";
-      src: url(../static/fonts/OP/BerlingLTStd-Roman.woff) format("woff");
-
-      font-style: normal;
-    }
-
-    * {
-      font-family: "FuturaStd", sans-serif;
-    }
-  }
-  @if ($brand == "SV") {
-    @import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
-    body {
-      font-family: "Nunito", sans-serif;
-    }
-  }
-  @if ($brand == "PO") {
-    @font-face {
-      font-family: "CABOTO";
-      src: url(../static/fonts/PO/CABOTO-Regular.woff2) format("woff");
-      font-weight: 400;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: "CABOTO";
-      src: url(../static/fonts/PO/CABOTO-Bold.woff2) format("woff");
-      font-weight: 500;
-      font-style: normal;
-    }
-    body {
-      font-family: "CABOTO", sans-serif;
-    }
-  }
-  @if ($brand == "TO") {
-    @font-face {
-      font-family: "HelveticaNeueforTarget";
-      src: url(../static/fonts/TO/HelveticaNeueforTarget-Bd.woff) format("woff");
-      font-weight: 700;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: "HelveticaNeueforTarget";
-      src: url(../static/fonts/TO/HelveticaNeueforTarget-Lt.woff) format("woff");
-      font-weight: 100;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: "HelveticaNeueforTarget";
-      src: url(../static/fonts/TO/HelveticaNeueforTarget-Md.woff) format("woff");
-      font-weight: 500;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: "HelveticaNeueforTarget";
-      src: url(../static/fonts/TO/HelveticaNeueforTarget-Rm.woff) format("woff");
-      font-weight: 400;
-      font-style: normal;
-    }
-    body {
-      font-family: "HelveticaNeueforTarget";
-    }
-  }
-  @if ($brand == "BRAND") {
-    @font-face {
-      font-family: "CABOTO";
-      src: url(../static/fonts/PO/CABOTO-Regular.woff2) format("woff");
-      font-weight: 400;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: "CABOTO";
-      src: url(../static/fonts/PO/CABOTO-Bold.woff2) format("woff");
-      font-weight: 500;
-      font-style: normal;
-    }
-    body {
-      font-family: "CABOTO", sans-serif;
+      font-family: "Helvetica Neue", sans-serif;
     }
   }
 }

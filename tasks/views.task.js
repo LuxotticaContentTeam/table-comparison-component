@@ -18,6 +18,8 @@ let { src, dest } = require("gulp"),
     dist_espot,
     src_folder,
     projectNameNormal,
+    assetPath,
+    buildVersion,
   } = require("./_config.js"),
   browserSync = require("browser-sync").create();
 const pug = require("pug");
@@ -53,6 +55,11 @@ const exportViews = (done) => {
   return (
     src(source)
       .pipe(concat(`index__${release}.html`))
+      // live.html carries @assetPath@ / @buildVersion@ rather than hand-written
+      // values: the preview page's <script src> then follows package.json on
+      // its own, instead of going stale at the next version bump.
+      .pipe($.replace("@assetPath@", assetPath()))
+      .pipe($.replace("@buildVersion@", buildVersion))
       // .pipe($.if(isProd, $.rename({ basename: `index__${release}` })))
       .pipe(dest(path.join(dist_release, global.selectedVariant, release)))
   );

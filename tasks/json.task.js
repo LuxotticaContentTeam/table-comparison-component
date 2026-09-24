@@ -1,86 +1,75 @@
 /**
- * Move generic assets to dist folder
+ * Build the module content.
+ *
+ * One source of truth — src/json/variants/<VARIANT>/json.json — produces two
+ * artifacts, because the module ships through two different channels:
+ *
+ *   json__<version>.json   the file uploaded next to the css and the script.
+ *                          The CoreMedia fragment carries no data at all; the
+ *                          bundle fetches this (src/js/modules/bootstrap.js).
+ *   json.min.js            the same object as a window assignment, which
+ *                          buildEspot concatenates into the self-contained
+ *                          dist/espot.html. Production only — nothing else
+ *                          consumes it.
  */
-const wait = require("gulp-wait");
-let { src, dest } = require("gulp"),
-  fs = require("fs"),
+let fs = require("fs"),
+  path = require("path"),
+  log = require("fancy-log"),
   c = require("ansi-colors"),
-  uglify = require("gulp-uglify"), // Import uglify for JS minification
-  replace = require("gulp-string-replace"),
-  rename = require("gulp-rename"),
-  $ = require("gulp-load-plugins")({ pattern: ["gulp-*"] }), // Setting a global variable to include all glup- plugin
-  {
-    src_folder,
-    src_generic_assets,
-    dist_generic,
-    dist_folder,
-    isPreview,
-    dist_ghPages,
-    dist_json,
-    dist_release,
-    release,
-    src_json_variants,
-    src_json,
-    conf,
-    projectNameNormal,
-    isProd,
-    projectNameCamel,
-  } = require("./_config.js"),
+  { dist_json, dist_release, release, src_json_variants, projectNameCamel, isProd } = require("./_config.js"),
   browserSync = require("browser-sync").create();
 
+const globalName = `ct_cm__${projectNameCamel}Config`;
+const jsonFileName = isProd ? `json__${release}.json` : "json.json";
+
 const json = (done) => {
-  const dist_generic_assets = [];
+  const srcPath = path.join(src_json_variants, global.selectedVariant, "json.json");
 
-  const genericAssetFiles = [
-    {
-      path: path.join(src_json_variants, global.selectedVariant, "json.js"),
-      dest: global.selectedVariant,
-    },
-  ];
-
-  if (src_json.length > 0 || src_json_variants.length > 0) {
-    genericAssetFiles.map((file) => {
-      if (!fs.existsSync(file.path)) {
-        log(c.yellow.bold(`🟡 File ${file.path} does not exist`));
-        done();
-        streamFail = true;
-      } else {
-        log(c.green.bold(`✅ JSON file ${file.path}`));
-        return src(file.path, {
-          allowEmpty: true,
-        })
-          .pipe(replace("@projectName@", projectNameNormal))
-          .pipe(replace("@projectNameCamel@", projectNameCamel))
-          .pipe($.if(isProd, uglify())) // Minify JS
-          .pipe($.if(isProd, rename({ suffix: ".min" })))
-          .pipe(dest(path.join(dist_json, file.dest)))
-          .on("end", () => {
-            console.log(c.green.bold(`✅ Minified file created: ${file.dest}/json.min.js`));
-            done();
-          })
-          .pipe(browserSync.stream());
-      }
-    });
+  if (!fs.existsSync(srcPath)) {
+    log(c.yellow.bold(`🟡 File ${srcPath} does not exist`));
+    return done();
   }
+
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(srcPath, "utf8"));
+  } catch (error) {
+    // A malformed json would otherwise only surface as an empty module in the
+    // browser, long after the build reported success.
+    log(c.red.bold(`❌ ${srcPath} is not valid JSON: ${error.message}`));
+    return done();
+  }
+
+  const destFolder = path.join(dist_json, global.selectedVariant);
+  fs.mkdirSync(destFolder, { recursive: true });
+
+  fs.writeFileSync(path.join(destFolder, jsonFileName), isProd ? JSON.stringify(data) : JSON.stringify(data, null, 2));
+  log(c.green.bold(`✅ JSON file created: ${global.selectedVariant}/${jsonFileName}`));
+
+  if (isProd) {
+    fs.writeFileSync(path.join(destFolder, "json.min.js"), `window["${globalName}"]=${JSON.stringify(data)};`);
+    log(c.green.bold(`✅ Inline JSON created for espot: ${global.selectedVariant}/json.min.js`));
+  }
+
+  browserSync.reload();
+  done();
 };
 
 const jsonBuild = (done) => {
   if (!global.isRelease) return done();
 
-  const srcPath = path.join(dist_json, global.selectedVariant, "json.min.js");
-  const destPath = path.join(dist_release, global.selectedVariant, release);
+  const srcPath = path.join(dist_json, global.selectedVariant, jsonFileName);
+  const destFolder = path.join(dist_release, global.selectedVariant, release);
 
   if (!fs.existsSync(srcPath)) {
-    console.log(c.red.bold(`❌ No minified JSON files found at ${srcPath}`));
+    log(c.red.bold(`❌ No JSON file found at ${srcPath}`));
     return done();
   }
 
-  return src(srcPath, { allowEmpty: true })
-    .pipe(dest(destPath))
-    .on("end", () => {
-      console.log(c.green.bold(`✅ JSON files copied to release folder!`));
-      done();
-    });
+  fs.mkdirSync(destFolder, { recursive: true });
+  fs.copyFileSync(srcPath, path.join(destFolder, jsonFileName));
+  log(c.green.bold(`✅ JSON file copied to release folder!`));
+  done();
 };
 
 module.exports = {

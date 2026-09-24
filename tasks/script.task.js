@@ -5,7 +5,6 @@
 const concat = require("gulp-concat");
 const { stream } = require("browser-sync");
 const {
-  src_asset_js_variants,
   conf,
   src_folder,
   proxyPath,
@@ -31,7 +30,7 @@ let { src, dest, series, glob } = require("gulp"),
   buffer = require("vinyl-buffer"),
   replace = require("gulp-string-replace"),
   es = require("event-stream");
-(path = require("path")), ({ src_asset_js_main, isProd, imagePath, confPath, now } = require("./_config.js"));
+(path = require("path")), ({ src_asset_js_main, isProd, imagePath, assetPath, now } = require("./_config.js"));
 
 const lint = () => {
   return src(src_asset_js)
@@ -68,6 +67,14 @@ const js = (done) => {
     verbose: false,
   };
 
+  // The variant is NOT bundled on its own.
+  //
+  // `main.js` imports it as "@currentVariant@", and the aliasify transform
+  // above resolves that to variants/<variant>/main.js at bundle time — so the
+  // variant's code is already inside the main bundle. Building it a second
+  // time as its own browserify bundle shipped the same module twice: the
+  // released js carried two copies of info_store, one of which nothing
+  // referenced and which ran for nothing on every page load.
   const jsFiles = [
     {
       path: path.join(src_folder, "js/critical.js"),
@@ -76,10 +83,6 @@ const js = (done) => {
     {
       path: src_asset_js_main,
       dest: ".",
-    },
-    {
-      path: path.join(src_asset_js_variants, global.selectedVariant, "main.js"),
-      dest: global.selectedVariant,
     },
   ];
 
@@ -116,8 +119,8 @@ const js = (done) => {
           .pipe($.if(!isProd, $.sourcemaps.write("./maps")))
           .pipe(replace("@env@", isProd ? "production" : "development"))
           .pipe(replace("@buildVersion@", buildVersion))
-          .pipe(replace("@imagePath@", imagePath))
-          .pipe(replace("@confPath@", confPath))
+          .pipe(replace("@imagePath@", imagePath()))
+          .pipe(replace("@assetPath@", assetPath()))
           .pipe(replace("@language@", global.projLanguage ? global.projLanguage : ""))
           .pipe(replace("@proxyPath@", proxyPath))
           .pipe(replace("@projectName@", projectNameNormal))
@@ -142,8 +145,10 @@ const js = (done) => {
 const concatScripts = (done) => {
   if (!global.isRelease) return done();
 
-  // Use allowEmpty: true to allow the task to continue even if files don't exist
-  return src([path.join(dist_js, global.selectedVariant, "main.min.js"), path.join(dist_js, "main.min.js")], { allowEmpty: true })
+  // One bundle in, one file out — the variant is inlined into main.min.js by
+  // aliasify, so there is nothing to concatenate onto it. The name is kept
+  // because the fragment's <script src> is built from it.
+  return src([path.join(dist_js, "main.min.js")], { allowEmpty: true })
     .pipe($.concat(`main__${release}.min.js`))
     .pipe(dest(path.join(dist_release, global.selectedVariant, release)));
 };

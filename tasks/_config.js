@@ -16,6 +16,7 @@ const BRANDS = {
   CDM: "costadelmar.com",
   PO: "persol.com",
   OP: "oliverpeoples.com",
+  OPSM: "opsm.com.au",
   SV: "salmoiraghievigano.it",
   TO: "targetoptical.com",
   LC: "lenscrafters.com",
@@ -36,8 +37,42 @@ module.exports = {
    */
   conf: conf,
   isProd: process.env.NODE_ENV === "production",
-  imagePath: process.env.NODE_ENV === "production" ? conf.paths.productionImage : conf.paths.developmentImage,
-  confPath: process.env.NODE_ENV === "production" ? conf.paths.productionConf : conf.paths.developmentConf,
+  /**
+   * Where the built files are served from once uploaded, and where a relative
+   * image value in the json resolves. Every runtime URL is derived from these
+   * two — see src/js/modules/bootstrap.js and contents.js.
+   *
+   * They are FUNCTIONS, not values, and they have to be: the variant is chosen
+   * by tasks/prompt.task.js at run time, long after gulpfile.js has required
+   * every task module, so a constant captured here would always be the default
+   * brand's.
+   *
+   * **Each brand uploads to its own place.** Not a subfolder of one host — a
+   * different host entirely: SGH is on media.sunglasshut.com, LC on
+   * media.lenscrafters.com under a campaign-calendar path. Two brands publishing
+   * the same three filenames to one folder would also overwrite each other,
+   * which is invisible in development, where dist/ is already per-variant.
+   *
+   * So projectConfig.json > assetPaths holds a full override per variant. A
+   * brand with no entry — SGH — uses the package.json values, which is what it
+   * is already deployed at.
+   *
+   * ⚠️ These are baked into the bundle at build time. Move a brand's files and
+   * that brand has to be rebuilt and re-uploaded; the js on the CDN cannot
+   * discover its own new address.
+   */
+  imagePath: () => {
+    if (process.env.NODE_ENV !== "production") return conf.paths.developmentImage;
+
+    const override = (projectConfigurations.assetPaths || {})[global.selectedVariant] || {};
+    return override.productionImage || conf.paths.productionImage;
+  },
+  assetPath: () => {
+    if (process.env.NODE_ENV !== "production") return conf.paths.developmentAsset;
+
+    const override = (projectConfigurations.assetPaths || {})[global.selectedVariant] || {};
+    return override.productionAsset || conf.paths.productionAsset;
+  },
   proxyPath: process.env.NODE_ENV === "production" ? "" : conf.paths.proxy,
   now: Date.now(),
   BRANDS,
@@ -74,7 +109,6 @@ module.exports = {
   dist_folder: conf.paths.distFolder, // change to whatever root you want it to be.
   dist_css: path.join(conf.paths.distFolder, "/css"),
   dist_js: path.join(conf.paths.distFolder, "/js"),
-  dist_vendors: path.join(conf.paths.distFolder, "vendors"),
   dist_img: path.join(conf.paths.distFolder, "/images"),
   dist_font: path.join(conf.paths.distFolder, "/fonts"),
   dist_html: path.join(conf.paths.distFolder, "/**/*.{twig,html}"),

@@ -1,0 +1,11 @@
+//- Brand-specific markup for LC.
+//-
+//- The module's shared skeleton lives in src/views/main/main.pug. Add here only
+//- what differs for this brand; the file is rendered without pug locals, so no
+//- `bannerName` / `crossoriginAttr` are available.
+//-
+//- LC needs no brand-specific markup, for the same reason SGH does not: the
+//- table is identical across brands and only the design tokens
+//- (src/scss/variants/LC/_variables.scss) and the content
+//- (src/json/variants/LC/json.json) change. The file still has to exist —
+//- tasks/views.task.js renders it unconditionally and the build dies without it.

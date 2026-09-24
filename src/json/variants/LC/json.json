@@ -1,0 +1,1002 @@
+{
+  "_meta": {
+    "locales": "Four locales: en-us, en-ca, es-mx, fr-ca — the markets LC ships. es-mx and fr-ca were translated on 2026-09-23 from Figma 6167:23402 (Spanish) and 6167:23985 (French) and are real. comparison.onlyDifferencesLabel and comparison.selectLabel stay English ON PURPOSE — see translationDecisions, they are not gaps. products[].name, family and shortName are product names, identical in every locale by design, and name is only a fallback anyway: the product service supplies the real one. A present key WINS over the fallback, so a placeholder has to be overwritten rather than added. Never leave a key as an empty string: the country key is matched before the fallback runs, so an empty fr-ca renders blank instead of falling through.",
+    "source": "Figma \"LC_RBM Aperol - Luna\": desktop 5720:35673, compact 5720:35891. Design tokens are in src/scss/variants/LC/_variables.scss; this file carries only content.",
+    "products": "THREE products, in the order the campaign asked for: Gen 2, Gen 2 Optics, Gen 3. Above two products the compact switcher appears instead of the \"only differences\" toggle, so family and shortName are populated on all three — they are what the switcher shows.",
+    "productCopy": "Gen 2 and Gen 2 Optics carry the SAME specification, deliberately: an Optics is the same device with a prescription-ready lens, and the frame's first two columns show the same camera block. Gen 3 is the column with the 36% smaller camera, the 6-mic array, 9 hours and 50 additional. ⚠️ If the Optics differs anywhere — the Lenses row is the likely one — that row is the one to edit, and only on rbm-gen-2-optics.",
+    "productCodes": "products[].upc is the ONLY product field authored here: name fallback, packshot, price and the PDP link all come from the product service keyed by that UPC. VERIFIED 2026-09-22 against production on www.lenscrafters.com (store 10851): Gen 2 8056262721384 = 0RW4012 Clear/Grey $459, Gen 2 Optics 8056262944561 = 0RW7001 Demo Lens $499, Gen 3 8056266259852 = 0RW4016 Clear/Green Gradient $529. All three in stock. The codes are the SAME in every country — confirmed 2026-09-23 — which is why upc is authored en-us only and es-mx/fr-ca resolve to it through the fallback. That is correct, not an omission.",
+    "productService": "LC is NOT on the service SGH uses — that path answers 404 here. It is on /AjaxPartNumberView, which needs a catalogId, nests its products at products.products.product[], returns listPrice as the literal \"$ 0\" and carries no ISO currency code. See src/js/variants/LC/product_service.js. Two consequences for authoring: there is never a struck-through price or a discount badge on this brand, and the currency is read from the page rather than the response.",
+    "nameBadge": "products[].nameBadge is the pill beside the product name, and it is OPTIONAL. Populated it renders, omitted it emits no markup at all. It is a locale map like every other authored string, so it is per market too. It is NOT products[].badge, which is the line under the name with its icon. It sits on Gen 3, the newest of the three. Authored in natural case, because the pill is uppercased in CSS.",
+    "colorCount": "products[].meta — the \"3 Colors\" line above the name — is NOT authored on this brand: nobody has LC's counts, and inventing them would be worse than omitting them. Omitting it on all three also keeps the columns level, since the line is what pushes the name down.",
+    "icons": "Icon values resolve against package.json > projectConfigurations.paths.productionImage, so the brand subfolder is part of the value — LC/, not SGH/. On the CDN they live at <productionImage>/LC/, i.e. img/LC/, in that order: img/ comes from the path, LC/ from the value here. The svg files are byte-identical copies of the SGH ones, and they have to be copies: tasks/staticAsset.task.js excludes the other brands' folders from a build.",
+    "devOrigin": "comparison.api.devOrigin is development only and ignored in a production build: it is the storefront the CORS proxy (npm run proxy) is aimed at. Set to www.lenscrafters.com, which is verified answering. Point it at www.lenscrafters.ca to exercise the Canadian store and its CAD prices — note Canada is a separate DOMAIN on this brand, not a path.",
+    "translationDecisions": "Settled 2026-09-23 with the campaign — do not re-open these, and do not \"fix\" them from the translated frames. (1) Gen 2 Optics keeps Gen 2's values in EVERY locale. Both translated frames give the second column its own values on audio, lenses and memory, but that column carried Gen 3's values in the older English frame and the translations corrected only the camera row, so it is a leftover from the column order the campaign later fixed. (2) onlyDifferencesLabel stays English because it never renders here: the toggle only exists in a two-product table and this brand ships three, so the compact switcher takes its place. ⚠️ Author a two-product LC table and it becomes a real gap. (3) selectLabel stays English because it is never SEEN: contents.js passes it as the switcher trigger's aria-label only. What the control displays is family above shortName — \"Ray-Ban Meta\" over \"Gen 2 Optics\" — which is identical in every market. The residue is that a screen reader on the Spanish or French page announces the trigger in English. (4) The French CTA \"Voir\" is the copy team's wording, not a mistranslation of \"Shop now\". (5) French keeps its internal inconsistencies as delivered: mixed straight and typographic apostrophes, MMAl with a lowercase L on Gen 2, \"IA Meta\" in the app list where Spanish keeps \"Meta AI\", \"Dim\" where Spanish uses \"Sol\", and the row label \"Résistant à l'eau\" against the cell \"Résistance à l'eau\"."
+  },
+  "comparison": {
+    "onlyDifferencesLabel": {
+      "en-us": "Only show differences",
+      "en-ca": "Only show differences",
+      "es-mx": "Only show differences",
+      "fr-ca": "Only show differences"
+    },
+    "shopNowLabel": {
+      "en-us": "Shop now",
+      "en-ca": "Shop now",
+      "es-mx": "Comprar ahora",
+      "fr-ca": "Voir"
+    },
+    "priceLabel": {
+      "en-us": "Starting from",
+      "en-ca": "Starting from",
+      "es-mx": "Desde",
+      "fr-ca": "À partir de"
+    },
+    "selectLabel": {
+      "en-us": "Select a model",
+      "en-ca": "Select a model",
+      "es-mx": "Select a model",
+      "fr-ca": "Select a model"
+    },
+    "selectorIcon": "LC/chevron-down.svg",
+    "api": {
+      "devOrigin": "https://www.lenscrafters.com"
+    },
+    "rows": [
+      {
+        "id": "camera",
+        "label": {
+          "en-us": "Camera",
+          "en-ca": "Camera",
+          "es-mx": "Cámara",
+          "fr-ca": "Caméra"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "audio",
+        "label": {
+          "en-us": "Audio",
+          "en-ca": "Audio",
+          "es-mx": "Audio",
+          "fr-ca": "Audio"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "meta-ai",
+        "label": {
+          "en-us": "Meta AI",
+          "en-ca": "Meta AI",
+          "es-mx": "Meta AI",
+          "fr-ca": "Meta AI"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "lenses",
+        "label": {
+          "en-us": "Lenses",
+          "en-ca": "Lenses",
+          "es-mx": "Lentes",
+          "fr-ca": "Verres"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "case",
+        "label": {
+          "en-us": "Case",
+          "en-ca": "Case",
+          "es-mx": "Estuche",
+          "fr-ca": "Étui"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "memory",
+        "label": {
+          "en-us": "Memory",
+          "en-ca": "Memory",
+          "es-mx": "Memoria",
+          "fr-ca": "Mémoire"
+        },
+        "hideWhenOnlyDifferences": false
+      },
+      {
+        "id": "connectivity",
+        "label": {
+          "en-us": "Connectivity",
+          "en-ca": "Connectivity",
+          "es-mx": "Conectividad",
+          "fr-ca": "Connectivité"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "water-resistance",
+        "label": {
+          "en-us": "Water resistance",
+          "en-ca": "Water resistance",
+          "es-mx": "Resistencia al agua",
+          "fr-ca": "Résistant à l'eau"
+        },
+        "hideWhenOnlyDifferences": true
+      },
+      {
+        "id": "compatible-apps",
+        "label": {
+          "en-us": "Compatible apps",
+          "en-ca": "Compatible apps",
+          "es-mx": "Aplicaciones compatibles",
+          "fr-ca": "Applis compatibles"
+        },
+        "hideWhenOnlyDifferences": true
+      }
+    ],
+    "products": [
+      {
+        "id": "rbm-gen-2",
+        "upc": {
+          "en-us": "8056262721384"
+        },
+        "name": {
+          "en-us": "Ray-Ban | Meta Gen 2",
+          "en-ca": "Ray-Ban | Meta Gen 2",
+          "es-mx": "Ray-Ban | Meta Gen 2",
+          "fr-ca": "Ray-Ban | Meta Gen 2"
+        },
+        "family": {
+          "en-us": "Ray-Ban Meta",
+          "en-ca": "Ray-Ban Meta",
+          "es-mx": "Ray-Ban Meta",
+          "fr-ca": "Ray-Ban Meta"
+        },
+        "shortName": {
+          "en-us": "Gen 2",
+          "en-ca": "Gen 2",
+          "es-mx": "Gen 2",
+          "fr-ca": "Gen 2"
+        },
+        "badge": {
+          "label": {
+            "en-us": "Camera + Audio",
+            "en-ca": "Camera + Audio",
+            "es-mx": "Cámara + Audio",
+            "fr-ca": "Caméra + Audio"
+          },
+          "icon": "LC/badge-photo.svg"
+        },
+        "cells": {
+          "camera": {
+            "value": {
+              "en-us": [
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ],
+              "en-ca": [
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ],
+              "es-mx": [
+                "Resolución de la cámara: 12 MP ultra gran angular",
+                "Captura de imagen: 3024x4032 pixeles",
+                "Resolución de video: 720p+ a 120fps, 1080p+ a 30fps/60fps, 3K Ultra HD a 30fps",
+                "Estabilización ajustable para videos 1080p+ 30fps",
+                "Modos de captura: Hyperlapse, Cámara lenta, Autocaptura"
+              ],
+              "fr-ca": [
+                "Résolution de la caméra : très grand angle 12 MPx",
+                "Capture d’image : 3024 x 4032 pixels",
+                "Résolution vidéo : 720p+ à 120 images par seconde, 1080p+ à 30/60 images par seconde, 3K Ultra HD à 30 images par seconde",
+                "Stabilisation ajustable pour les vidéos 1080p+ à 30 images par seconde",
+                "Modes de capture : Hyperlapse, ralenti, autocapture"
+              ]
+            }
+          },
+          "audio": {
+            "value": {
+              "en-us": [
+                "5-mic array with immersive audio recording",
+                "Up to 5 hours continuous audio",
+                "5.5 hours continuous phone calls"
+              ],
+              "en-ca": [
+                "5-mic array with immersive audio recording",
+                "Up to 5 hours continuous audio",
+                "5.5 hours continuous phone calls"
+              ],
+              "es-mx": [
+                "Matriz de 5 micrófonos con grabación de audio inmersivo",
+                "Hasta 5 horas de audio continuo",
+                "5.5 horas de llamadas telefónicas continuas"
+              ],
+              "fr-ca": [
+                "Ensemble de cinq micros avec enregistrement audio immersif",
+                "Jusqu’à 5 heures d’audio en continu",
+                "5,5 heures d'appels téléphoniques continus"
+              ]
+            }
+          },
+          "meta-ai": {
+            "value": {
+              "en-us": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ],
+              "en-ca": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ],
+              "es-mx": [
+                "Chatbot de IA",
+                "MMAI (IA multimodal)",
+                "IA en vivo",
+                "Traducción de texto",
+                "Traducción en vivo",
+                "Edición de fotos con IA (por la app Meta AI)"
+              ],
+              "fr-ca": [
+                "Agent conversationnel IA",
+                "MMAl (IA multimodale)",
+                "IA en direct",
+                "Traduction de texte",
+                "Traduction en direct",
+                "Retouche photo IA (via l’application Meta AI)"
+              ]
+            }
+          },
+          "lenses": {
+            "value": {
+              "en-us": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ],
+              "en-ca": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ],
+              "es-mx": [
+                "Sol",
+                "Transitions®",
+                "Transparente"
+              ],
+              "fr-ca": [
+                "Dim",
+                "Transitions®",
+                "Transparents"
+              ]
+            }
+          },
+          "case": {
+            "value": {
+              "en-us": [
+                "133 gr",
+                "Up to 8 hours of use on a single charge",
+                "Up to 48 additional hours with fully charged case"
+              ],
+              "en-ca": [
+                "133 gr",
+                "Up to 8 hours of use on a single charge",
+                "Up to 48 additional hours with fully charged case"
+              ],
+              "es-mx": [
+                "133 gramos",
+                "Hasta 8 horas de uso con una sola carga",
+                "Hasta 48 horas adicionales con el estuche completamente cargado"
+              ],
+              "fr-ca": [
+                "133 g",
+                "Jusqu'à 8 heures d'utilisation avec une seule charge",
+                "Jusqu'à 48 heures supplémentaires avec l'étui complètement chargé"
+              ]
+            }
+          },
+          "memory": {
+            "value": {
+              "en-us": [
+                "32GB flash storage",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ],
+              "en-ca": [
+                "32GB flash storage",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ],
+              "es-mx": [
+                "32GB de almacenamiento flash",
+                "Más de 1000 fotos (ráfaga de 3 fotogramas)",
+                "Más de 100 videos (30 segundos)"
+              ],
+              "fr-ca": [
+                "Stockage flash de 32 Go",
+                "Plus de 1 000 photos (rafale de 3 images)",
+                "Plus de 100 vidéos (30 s)"
+              ]
+            }
+          },
+          "connectivity": {
+            "value": {
+              "en-us": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "en-ca": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "es-mx": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "fr-ca": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ]
+            }
+          },
+          "water-resistance": {
+            "value": {
+              "en-us": [
+                "Water resistance IPX4"
+              ],
+              "en-ca": [
+                "Water resistance IPX4"
+              ],
+              "es-mx": [
+                "Resistencia al agua IPX4"
+              ],
+              "fr-ca": [
+                "Résistance à l'eau IPX4"
+              ]
+            }
+          },
+          "compatible-apps": {
+            "value": {
+              "en-us": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "en-ca": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "es-mx": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "fr-ca": [
+                "IA Meta",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "rbm-gen-2-optics",
+        "upc": {
+          "en-us": "8056262944561"
+        },
+        "name": {
+          "en-us": "Ray-Ban | Meta Gen 2 Optics",
+          "en-ca": "Ray-Ban | Meta Gen 2 Optics",
+          "es-mx": "Ray-Ban | Meta Gen 2 Optics",
+          "fr-ca": "Ray-Ban | Meta Gen 2 Optics"
+        },
+        "family": {
+          "en-us": "Ray-Ban Meta",
+          "en-ca": "Ray-Ban Meta",
+          "es-mx": "Ray-Ban Meta",
+          "fr-ca": "Ray-Ban Meta"
+        },
+        "shortName": {
+          "en-us": "Gen 2 Optics",
+          "en-ca": "Gen 2 Optics",
+          "es-mx": "Gen 2 Optics",
+          "fr-ca": "Gen 2 Optics"
+        },
+        "badge": {
+          "label": {
+            "en-us": "Camera + Audio",
+            "en-ca": "Camera + Audio",
+            "es-mx": "Cámara + Audio",
+            "fr-ca": "Caméra + Audio"
+          },
+          "icon": "LC/badge-photo.svg"
+        },
+        "cells": {
+          "camera": {
+            "value": {
+              "en-us": [
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ],
+              "en-ca": [
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ],
+              "es-mx": [
+                "Resolución de la cámara: 12 MP ultra gran angular",
+                "Captura de imagen: 3024x4032 pixeles",
+                "Resolución de video: 720p+ a 120fps, 1080p+ a 30fps/60fps, 3K Ultra HD a 30fps",
+                "Estabilización ajustable para videos 1080p+ 30fps",
+                "Modos de captura: Hyperlapse, Cámara lenta, Autocaptura"
+              ],
+              "fr-ca": [
+                "Résolution de la caméra : très grand angle 12 MPx",
+                "Capture d’image : 3024 x 4032 pixels",
+                "Résolution vidéo : 720p+ à 120 images par seconde, 1080p+ à 30/60 images par seconde, 3K Ultra HD à 30 images par seconde",
+                "Stabilisation ajustable pour les vidéos 1080p+ à 30 images par seconde",
+                "Modes de capture : Hyperlapse, ralenti, autocapture"
+              ]
+            }
+          },
+          "audio": {
+            "value": {
+              "en-us": [
+                "5-mic array with immersive audio recording",
+                "Up to 5 hours continuous audio",
+                "5.5 hours continuous phone calls"
+              ],
+              "en-ca": [
+                "5-mic array with immersive audio recording",
+                "Up to 5 hours continuous audio",
+                "5.5 hours continuous phone calls"
+              ],
+              "es-mx": [
+                "Matriz de 5 micrófonos con grabación de audio inmersivo",
+                "Hasta 5 horas de audio continuo",
+                "5.5 horas de llamadas telefónicas continuas"
+              ],
+              "fr-ca": [
+                "Ensemble de cinq micros avec enregistrement audio immersif",
+                "Jusqu’à 5 heures d’audio en continu",
+                "5,5 heures d'appels téléphoniques continus"
+              ]
+            }
+          },
+          "meta-ai": {
+            "value": {
+              "en-us": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ],
+              "en-ca": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ],
+              "es-mx": [
+                "Chatbot de IA",
+                "MMAI (IA multimodal)",
+                "IA en vivo",
+                "Traducción de texto",
+                "Traducción en vivo",
+                "Edición de fotos con IA (por la app Meta AI)"
+              ],
+              "fr-ca": [
+                "Agent conversationnel IA",
+                "MMAl (IA multimodale)",
+                "IA en direct",
+                "Traduction de texte",
+                "Traduction en direct",
+                "Retouche photo IA (via l’application Meta AI)"
+              ]
+            }
+          },
+          "lenses": {
+            "value": {
+              "en-us": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ],
+              "en-ca": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ],
+              "es-mx": [
+                "Sol",
+                "Transitions®",
+                "Transparente"
+              ],
+              "fr-ca": [
+                "Dim",
+                "Transitions®",
+                "Transparents"
+              ]
+            }
+          },
+          "case": {
+            "value": {
+              "en-us": [
+                "133 gr",
+                "Up to 8 hours of use on a single charge",
+                "Up to 48 additional hours with fully charged case"
+              ],
+              "en-ca": [
+                "133 gr",
+                "Up to 8 hours of use on a single charge",
+                "Up to 48 additional hours with fully charged case"
+              ],
+              "es-mx": [
+                "133 gramos",
+                "Hasta 8 horas de uso con una sola carga",
+                "Hasta 48 horas adicionales con el estuche completamente cargado"
+              ],
+              "fr-ca": [
+                "133 g",
+                "Jusqu'à 8 heures d'utilisation avec une seule charge",
+                "Jusqu'à 48 heures supplémentaires avec l'étui complètement chargé"
+              ]
+            }
+          },
+          "memory": {
+            "value": {
+              "en-us": [
+                "32GB flash storage",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ],
+              "en-ca": [
+                "32GB flash storage",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ],
+              "es-mx": [
+                "32GB de almacenamiento flash",
+                "Más de 1000 fotos (ráfaga de 3 fotogramas)",
+                "Más de 100 videos (30 segundos)"
+              ],
+              "fr-ca": [
+                "Stockage flash de 32 Go",
+                "Plus de 1 000 photos (rafale de 3 images)",
+                "Plus de 100 vidéos (30 s)"
+              ]
+            }
+          },
+          "connectivity": {
+            "value": {
+              "en-us": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "en-ca": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "es-mx": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "fr-ca": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ]
+            }
+          },
+          "water-resistance": {
+            "value": {
+              "en-us": [
+                "Water resistance IPX4"
+              ],
+              "en-ca": [
+                "Water resistance IPX4"
+              ],
+              "es-mx": [
+                "Resistencia al agua IPX4"
+              ],
+              "fr-ca": [
+                "Résistance à l'eau IPX4"
+              ]
+            }
+          },
+          "compatible-apps": {
+            "value": {
+              "en-us": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "en-ca": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "es-mx": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "fr-ca": [
+                "IA Meta",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "rbm-gen-3",
+        "upc": {
+          "en-us": "8056266259852"
+        },
+        "nameBadge": {
+          "en-us": "New",
+          "en-ca": "New",
+          "es-mx": "Nuevo",
+          "fr-ca": "Nouveau"
+        },
+        "name": {
+          "en-us": "Ray-Ban | Meta Gen 3",
+          "en-ca": "Ray-Ban | Meta Gen 3",
+          "es-mx": "Ray-Ban | Meta Gen 3",
+          "fr-ca": "Ray-Ban | Meta Gen 3"
+        },
+        "family": {
+          "en-us": "Ray-Ban Meta",
+          "en-ca": "Ray-Ban Meta",
+          "es-mx": "Ray-Ban Meta",
+          "fr-ca": "Ray-Ban Meta"
+        },
+        "shortName": {
+          "en-us": "Gen 3",
+          "en-ca": "Gen 3",
+          "es-mx": "Gen 3",
+          "fr-ca": "Gen 3"
+        },
+        "badge": {
+          "label": {
+            "en-us": "Camera + Audio",
+            "en-ca": "Camera + Audio",
+            "es-mx": "Cámara + Audio",
+            "fr-ca": "Caméra + Audio"
+          },
+          "icon": "LC/badge-photo.svg"
+        },
+        "cells": {
+          "camera": {
+            "value": {
+              "en-us": [
+                "36% smaller camera and LED opening (vs. Gen 2)",
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ],
+              "en-ca": [
+                "36% smaller camera and LED opening (vs. Gen 2)",
+                "Camera resolution: 12 MP ultra-wide",
+                "Image capture: 3024x4032 pixels",
+                "Video resolution: 720p+ at 120fps, 1080p+ at 30fps/60fps, 3K Ultra HD at 30fps",
+                "Adjustable stabilization for 1080p+ 30fps videos",
+                "Capture modes: Hyperlapse, Slow Motion, Autocapture"
+              ],
+              "es-mx": [
+                "Abertura de cámara y LED un 36% más pequeña (vs. Gen 2)",
+                "Resolución de la cámara: 12 MP ultra gran angular",
+                "Captura de imagen: 3024x4032 pixeles",
+                "Resolución de video: 720p+ a 120fps, 1080p+ a 30fps/60fps, 3K Ultra HD a 30fps",
+                "Estabilización ajustable para videos de 1080p+ y 30 fps",
+                "Modos de captura: Hyperlapse, Cámara lenta, Autocaptura"
+              ],
+              "fr-ca": [
+                "Ouverture plus petite de 36% pour la caméra et la DEL (par rapport à Gen 2)",
+                "Résolution de l'appareil photo : 12 MPx centré à très grand angle",
+                "Capture d’image : 3024x4032 pixels",
+                "Résolution vidéo : 720p+ à 120 images par seconde, 1080p+ à 30/60 images par seconde, 3K Ultra HD à 30 images par seconde",
+                "Stabilisation ajustable pour vidéos 1080p+ 30fps",
+                "Modes de capture : hyperlapse, ralenti, autocapture"
+              ]
+            }
+          },
+          "audio": {
+            "value": {
+              "en-us": [
+                "6-mic array with immersive audio recording and advanced wind noise reduction"
+              ],
+              "en-ca": [
+                "6-mic array with immersive audio recording and advanced wind noise reduction"
+              ],
+              "es-mx": [
+                "Matriz de 6 micrófonos con grabación de audio inmersivo y reducción avanzada de ruido de viento"
+              ],
+              "fr-ca": [
+                "Ensemble de 6 micros avec enregistrement audio immersif et réduction avancée du bruit du vent"
+              ]
+            }
+          },
+          "meta-ai": {
+            "value": {
+              "en-us": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ],
+              "en-ca": [
+                "AI Chatbot",
+                "MMAI (Multimodal AI)",
+                "Live AI",
+                "Text translation",
+                "Live translation",
+                "AI photo editing (via Meta AI app)"
+              ],
+              "es-mx": [
+                "Chatbot de IA",
+                "MMAI (IA Multimodal)",
+                "IA en vivo",
+                "Traducción de texto",
+                "Traducción en vivo",
+                "Edición de fotos con IA (por la app Meta AI)"
+              ],
+              "fr-ca": [
+                "Agent conversationnel IA",
+                "MMAI (IA multimodale)",
+                "IA en direct",
+                "Traduction de texte",
+                "Traduction en direct",
+                "Édition photo IA (via l’application Meta AI)"
+              ]
+            }
+          },
+          "lenses": {
+            "value": {
+              "en-us": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ],
+              "en-ca": [
+                "Sun",
+                "Transitions®",
+                "Clear"
+              ],
+              "es-mx": [
+                "Sol",
+                "Transitions®",
+                "Transparente"
+              ],
+              "fr-ca": [
+                "Dim",
+                "Transitions®",
+                "Transparents"
+              ]
+            }
+          },
+          "case": {
+            "value": {
+              "en-us": [
+                "133 gr",
+                "Up to 9 hours of use on a single charge",
+                "Up to 50 additional hours with fully charged case"
+              ],
+              "en-ca": [
+                "133 gr",
+                "Up to 9 hours of use on a single charge",
+                "Up to 50 additional hours with fully charged case"
+              ],
+              "es-mx": [
+                "133 gramos",
+                "Hasta 9 horas de uso con una sola carga",
+                "Hasta 50 horas adicionales con el estuche completamente cargado"
+              ],
+              "fr-ca": [
+                "133 g",
+                "Jusqu'à 9 heures d'utilisation avec une seule charge",
+                "Jusqu’à 50 heures supplémentaires avec l’étui complètement chargé"
+              ]
+            }
+          },
+          "memory": {
+            "value": {
+              "en-us": [
+                "32GB",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ],
+              "en-ca": [
+                "32GB",
+                "1000+ photos (3 frame burst)",
+                "100+ videos (30s)"
+              ],
+              "es-mx": [
+                "32GB",
+                "Más de 1000 fotos (ráfaga de 3 fotogramas)",
+                "Más de 100 videos (30 segundos)"
+              ],
+              "fr-ca": [
+                "32 Go",
+                "1000+ photos (rafale de 3 images)",
+                "100+ vidéos (30 s)"
+              ]
+            }
+          },
+          "connectivity": {
+            "value": {
+              "en-us": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "en-ca": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "es-mx": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ],
+              "fr-ca": [
+                "Bluetooth 5.3",
+                "WiFi 6"
+              ]
+            }
+          },
+          "water-resistance": {
+            "value": {
+              "en-us": [
+                "Water resistance IPX4"
+              ],
+              "en-ca": [
+                "Water resistance IPX4"
+              ],
+              "es-mx": [
+                "Resistencia al agua IPX4"
+              ],
+              "fr-ca": [
+                "Résistance à l'eau IPX4"
+              ]
+            }
+          },
+          "compatible-apps": {
+            "value": {
+              "en-us": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "en-ca": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "es-mx": [
+                "Meta AI",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ],
+              "fr-ca": [
+                "IA Meta",
+                "Facebook",
+                "Instagram",
+                "Whatsapp",
+                "Messenger",
+                "Spotify",
+                "Apple Music",
+                "Amazon Music",
+                "Shazam",
+                "Be My Eyes"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

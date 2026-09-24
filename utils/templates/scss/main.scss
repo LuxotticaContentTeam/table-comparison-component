@@ -1,4 +1,10 @@
 @import "./variables";
+
 $banner-id: $bannerName;
+
 #{$banner-id} {
+  // The module's markup is shared (src/views/main/main.pug), the styling is not:
+  // this import is what gives THIS brand its look. Without it the cards render
+  // unstyled — Sass compiles fine and nothing warns you.
+  @import "../../components/main-features";
 }

@@ -35,7 +35,7 @@ const createScss = (done) => {
 
 const createJson = (done) => {
   const destinationPath = src_folder + "json/variants/" + global.newVariant;
-  const sourcePath = global.template === "Default" ? src_templates + "json/*.js" : src_folder + "json/variants/" + global.template + "/*.js";
+  const sourcePath = global.template === "Default" ? src_templates + "json/*.json" : src_folder + "json/variants/" + global.template + "/*.json";
   return src(sourcePath)
     .pipe($.plumber()) // Prevent pipe breaking due to errors
     .pipe(dest(destinationPath))

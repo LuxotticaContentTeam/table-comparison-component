@@ -1,11 +1,11 @@
 {
-  "projectName": "github-repo-name",
+  "projectName": "table-comparison-component",
   "serveInNewTab": false,
-  "langs": [
-    "en-us",
-    "it-it"
-  ],
-  "variants": [
-    "BRAND_variantName"
-  ]
+  "variants": ["SGH", "LC"],
+  "assetPaths": {
+    "LC": {
+      "productionAsset": "https://media.lenscrafters.com/2026/Calendar/Week_39_September/RBM_APEROL/table_component/",
+      "productionImage": "https://media.lenscrafters.com/2026/Calendar/Week_39_September/RBM_APEROL/table_component/img/"
+    }
+  }
 }

@@ -1,6 +1,11 @@
-<link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://media.[BRAND].com/[PATH]/style/main__[VERSION].min.css" />
-<!-- TO CHANGE WHEN UPLOADED-->
-<script type="module" src="https://media.[BRAND].com/[PATH]/json/json[ID].js"></script>
-<!-- TO CHANGE WHEN UPLOADED-->
-<script type="module" src="https://media.[BRAND].com/[PATH]/script/main__[VERSION].min.js"></script>
-<!-- TO CHANGE WHEN UPLOADED-->
+<!-- Prepended to the built HTML by tasks/views.task.js when creating a release,
+     producing release/<BRAND>/<version>/index__<version>.html — the standalone
+     preview page, not the CoreMedia fragment (that one is fragment.html).
+
+     One tag is enough: the bundle injects the stylesheet and fetches the
+     content json itself (src/js/modules/bootstrap.js). Do not add a <link>
+     here — it would bypass the injector's data-ct-css guard and the page would
+     end up with the stylesheet twice.
+
+     TODO: replace [BRAND], [PATH] and [VERSION] with the real values. -->
+<script defer src="https://media.[BRAND].com/[PATH]/main__[VERSION].min.js"></script>

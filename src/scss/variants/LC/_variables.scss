@@ -1,0 +1,153 @@
+// ---------------------------------------------------------------------------
+// LC design tokens — read from Figma "LC_RBM Aperol - Luna":
+//   desktop 5720:35673, compact 5720:35891
+//
+// Same table as SGH, different brand. The markup and
+// components/_comparison-table.scss are shared; only this file changes.
+//
+// Colours, type and radii below are the file's OWN variables, pulled with
+// get_variable_defs rather than read off the generated code — the nodes are
+// mapped through Code Connect to an external React design system, and the code
+// it generates carries that library's defaults, not this file's values. The
+// badge is the cautionary tale: the generated Tailwind said #0354a6 at 6px
+// radius, the variables say #222222 at 999.
+//
+// Sizes with no variable behind them (column widths, paddings, gaps) are
+// measured off the two frames and marked "measured" where they differ from SGH.
+// ---------------------------------------------------------------------------
+
+// Breakpoints (shared with src/scss/utils/_variables.scss)
+$mob-small: 375px;
+$mob-max: 767px;
+$tab-min: 768px;
+$tab-max: 1024px;
+$desk-min: 1025px;
+
+// --- colour ---------------------------------------------------------------
+$color-surface: #fff; // Base/White
+$color-text: #222222; // color/generic/neutral/ultra-dark/text — LC's body black
+$color-text-strong: #000; // Base/Text Dark
+$color-muted: #707070; // Base/Gray Dark — colour count, struck price
+$color-cell-bg: #f6f6f6; // color/generic/neutral/light/background
+$color-cta-bg: #222222; // color/generic/neutral/ultra-dark/background
+$color-cta-text: #fff; // color/button/primary/dark/default/text
+$color-border: #d8d8d8; // the switcher's outline — no LC variable, taken from SGH
+// Same gap as SGH: the frames show the switch in its ON state only, so the off
+// track and the knob are invented from the palette rather than read.
+$color-switch-on: #222222;
+$color-switch-off: $color-border;
+$color-switch-knob: #f6f6f6;
+
+// The "New" pill. LC's own near-black, which is where the "black on every
+// brand" decision comes from rather than contradicts.
+$color-name-badge-bg: #222222; // color/badge/color01/background
+$color-name-badge-text: #fff; // color/badge/color01/text
+
+// --- type -----------------------------------------------------------------
+// LC runs on Sofia Pro, with Minerva Modern reserved for Heading 1 — which
+// this module no longer renders, the section title having moved to CoreMedia.
+// $font-display is therefore Sofia Pro too: the product name is Heading 3, and
+// Heading 3 is Sofia Pro on this brand, not the serif.
+$font-primary: "sofia-pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-display: "sofia-pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700; // typography/*/semibold renders at 700 in the frames
+
+// Headings/Heading 1 — 48/56. Kept as a ratio for the shared component.
+$line-height-title: 1.14; // 32/28, the Heading 3 ratio the product name uses
+
+// Texts/Text sm — cells, price, CTA
+$font-size-body: 14px;
+$line-height-body: 1.43; // 20/14
+
+// Headings/Heading 3 — the product name
+$font-size-product-desk: 28px;
+$font-size-product-mob: 20px; // measured: the compact frame's name block
+
+// The colour count above the name
+$font-size-meta-desk: 12px; // Texts/Text xs
+$font-size-meta-mob: 14px; // Texts/Text sm
+
+// Texts/Text xs — row labels and the struck price
+$font-size-small: 12px;
+$letter-spacing-label: 0; // typography/body/xs/letter-spacing
+
+// Texts/Text xs Bold — the "New" pill
+$line-height-name-badge: 16px; // typography/body/xs/line-height
+
+// CTAs/Small — 14/14
+$line-height-cta: 14px;
+
+// --- geometry -------------------------------------------------------------
+// 0, deliberately: the module does not own its vertical spacing. The rows
+// CoreMedia authors above and below it do, the same way they own the title
+// (§7.14) — so the section contributes only its side gutters and lets the page
+// set the rhythm. The 64px the LC frame breathes above and below the table is
+// still there, it is just not ours to add a second time.
+$section-padding-block: 0;
+// Both sides, not just the right: the table is full-bleed and keeps this
+// distance from the screen, the way the page's own fluid rows do.
+$section-padding-inline-desk: 64px;
+$section-padding-inline-mob: 16px;
+
+// 100, not the 200 the frame draws: LC gives the row labels a narrow track and
+// the width it frees goes to the product columns. SGH keeps 200.
+// It also moves the toolbar, which indents by this plus the column gap to line
+// up with the first product column.
+$label-column-width: 100px;
+$label-padding-left: 40px;
+
+$gap-column-desk: 24px;
+$gap-column-mob: 16px;
+$gap-row-desk: 24px; // measured: LC spaces its rows where SGH packs them at 8
+$gap-row-mob: 16px; // label -> its cells
+$gap-block-mob: 32px; // one row block -> the next
+
+$product-image-width: 240px;
+$product-image-height: 140px;
+$product-image-radius: 8px;
+$product-gap: 8px;
+$product-padding-bottom: 40px;
+
+// The "New" pill — spacing/2xs, spacing/xs, radius/badge/color01.
+$name-badge-gap: 8px; // pill -> name
+$name-badge-radius: 999px;
+$name-badge-padding-block: 4px;
+$name-badge-padding-inline: 8px;
+
+$cell-padding-desk: 16px;
+$cell-padding-mob: 8px;
+$cell-radius: 4px; // borders/radius/default
+$row-min-height: 72px;
+
+// spacing/button/small — 10/16, radius/button/default 999
+$cta-padding-block: 10px;
+$cta-padding-inline: 16px;
+$cta-radius: 999px;
+$cta-height-mob: 34px; // measured: the compact frame's button
+$cta-padding-inline-mob: 24px;
+
+$switch-width: 44px;
+$switch-height: 24px;
+$switch-knob: 20px;
+$toolbar-padding-bottom: 24px; // spacing/lg
+
+// The compact product switcher, from 5720:35891 — this is LC's own control, so
+// unlike SGH the radius here is the brand's input radius rather than a
+// stand-in.
+$selector-padding-block: 12px;
+$selector-padding-inline: 16px;
+$selector-gap: 8px; // spacing/xs
+$selector-text-gap: 4px; // spacing/2xs
+$selector-radius: $cell-radius;
+$font-size-selector-value: 16px; // Texts/Text base
+$line-height-selector-value: 24px; // typography/body/base/line-height
+$line-height-selector-eyebrow: 16px;
+$selector-chevron: 16px;
+
+// --- brand layout choices -------------------------------------------------
+// LC centres the product column where SGH aligns it left.
+$product-align: center;
+$product-text-align: center;

@@ -1,0 +1,9 @@
+{
+  "env_dynamic_content": {
+    "en": "TEST DYNAMIC CONTENT [ EN ]",
+    "fr": "TEST DYNAMIC CONTENT [ FR ]",
+    "de": "TEST DYNAMIC CONTENT [ DE ]",
+    "it": "TEST DYNAMIC CONTENT [ IT ]",
+    "es": "TEST DYNAMIC CONTENT [ ES ]"
+  }
+}
