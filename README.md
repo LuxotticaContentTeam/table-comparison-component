@@ -184,10 +184,11 @@ json, why the skeleton in `fragment.html` starts at `.ct_comparison__table`, and
 why `contents.js` builds no `<h2>`.
 
 The consequence worth knowing: **the heading is now the editor's to change, in
-eight languages, without a release.** It also means this module no longer owns
-the vertical rhythm above itself — `.ct_comparison` keeps its own
-`padding: 40px 0`, and whatever spacing sits between the CoreMedia heading and
-the table is the page's business, not this stylesheet's.
+every language the page ships, without a release.** It also means this module no
+longer owns the vertical rhythm above itself: whatever spacing sits between the
+CoreMedia heading and the table is the page's business, not this stylesheet's.
+LC took that to its conclusion — `$section-padding-block` is `0` there, so the
+section adds nothing above or below at all — while SGH still keeps its own 40px.
 
 If it ever has to come back, the per-locale Figma intro frames are still
 recorded in `_meta.translationStatus`.
@@ -509,8 +510,8 @@ in the json or in the code:
 key, not its content, so an empty `fr-ca` renders blank instead of falling
 through to `fr`. A locale with no copy yet has **no key at all**.
 
-The json ships **eight** locales — `en-us`, `en`, `fr`, `fr-ca`, `es`, `es-mx`,
-`de`, `nl` — the same set `4-card-section-module` carries for this campaign, so
+**SGH's** json ships **eight** locales — `en-us`, `en`, `fr`, `fr-ca`, `es`,
+`es-mx`, `de`, `nl` — the same set `4-card-section-module` carries for this campaign, so
 the two modules read as one campaign on the same page. Shared wording and the
 register of each language (`fr`/`fr-ca` vouvoiement, `de` *du*, `es` *tú*, `nl`
 *je*) were taken from that file rather than invented here.
@@ -541,6 +542,30 @@ the seven translated locales, each line's numbers extracted and matched against
 its `en-us` counterpart, normalising the decimal comma and the thousands
 separator. Zero discrepancies. `_meta.valuesMatchSource` records the method;
 re-run it after any copy edit.
+
+**LC's json ships four** — `en-us`, `en-ca`, `es-mx`, `fr-ca`, the markets that
+brand sells in. Spanish and French were authored on 23 September 2026 from the
+Figma frames `6167:23402` and `6167:23985`; until then they carried the English
+verbatim as placeholders.
+
+Two strings stay English there **on purpose**, and `_meta.translationDecisions`
+says why, so that nobody helpfully fills them in later. `onlyDifferencesLabel`
+never renders: the toggle exists only in a two-product table and LC ships three,
+so the compact switcher takes its place — author a two-product LC table and it
+becomes a real gap again. `selectLabel` is never *seen*: `contents.js` passes it
+as the switcher trigger's `aria-label` and nowhere else, while what the control
+displays is `family` above `shortName` — "Ray-Ban Meta" over "Gen 2 Optics" —
+which is identical in every market. The residue is that a screen reader on the
+Spanish or French page announces the trigger in English.
+
+⚠️ **Reading a translated frame is not the same as reading a translation.**
+Figma layer names flatten line breaks into spaces, so a cell arrives as one run
+of text and has to be split back into the array `en-us` already defines; the
+insert refuses an array whose length differs from its English counterpart, which
+is the only thing standing between a translation and a cell sliding out of step.
+And the price and the CTA are not layer names at all — they are text inside
+component instances, which `get_metadata` does not reach and
+`get_design_context` on the text node does.
 
 There is no project-wide locale list: the keys present in a brand's json **are**
 that brand's locale list, and that is what the dev prompt offers
@@ -903,28 +928,33 @@ forever above the table.
 
 ## Design
 
-**This release is SGH, and its CSS stays SGH at every product count.** Three
-products do not change a colour, a radius or an alignment — only how many
-tracks the grid has.
+**Two brands ship from one stylesheet**, and the product count does not change
+it either: three products change how many tracks the grid has, not a colour, a
+radius or an alignment.
 
-The LC frames were read because the SGH file does not draw a three-product
-desktop table or the compact switcher, and structure was needed from somewhere.
-Nothing else was taken from them: they are another brand's design system, and
-the difference is not cosmetic —
+LC began as a reference — the SGH file draws neither a three-product desktop
+table nor the compact switcher, so the structure was read from the LC frames —
+and then became a variant of its own. Every value below is a token in
+`scss/variants/<BRAND>/_variables.scss`, and that file is the whole of a brand.
 
-| | SGH (what ships) | LC (read for structure only) |
+| | SGH | LC |
 | --- | --- | --- |
-| headings | Acta Headline Book | Inter Bold, uppercase |
-| body | Helvetica Neue | Inter |
-| cell background / radius | `#f7f7f7` / 2px | `#f2f2f2` / 16px |
+| headings | Acta Headline, Georgia, serif | Sofia Pro |
+| body | Helvetica Neue | Sofia Pro |
+| cell background / radius | `#f7f7f7` / 2px | `#f6f6f6` / 4px |
 | product column | left aligned | centred |
 | row gap | 8px | 24px |
-| section padding | 40px | 64px in the frame, **0 in the build** — see below |
+| row label track | 200px | 100px |
+| section padding | `40px 64px` | `0 64px` — the page owns the vertical rhythm |
 
-The markup is one grid and one set of class names, and every value above is a
-token in `scss/variants/<BRAND>/_variables.scss`. So an LC variant, when one is
-wanted, is a token file rather than a second stylesheet — but it is not what
-this release builds.
+⚠️ **The LC column is read from the Figma file's own variables, not from the
+code the Figma MCP generates.** Those nodes are mapped through Code Connect to
+an external React design system, so the generated Tailwind carries that
+library's defaults rather than this file's values — it named Inter, `#f2f2f2`
+and a 16px radius where the variables say Sofia Pro, `#f6f6f6` and 4px. An
+earlier version of this table repeated the generated values and was wrong on
+three rows for as long as it stood. The header of
+`scss/variants/LC/_variables.scss` records the same trap on the badge.
 
 ### The layout
 
@@ -1134,6 +1164,32 @@ that each market's page publishes the right two globals, and that the module's
 own code against the live endpoint returns each market's currency and PDP path
 (see the store table above). Re-run the desktop and mobile pass on the first
 non-English market the module is published to.
+
+Verified on 23 and 24 September 2026, after the width work and the translations:
+
+- **the module is full bleed and its gutters are the screen's.** On the live
+  staging page at a 1721px viewport the container spans 0 to 1721 — so its clip
+  rectangle is the whole viewport and clips nothing — the table sits 64px from
+  both edges, the three columns are 440px each, every cell is inside the
+  container's box, and the page gains no horizontal scroll of its own;
+- the same at every other width, measured in an iframe because the window will
+  not resize on this machine: 64px from both edges from 1025px to 2560px, 16px
+  in the compact layout, no overflow anywhere;
+- ⚠️ and **checked by looking, not only by measuring.** The first version of
+  this measured a flawless 64px on both sides while the screen showed the last
+  column sliced off: `getBoundingClientRect` reports the layout box and knows
+  nothing about paint, and `content-visibility: auto` was clipping the section
+  to its container. A full bleed is verified with your eyes;
+- `measureBleed` is idempotent — three consecutive calls leave the same numbers,
+  which is what keeps a drag-resize from creeping wider on every frame;
+- **es-mx and fr-ca render complete in both languages**, checked by resolving
+  the built json through `getTrad`'s own fallback order and reading the whole
+  table back as text, plus assertions that no key is empty, no array is
+  off-length against `en-us`, and nothing is still silently English;
+- `VARIANT=LC RELEASE=yes` and `VARIANT=SGH RELEASE=yes` are both green, and the
+  three LC artifacts agree: the stylesheet and the inlined critical css carry
+  the same `width: auto` and the same `padding: 0 64px`, and the bundle carries
+  `measureBleed`.
 
 ## Open items
 

@@ -14,7 +14,7 @@ Ultimo aggiornamento: 22 settembre 2026 — la sessione in cui il modulo è dive
 | | |
 | --- | --- |
 | Nome | `table-comparison-component` — il typo `tabel` è stato corretto ovunque, repo GitHub compresa |
-| Branch | `develop`. Su `master` c'è solo l'Initial commit |
+| Branch | Si lavora su `develop`. `master` è allineato dal **24 settembre 2026**, componente approvato — prima conteneva solo l'Initial commit |
 | Build | verde su entrambe le varianti. `VARIANT=<brand> RELEASE=yes npm run build` |
 | Versione | `0.0.1` |
 | Brand | `SGH` e `LC` in `projectConfig.json` |
@@ -35,7 +35,10 @@ lancio ([§6](#6-cosa-manca)). I due brand hanno cataloghi e UPC diversi: vedi
 §5.3 prima di spostare un codice dall'uno all'altro.
 
 La regola del commit unico è decaduta dalla seconda sessione: ora si fa un
-commit per lavoro, e si pusha normalmente su `develop`.
+commit per lavoro, e si pusha normalmente su `develop`. Su `master` ci si passa
+a componente approvato, con un merge commit esplicito (`--no-ff`) così il punto
+di approvazione resta leggibile nella storia invece di sparire in un
+fast-forward.
 
 ---
 
@@ -542,10 +545,12 @@ Le non ovvie, quelle che senza contesto verrebbero "corrette" per sbaglio.
     `comparison.subtitle` non esistono più nel JSON, lo skeleton parte da
     `.ct_comparison__table` e `contents.js` non costruisce nessun `<h2>`.
 
-    Il guadagno è che l'intestazione diventa modificabile in otto lingue senza
-    una release. Il prezzo è che il modulo non governa più lo spazio sopra di
-    sé: `.ct_comparison` tiene il suo `padding: 40px 0`, e quanto stacco ci sia
-    fra l'intestazione CoreMedia e la tabella lo decide la pagina.
+    Il guadagno è che l'intestazione diventa modificabile in tutte le lingue
+    della pagina senza una release. Il prezzo è che il modulo non governa più lo
+    spazio sopra di sé: quanto stacco ci sia fra l'intestazione CoreMedia e la
+    tabella lo decide la pagina. Su LC la conseguenza è stata tirata fino in
+    fondo — `$section-padding-block` è `0`, la sezione non mette niente né sopra
+    né sotto (§13) — mentre SGH tiene ancora i suoi 40px.
 
     ⚠️ **Questa modifica cambia `fragment.html`**, quindi è una delle rare
     volte in cui va ri-incollato in CoreMedia: una copia vecchia continua a
