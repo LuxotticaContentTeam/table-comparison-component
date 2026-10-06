@@ -1286,3 +1286,42 @@ i frame tradotti.**
    `Résistance à l'eau`.
 6. **`upc` è autorato solo `en-us` ed è giusto così**: i codici prodotto sono gli
    stessi in tutti i paesi, quindi es-mx e fr-ca ci arrivano per fallback.
+
+## 15. Ray-Ban Meta Audio e l'anteprima del json (6 ottobre 2026)
+
+### Il prodotto
+
+Terza colonna SGH, **in mezzo** fra Gen 3 e Gen 2: `rbm-audio`, UPC
+`8056266190681`, unico per tutti i mercati. Copy dal Figma "SGH - RB META LUNA"
+(`AC1TnjSBrEU1SPzeyY4Uny`, node id in `_meta.source`). AU, NZ e UK sono
+identici all'en-us, quindi sono la chiave `en`; es-mx riusa es. Gen 3 e Gen 2
+**non sono stati toccati**. Badge "Audio only" con icona nuova,
+`img/SGH/badge-audio.svg`, da caricare **una volta** accanto a `badge-photo.svg`.
+
+Corretto: `MMAl` → `MMAI` in tutte le lingue, es "Dom" → "Sol", apostrofi
+tipografici, e due allineamenti di colonna (es "en tiempo real", nl "met een
+volle lading"). **Lasciato com'è perché è un dato**: es "Hasta 8 horas" dove
+tutte le altre lingue dicono 12. Da far confermare alla campagna.
+
+Con tre prodotti il toggle "Only show differences" **non c'è**, anche se il
+Figma lo disegna: scelta confermata, il codice resta com'era.
+
+### `?ct-json`
+
+Il json nuovo si carica **accanto** a quello live con un altro nome, e la pagina
+live con `?ct-json=<nome senza .json>` legge quello; senza parametro tutti
+continuano a leggere il live. Al go-live si sovrascrive il live con il nuovo e
+si fa purge. Regole e procedura nel README, "Changing the content later".
+Scartata prima un'anteprima per versione (`?ct-version`, carica l'intero bundle
+di un'altra versione): più completa, ma il go-live passava dal ri-incollare il
+fragment, e i cambi di codice si faranno comunque come componente nuovo.
+
+Provato su un host locale con il json live e `json__0.0.1-luna.json` affiancati:
+senza parametro due colonne dal json live; con `?ct-json=json__0.0.1-luna` tre
+colonne da quel file; con un nome inesistente 404 e ritorno al json live; con
+un url (`https://...`) parametro ignorato, nessuna richiesta fuori cartella.
+
+Il `main__0.0.1.min.js` nuovo è **identico** che lo si costruisca col json
+vecchio o col nuovo, e css e fragment sono byte per byte quelli online. Quindi
+si ricarica **solo il js**, una volta, con purge Akamai: quello online non ha il
+parametro, e un browser che ne ha ancora la copia in cache lo ignora.

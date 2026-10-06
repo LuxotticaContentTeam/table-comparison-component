@@ -907,11 +907,38 @@ for **fourteen days** and never revalidates. Two consequences:
 
 ### Changing the content later
 
-Edit `src/json/variants/<BRAND>/json.json`, rebuild, and re-upload **only**
-`json__<version>.json`. The css and the js do not change, and the fragment
-already in CoreMedia does not have to be touched — including when you add or
-remove a product or a row, because the skeleton is generic and the real table
-is built at runtime.
+Edit `src/json/variants/<BRAND>/json.json`, rebuild, and upload **only** the
+json. The css and the js do not change, and the fragment already in CoreMedia
+does not have to be touched — including when you add or remove a product or a
+row, because the skeleton is generic and the real table is built at runtime.
+
+**Preview it before it replaces the live one.** Overwriting the live json shows
+the change to everybody at once, before anyone approved it. Instead:
+
+1. Upload the new json **beside** the live one, under any other name — for
+   example `json__0.0.1-luna.json`.
+2. Send the live page with `?ct-json=<that name, without .json>`, e.g.
+   `?ct-json=json__0.0.1-luna`. With the parameter the module reads that file
+   from the same folder; without it, everybody keeps reading the live one.
+3. Once approved, upload it **over** the live file, under the live name, and
+   purge that url on Akamai (the json is cached for seven days). Overwrite
+   rather than delete-then-rename: in between, the live name answers 404 and
+   the module removes itself from the page. Then delete the preview file.
+
+The rules the module applies, in `modules/bootstrap.js`:
+
+- The value is a file **name**, never a url: only letters, digits, `_`, `-` and
+  `.` are accepted, so the parameter can only point inside the module's own
+  folder. A link cannot make sunglasshut.com render a json hosted elsewhere.
+- A name with no file behind it falls back to the live json, so a mistyped
+  link still shows a table. The console says which file was read.
+- Only the json is previewed; the script and the stylesheet are the live ones.
+  A change that needs new code is a new release, tested another way.
+
+⚠️ The parameter exists only in bundles built after it was added. The
+`main__0.0.1.min.js` that first went live did not have it: it had to be
+re-uploaded once (and purged, being `immutable` for fourteen days), and a
+browser that still holds the old copy ignores the parameter.
 
 The exception is the critical css (`scss/components/_critical.scss`, compiled
 per variant): it is **inlined into `fragment.html`**,

@@ -59,33 +59,90 @@ const injectCss = () => {
 };
 
 /**
+ * Previewing a json that is uploaded but not live.
+ *
+ * `?ct-json=<name>` on the page url makes the module read `<name>.json` from
+ * the same folder as the live json, instead of the live one. So a new content
+ * file can be uploaded BESIDE the live one, under any name, and shown to whoever
+ * gets the link — while everybody else keeps reading the live file. Going live
+ * is then overwriting the live file with the new one (and purging it: the json
+ * is cached for seven days).
+ *
+ * The value is a file NAME, never a url: anything but letters, digits, `_`, `-`
+ * and `.` is ignored, so the parameter can only ever point inside this module's
+ * own folder — a link to sunglasshut.com cannot make the module render a json
+ * hosted somewhere else.
+ *
+ * A name that is not in the folder falls back to the live json, so a mistyped
+ * link still shows a table. The console says which file was read.
+ *
+ * Only the json is previewed. The script and the stylesheet are the live ones,
+ * so the new json must be one the live script can read.
+ */
+const JSON_PARAM = "ct-json";
+const JSON_FOLDER = JSON_URL.slice(0, JSON_URL.lastIndexOf("/") + 1);
+
+const previewJsonUrl = () => {
+  let name = null;
+  try {
+    name = new URLSearchParams(window.location.search).get(JSON_PARAM);
+  } catch (error) {
+    return null;
+  }
+  return name && /^[\w.-]+$/.test(name) ? `${JSON_FOLDER}${name}.json` : null;
+};
+
+/**
+ * One json, or null. Logs why not, so a failed preview and a failed live load
+ * both say which url they tried.
+ */
+const fetchJson = async (url) => {
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      customLog(`DATA NOT FOUND: [${url}] responded ${response.status}`, "", "err");
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    // A cross-origin fetch without Access-Control-Allow-Origin lands here.
+    customLog(`DATA NOT LOADED: [${url}] ${error.message}`, "", "err");
+    return null;
+  }
+};
+
+/**
  * Resolve the module content.
  *
- * When the fragment already carries the json inline — which is what
- * dist/espot.html does — window[dataObjId] is populated before this bundle
- * runs, so the fetch is skipped and the same bundle serves both delivery modes.
+ * A `?ct-json` preview comes first (see above). Otherwise, when the fragment
+ * already carries the json inline — which is what dist/espot.html does —
+ * window[dataObjId] is populated before this bundle runs, so the fetch is
+ * skipped and the same bundle serves both delivery modes.
  *
  * Returns null on failure; main.js treats that the same way it always has and
  * removes the module from the page.
  */
 const loadConfig = async (dataObjId) => {
-  if (window[dataObjId]) return window[dataObjId];
+  const previewUrl = previewJsonUrl();
 
-  try {
-    const response = await fetch(JSON_URL);
+  if (previewUrl) {
+    const preview = await fetchJson(previewUrl);
 
-    if (!response.ok) {
-      customLog(`DATA NOT FOUND: [${JSON_URL}] responded ${response.status}`, "", "err");
-      return null;
+    if (preview) {
+      customLog(`?${JSON_PARAM}: showing [${previewUrl}]`, "", "wait");
+      window[dataObjId] = preview;
+      return preview;
     }
 
-    window[dataObjId] = await response.json();
-    return window[dataObjId];
-  } catch (error) {
-    // A cross-origin fetch without Access-Control-Allow-Origin lands here.
-    customLog(`DATA NOT LOADED: [${JSON_URL}] ${error.message}`, "", "err");
-    return null;
+    customLog(`?${JSON_PARAM}: falling back to the live json`, "", "warn");
   }
+
+  if (window[dataObjId]) return window[dataObjId];
+
+  window[dataObjId] = await fetchJson(JSON_URL);
+  return window[dataObjId];
 };
 
 export { injectCss, loadConfig, CSS_URL, JSON_URL };
