@@ -1,5 +1,5 @@
 import { Analytics } from "./modules/analytics";
-import { customLog, getTrad, getDeviceType } from "./modules/utils";
+import { customLog, getTrad, getDeviceType, isExcluded } from "./modules/utils";
 import { createComparisonState, isCompact } from "./modules/comparisonState";
 import { getProducts, formatPrice } from "./modules/productApi";
 import { createProductSelector } from "./modules/productSelector";
@@ -68,17 +68,23 @@ export class Contents {
       return;
     }
 
-    if (data.products.length < 2) {
-      customLog(`[Contents] - a comparison needs at least 2 products, the json has ${data.products.length}`, "", "err");
+    // Products excluded from this market are dropped here, before anything
+    // reads the list, so columns, the mobile picker and the product lookup all
+    // see the same set.
+    const infoStore = this.stateManger.infoStore;
+    const products = data.products.filter((product) => !isExcluded(product, infoStore));
+
+    if (products.length < 2) {
+      customLog(`[Contents] - a comparison needs at least 2 products, this market has ${products.length} of the ${data.products.length} in the json`, "", "err");
       this.container.remove();
       return;
     }
 
-    this.data = data;
-    this.infoStore = this.stateManger.infoStore;
+    this.data = Object.assign({}, data, { products });
+    this.infoStore = infoStore;
     this.productService = this.stateManger.productService;
 
-    this.state = createComparisonState({ products: data.products, rows: data.rows });
+    this.state = createComparisonState({ products, rows: data.rows });
     this.state.setDevice(this.stateManger.device);
     this.state.subscribe((reason) => this.render(reason));
 

@@ -130,6 +130,10 @@ renders comes from here, except price, PDP link and packshot — see
       {
         "id": "rbm-gen-3",
 
+        // Locale codes (en-us, fr-ca) or bare languages (nl) where this product
+        // and its column are NOT rendered. Always present; [] = every market.
+        "excludedCountries": [],
+
         // THE one field the lookup needs. A plain string is the same article
         // everywhere; an object is resolved per market by getTrad, so a market
         // with no key of its own falls back to the English product.
@@ -408,6 +412,21 @@ lists per product that had to be reduced by name (excluding `RxPriceList*`,
 which quotes the frame with prescription lenses) and by promotion date window
 before a number could be shown. None of that is needed any more, and none of it
 is still in the code.
+
+### Excluding a product from some markets
+
+Each product carries `excludedCountries`, an array of locale codes
+(`"en-us"`, `"fr-ca"`) or bare languages (`"nl"`). `Contents.init()` drops the
+matching products before anything else reads the list, so columns, the mobile
+picker and the product lookup all see the same set. Markets with no exclusion
+show every column, as before.
+
+Matching is the opposite of `upc`: **no fallback**. An entry matches the exact
+page country or the page language (`"nl"` covers every `nl-*`), case-insensitive,
+and nothing else — no sibling countries, no `en-us`/`en` default. A missing or
+malformed array means "not excluded": an extra column in the wrong market beats
+a missing one everywhere. If fewer than two products survive, the module logs an
+error and removes itself, as it does for a json with fewer than two products.
 
 ### It takes a UPC, not a product id
 
@@ -907,11 +926,38 @@ for **fourteen days** and never revalidates. Two consequences:
 
 ### Changing the content later
 
-Edit `src/json/variants/<BRAND>/json.json`, rebuild, and re-upload **only**
-`json__<version>.json`. The css and the js do not change, and the fragment
-already in CoreMedia does not have to be touched — including when you add or
-remove a product or a row, because the skeleton is generic and the real table
-is built at runtime.
+Edit `src/json/variants/<BRAND>/json.json`, rebuild, and upload **only** the
+json. The css and the js do not change, and the fragment already in CoreMedia
+does not have to be touched — including when you add or remove a product or a
+row, because the skeleton is generic and the real table is built at runtime.
+
+**Preview it before it replaces the live one.** Overwriting the live json shows
+the change to everybody at once, before anyone approved it. Instead:
+
+1. Upload the new json **beside** the live one, under any other name — for
+   example `json__0.0.1-luna.json`.
+2. Send the live page with `?ct-json=<that name, without .json>`, e.g.
+   `?ct-json=json__0.0.1-luna`. With the parameter the module reads that file
+   from the same folder; without it, everybody keeps reading the live one.
+3. Once approved, upload it **over** the live file, under the live name, and
+   purge that url on Akamai (the json is cached for seven days). Overwrite
+   rather than delete-then-rename: in between, the live name answers 404 and
+   the module removes itself from the page. Then delete the preview file.
+
+The rules the module applies, in `modules/bootstrap.js`:
+
+- The value is a file **name**, never a url: only letters, digits, `_`, `-` and
+  `.` are accepted, so the parameter can only point inside the module's own
+  folder. A link cannot make sunglasshut.com render a json hosted elsewhere.
+- A name with no file behind it falls back to the live json, so a mistyped
+  link still shows a table. The console says which file was read.
+- Only the json is previewed; the script and the stylesheet are the live ones.
+  A change that needs new code is a new release, tested another way.
+
+⚠️ The parameter exists only in bundles built after it was added. The
+`main__0.0.1.min.js` that first went live did not have it: it had to be
+re-uploaded once (and purged, being `immutable` for fourteen days), and a
+browser that still holds the old copy ignores the parameter.
 
 The exception is the critical css (`scss/components/_critical.scss`, compiled
 per variant): it is **inlined into `fragment.html`**,

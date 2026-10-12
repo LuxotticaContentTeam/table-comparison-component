@@ -125,6 +125,25 @@ const getTrad = (field, storeInfo) => {
 };
 
 /**
+ * Whether a product is left out of the current market.
+ *
+ * `excludedCountries` lists locale codes ("fr-ca") or bare languages ("nl").
+ * Unlike getTrad there is NO fallback: no sibling-country or prefix match and
+ * no en-us/en default. An unreadable list or locale means "not excluded",
+ * because an extra column in the wrong market beats a missing one everywhere.
+ *
+ * @param {{excludedCountries?: string[]}} product
+ * @param {{country?: string, lang?: string}} storeInfo
+ * @returns {boolean}
+ */
+const isExcluded = (product, storeInfo) => {
+  const list = product && product.excludedCountries;
+  if (!Array.isArray(list) || !storeInfo) return false;
+  const wanted = [storeInfo.country, storeInfo.lang].filter(Boolean).map((code) => String(code).toLowerCase());
+  return list.some((code) => wanted.includes(String(code).toLowerCase()));
+};
+
+/**
  *
  * @param {*} dataToCheck
  * @param {*} timeout
@@ -150,4 +169,4 @@ const checkData = (dataToCheck, timeout = 10000, startTime = Date.now()) => {
     }
   });
 };
-export { checkData, customLog, eventCatcher, eventDispatch, getTrad, getDeviceType };
+export { checkData, customLog, eventCatcher, eventDispatch, getTrad, getDeviceType, isExcluded };

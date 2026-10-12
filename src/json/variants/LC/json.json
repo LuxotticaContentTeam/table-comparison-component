@@ -4,7 +4,7 @@
     "source": "Figma \"LC_RBM Aperol - Luna\": desktop 5720:35673, compact 5720:35891. Design tokens are in src/scss/variants/LC/_variables.scss; this file carries only content.",
     "products": "THREE products, in the order the campaign asked for: Gen 2, Gen 2 Optics, Gen 3. Above two products the compact switcher appears instead of the \"only differences\" toggle, so family and shortName are populated on all three — they are what the switcher shows.",
     "productCopy": "Gen 2 and Gen 2 Optics carry the SAME specification, deliberately: an Optics is the same device with a prescription-ready lens, and the frame's first two columns show the same camera block. Gen 3 is the column with the 36% smaller camera, the 6-mic array, 9 hours and 50 additional. ⚠️ If the Optics differs anywhere — the Lenses row is the likely one — that row is the one to edit, and only on rbm-gen-2-optics.",
-    "productCodes": "products[].upc is the ONLY product field authored here: name fallback, packshot, price and the PDP link all come from the product service keyed by that UPC. VERIFIED 2026-09-22 against production on www.lenscrafters.com (store 10851): Gen 2 8056262721384 = 0RW4012 Clear/Grey $459, Gen 2 Optics 8056262944561 = 0RW7001 Demo Lens $499, Gen 3 8056266259852 = 0RW4016 Clear/Green Gradient $529. All three in stock. The codes are the SAME in every country — confirmed 2026-09-23 — which is why upc is authored en-us only and es-mx/fr-ca resolve to it through the fallback. That is correct, not an omission.",
+    "productCodes": "products[].upc is the ONLY product field authored here: name fallback, packshot, price and the PDP link all come from the product service keyed by that UPC. VERIFIED 2026-09-22 against production on www.lenscrafters.com (store 10851): Gen 2 8056262721384 = 0RW4012 Clear/Grey $459, Gen 2 Optics 8056262944561 = 0RW7001 Demo Lens $499, Gen 3 8056266259852 = 0RW4016 Clear/Green Gradient $529. All three in stock. The codes are the SAME in every country — confirmed 2026-09-23 — which is why upc is authored en-us only and es-mx/fr-ca resolve to it through the fallback. That is correct, not an omission. products[].excludedCountries is an array of locale codes (en-us, en-ca, fr-ca) in which that product — and so its column — is NOT rendered. It is always present, [] meaning every market. Unlike upc it NEVER falls back: an entry matches only the exact country (fr-ca) or the bare language (fr), never a sibling country and never en-us/en. When in doubt the product shows — an extra column in the wrong market beats a missing one everywhere. If fewer than two products survive in a market the module removes itself.",
     "productService": "LC is NOT on the service SGH uses — that path answers 404 here. It is on /AjaxPartNumberView, which needs a catalogId, nests its products at products.products.product[], returns listPrice as the literal \"$ 0\" and carries no ISO currency code. See src/js/variants/LC/product_service.js. Two consequences for authoring: there is never a struck-through price or a discount badge on this brand, and the currency is read from the page rather than the response.",
     "nameBadge": "products[].nameBadge is the pill beside the product name, and it is OPTIONAL. Populated it renders, omitted it emits no markup at all. It is a locale map like every other authored string, so it is per market too. It is NOT products[].badge, which is the line under the name with its icon. It sits on Gen 3, the newest of the three. Authored in natural case, because the pill is uppercased in CSS.",
     "colorCount": "products[].meta — the \"3 Colors\" line above the name — is NOT authored on this brand: nobody has LC's counts, and inventing them would be worse than omitting them. Omitting it on all three also keeps the columns level, since the line is what pushes the name down.",
@@ -136,6 +136,7 @@
     "products": [
       {
         "id": "rbm-gen-2",
+        "excludedCountries": [],
         "upc": {
           "en-us": "8056262721384"
         },
@@ -423,6 +424,7 @@
       },
       {
         "id": "rbm-gen-2-optics",
+        "excludedCountries": [],
         "upc": {
           "en-us": "8056262944561"
         },
@@ -710,6 +712,7 @@
       },
       {
         "id": "rbm-gen-3",
+        "excludedCountries": [],
         "upc": {
           "en-us": "8056266259852"
         },
