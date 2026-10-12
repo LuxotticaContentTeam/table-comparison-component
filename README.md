@@ -130,6 +130,10 @@ renders comes from here, except price, PDP link and packshot — see
       {
         "id": "rbm-gen-3",
 
+        // Locale codes (en-us, fr-ca) or bare languages (nl) where this product
+        // and its column are NOT rendered. Always present; [] = every market.
+        "excludedCountries": [],
+
         // THE one field the lookup needs. A plain string is the same article
         // everywhere; an object is resolved per market by getTrad, so a market
         // with no key of its own falls back to the English product.
@@ -408,6 +412,21 @@ lists per product that had to be reduced by name (excluding `RxPriceList*`,
 which quotes the frame with prescription lenses) and by promotion date window
 before a number could be shown. None of that is needed any more, and none of it
 is still in the code.
+
+### Excluding a product from some markets
+
+Each product carries `excludedCountries`, an array of locale codes
+(`"en-us"`, `"fr-ca"`) or bare languages (`"nl"`). `Contents.init()` drops the
+matching products before anything else reads the list, so columns, the mobile
+picker and the product lookup all see the same set. Markets with no exclusion
+show every column, as before.
+
+Matching is the opposite of `upc`: **no fallback**. An entry matches the exact
+page country or the page language (`"nl"` covers every `nl-*`), case-insensitive,
+and nothing else — no sibling countries, no `en-us`/`en` default. A missing or
+malformed array means "not excluded": an extra column in the wrong market beats
+a missing one everywhere. If fewer than two products survive, the module logs an
+error and removes itself, as it does for a json with fewer than two products.
 
 ### It takes a UPC, not a product id
 

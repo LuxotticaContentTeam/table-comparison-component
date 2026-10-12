@@ -12,7 +12,7 @@
     "colorCount": "products[].meta (\"3 Colors\") is AUTHORED, not live, and always will be. SGH’s documented product service returns frameColor / lensColor / localizedColorLabel for the single variant it describes and no count of the siblings. A count exists in the group’s services — `availableColors` on glasses.com’s /ajaxSearchDisplayView — but there is no SGH equivalent: the two candidate paths answer with the homepage html, not json. Unlike the packshot, the price and the PDP link, which do come from the call.",
     "columnConsistency": "The product columns are kept in step: any line that reads the same for two products in en-us reads the same in every other locale too. The per-locale frames did not do this — they drifted on 29 lines (nl \"ultragroothoek\" vs \"ultra-wide\", de \"automatische Aufnahme\" vs \"Autoaufnahme\", es \"en tiempo real\" vs \"en directo\", and so on) — and the two columns sit side by side, so the drift was visible. Genuine differences (6-mic vs 5-mic, 9 vs 8 hours, 50 vs 48, \"flash storage\", the extra 36% line) are untouched. If a line is edited in one column, edit it in the other. The Audio column follows the same rule: es “Traducción en directo” / “IA en directo” became “en tiempo real”, and nl “op een volle batterij” became “met een volle lading”, matching the other two columns.",
     "valuesMatchSource": "VERIFIED against the original desktop frame 1020:42173. en-us is identical to it line for line, row labels and annotations included. Every other locale carries the same figures: 497 lines compared across the seven translated locales by extracting each line’s numeric values (normalising the decimal comma and the thousands separator, so 5,5 = 5.5 and 1 000 = 1000) and matching them against the en-us line at the same index — zero discrepancies. The structural differences are the same everywhere too: a line the source keeps distinct between Gen 3 and Gen 2 is distinct in every locale, and a line it keeps identical is identical in every locale. Re-run that check after any copy edit — a translated figure that drifts from the source is the one error this table cannot afford.",
-    "perMarketProducts": "products[].upc is keyed by locale and resolved by getTrad — exact country, then language, then any key starting with it, then en-us, then en — so a market that sells a different article gets its own key and a market with none shows the English product. A plain string still works and means one article everywhere. comparison.api.store is the deliberate opposite: it never falls back, because the store decides currency, price and discount, and quoting another market’s currency is worse than quoting nothing.",
+    "perMarketProducts": "products[].upc is keyed by locale and resolved by getTrad — exact country, then language, then any key starting with it, then en-us, then en — so a market that sells a different article gets its own key and a market with none shows the English product. A plain string still works and means one article everywhere. comparison.api.store is the deliberate opposite: it never falls back, because the store decides currency, price and discount, and quoting another market’s currency is worse than quoting nothing. products[].excludedCountries is an array of locale codes (en-us, fr-ca, nl) in which that product — and so its column — is NOT rendered. It is always present, [] meaning every market. Unlike upc it NEVER falls back: an entry matches only the exact country (fr-ca) or the bare language (nl, which covers every nl-*), never a sibling country and never en-us/en. When in doubt the product shows — an extra column in the wrong market beats a missing one everywhere. If fewer than two products survive in a market the module removes itself.",
     "discountBadge": "prices.saleBadgeValue and prices.saleBadgeColor arrive ONLY on a product that is actually on sale, which is why an earlier version of this module recorded that the endpoint had no badge — it was pointed at two full-price products. The string is rendered verbatim and never recomputed from the two figures: the same Tiffany reads “30% off” on /us and “-30%” on /ca-en. The colours are applied inline so the badge matches the promotion running elsewhere on the page. The badge is NOT in the Figma frame, which shows only the offer and the struck list price — it was added on request."
   },
   "comparison": {
@@ -194,6 +194,7 @@
     "products": [
       {
         "id": "rbm-gen-3",
+        "excludedCountries": [],
         "upc": {
           "en-us": "8056266261459"
         },
@@ -725,6 +726,7 @@
       },
       {
         "id": "rbm-audio",
+        "excludedCountries": [],
         "upc": {
           "en-us": "8056266190681"
         },
@@ -1166,6 +1168,8 @@
       },
       {
         "id": "rbm-gen-2",
+        "excludedCountries": ["en-nz"],
+        
         "upc": {
           "en-us": "8056262721339",
           "nl": "8056262721421"
