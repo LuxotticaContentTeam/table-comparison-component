@@ -226,8 +226,14 @@
 // the name, the way it reads in the design. As a flex row it was a sibling of
 // the whole name block, so the moment the name wrapped — which on a narrow
 // column is most of the time — the pill dropped onto a line of its own.
+//
+// It also takes up the column's spare height. The product cells share a grid
+// row, so they are all as tall as the tallest one: when one name wraps onto a
+// second line, the others grow below their name, and badge, price and CTA
+// stay aligned across the columns instead of slipping by one line.
 .ct_comparison__product-name-row {
   display: block;
+  flex-grow: 1;
 }
 
 .ct_comparison__product-name {
