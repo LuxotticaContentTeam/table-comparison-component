@@ -476,7 +476,7 @@ importato, e i tre `.woff2` non sono morti — `_local.scss` li carica dentro
    spento (`$color-switch-off`) l'ho scelto io: è l'unico valore inventato.
 6. **Stato "aperto" del selettore.** Disegnato solo chiuso. La lista riusa
    bordo, raggio e tipografia del trigger.
-7. **Il nome placement analytics è nostro.** `X_ProductComparisonPlacement` è
+7. **Il nome placement analytics è nostro.** `ProductComparisonPlacement` è
    stato scelto per leggersi bene in un report, non assegnato dal team
    analytics. Se un giorno ne assegnano uno è una riga in `main.js`; gli id dei
    singoli elementi non si spostano.
@@ -522,7 +522,7 @@ Le non ovvie, quelle che senza contesto verrebbero "corrette" per sbaglio.
     `X_@projectName@Placement` risolve nel nome della repo: avrebbe messo
     `table-comparison-component` — trattini, e la parola "component" — in ogni
     riga del report. Nessun nome era stato assegnato, quindi la regola adottata
-    è che l'id si legga per quello che è: `X_ProductComparisonPlacement`. La
+    è che l'id si legga per quello che è: `ProductComparisonPlacement`. La
     metà prodotto degli id è il `products[].id` del JSON, così una riga del
     report punta dritta a un oggetto del file di contenuto, senza tabelle di
     conversione in mezzo.
@@ -692,8 +692,8 @@ progetto:
   contiene solo il prodotto non a schermo, toggle assente. JSON reale
   ripristinato subito dopo.
 - Analytics: eventi osservati sul `tealium_data2track` dell'iframe —
-  `X_ProductComparisonPlacement_OpenProductSelector_1 | Gen3` e poi
-  `X_ProductComparisonPlacement_SelectProduct_rb-hexagonal | Hexagonal`, con la
+  `ProductComparisonPlacement_OpenProductSelector_1 | Gen3` e poi
+  `ProductComparisonPlacement_SelectProduct_rb-hexagonal | Hexagonal`, con la
   colonna che cambia e entrambe le liste che passano a offrire Gen 3.
 
 Difetto trovato e corretto nella stessa sessione: il trigger del selettore non
@@ -767,7 +767,7 @@ Verifiche della pulizia (quarta tornata):
   `concatScripts` concatena un file solo. `dist/js/SGH/` non viene più prodotto.
 - Nel bundle: `documentElement` e `no lang attribute` compaiono **una volta**
   (erano due), e restano presenti `productInfo`, `partNumbers`,
-  `ct_cm--table-comparison-component`, `X_ProductComparisonPlacement`,
+  `ct_cm--table-comparison-component`, `ProductComparisonPlacement`,
   `media.sunglasshut.com`.
 - In dev l'html iniettato ha **un solo** `<script>` e due `<link>`: niente più
   `SGH/main.js`.

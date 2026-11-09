@@ -19,7 +19,7 @@ const isSelfContainedUrl = (value) => /^(?:[a-z][a-z0-9+.-]*:|\/\/|\/)/i.test(va
 
 // Analytics. Every clickable element carries a data-tracking-id; the module
 // (modules/analytics.js) pushes `data_element_id` as
-// `X_ProductComparisonPlacement_<that id>` and `data_description` as the
+// `ProductComparisonPlacement_<that id>` and `data_description` as the
 // element's data-tracking-description. The ids are written to be readable in a
 // report without a legend, and the product half is the json's own product id,
 // so a row in analytics points straight back at an object in the content json:

@@ -738,7 +738,7 @@ Every clickable element carries a `data-tracking-id`. `modules/analytics.js`
 `tealium_data2track`:
 
 ```
-data_element_id  = X_ProductComparisonPlacement_<data-tracking-id>
+data_element_id  = ProductComparisonPlacement_<data-tracking-id>
 data_description = <data-tracking-description>
 ```
 
@@ -1162,8 +1162,8 @@ the project name were set:
   iframe: two columns out of three products, a switcher over each, each list
   holding only the product not on screen, no toggle;
 - the analytics events fire with the new ids and a description on every one:
-  `X_ProductComparisonPlacement_OpenProductSelector_1 | Gen3` then
-  `X_ProductComparisonPlacement_SelectProduct_rb-hexagonal | Hexagonal`, and the
+  `ProductComparisonPlacement_OpenProductSelector_1 | Gen3` then
+  `ProductComparisonPlacement_SelectProduct_rb-hexagonal | Hexagonal`, and the
   column switched while both lists moved on to offering Gen 3.
 
 Re-verified on 21 September 2026, when the store stopped being authored:
@@ -1330,7 +1330,7 @@ them.
   `products[].family` and `products[].shortName`, which only feed that
   dropdown.
 - **The analytics placement name is ours, not the analytics team's.**
-  `X_ProductComparisonPlacement` was chosen to read well in a report because no
+  `ProductComparisonPlacement` was chosen to read well in a report because no
   name was assigned. If one is assigned later it is a one-line change in
   `main.js`; the per-element ids do not move. See [Analytics](#analytics).
 

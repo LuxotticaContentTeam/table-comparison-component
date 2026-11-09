@@ -25,7 +25,9 @@ class Main {
     // report. There is no placement name assigned by the analytics team, so the
     // rule is simply that the id reads as what it is. See contents.js for the
     // second half, the per-element ids.
-    this.anlyticsTrakingId = "X_ProductComparisonPlacement"; //Global tracking id prefix
+    //
+    // No "X_" in front: analytics flags it as a legacy prefix (SGHDP-65908).
+    this.anlyticsTrakingId = "ProductComparisonPlacement"; //Global tracking id prefix
     this.brand = "@currentBrand@"; // Brand name
 
     this.stateManger = undefined;
